@@ -1,0 +1,27 @@
+<main class="shell">
+  <header class="topbar">
+    <div>
+      <p>Thesis Prototype</p>
+      <h1>Insurance Claim Eligibility Assessment</h1>
+    </div>
+    <span>Techno-Functional Multi-Agent System</span>
+  </header>
+
+  <div class="layout">
+    <app-claim-submission
+      (analysisStarted)="setLoading(true)"
+      (analysisFinished)="setLoading(false)"
+      (resultReady)="setResult($event)"
+      (streamEvent)="handleStreamEvent($event)"
+    />
+    <app-results
+      [result]="result"
+      [loading]="loading"
+      [progress]="progress"
+      [activeAgent]="activeAgent"
+      [liveTrace]="liveTrace"
+      [liveEvents]="liveEvents"
+    />
+  </div>
+</main>
+
