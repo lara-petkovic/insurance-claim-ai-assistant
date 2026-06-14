@@ -18,7 +18,7 @@ export class ClaimSubmissionComponent {
   @Output() analysisFinished = new EventEmitter<void>();
 
   insuranceType = 'home';
-  incidentDate = '2026-03-12';
+  incidentDate = '';
   claimDescription = '';
   policyFile: File | null = null;
   damageImage: File | null = null;

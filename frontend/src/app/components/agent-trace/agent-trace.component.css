@@ -1,6 +1,7 @@
 .trace {
   display: grid;
   gap: 12px;
+  margin-top: 6px;
 }
 
 header,
@@ -13,6 +14,7 @@ header,
 }
 
 h2 {
+  color: #eef3fb;
   font-size: 18px;
   margin: 0;
 }
@@ -29,7 +31,7 @@ header span {
 }
 
 .trace-item {
-  background: var(--surface);
+  background: rgba(255, 255, 255, 0.045);
   border: 1px solid var(--border);
   border-radius: 8px;
   display: grid;
@@ -39,7 +41,7 @@ header span {
 }
 
 .trace-item.review {
-  border-color: #e7b85f;
+  border-color: rgba(243, 181, 72, 0.55);
 }
 
 .marker {
@@ -76,7 +78,7 @@ header span {
 }
 
 .status {
-  background: var(--surface-soft);
+  background: rgba(255, 255, 255, 0.08);
   border-radius: 999px;
   color: var(--muted);
   font-size: 12px;
@@ -91,27 +93,27 @@ header span {
 }
 
 .model-chip {
-  background: #e0f2fe;
+  background: rgba(102, 214, 255, 0.14);
   border-radius: 999px;
-  color: #0369a1;
+  color: var(--secondary);
   font-size: 12px;
   font-weight: 800;
   padding: 4px 8px;
 }
 
 .technical {
-  background: #dbeafe;
-  color: #1d4ed8;
+  background: rgba(102, 214, 255, 0.14);
+  color: var(--secondary);
 }
 
 .functional {
-  background: #dcfce7;
-  color: #167647;
+  background: rgba(33, 230, 184, 0.14);
+  color: var(--success);
 }
 
 .orchestrator {
-  background: #fef3c7;
-  color: #a15c00;
+  background: rgba(243, 181, 72, 0.16);
+  color: var(--warning);
 }
 
 .confidence {
@@ -156,10 +158,10 @@ header span {
 }
 
 pre {
-  background: #f8fafc;
+  background: rgba(0, 0, 0, 0.35);
   border: 1px solid var(--border);
   border-radius: 6px;
-  color: #334155;
+  color: #d9e1ed;
   font-size: 12px;
   margin: 10px 0 0;
   max-height: 260px;

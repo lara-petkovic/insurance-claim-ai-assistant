@@ -1,20 +1,56 @@
-<main class="shell">
-  <header class="topbar">
-    <div>
-      <p>Thesis Prototype</p>
-      <h1>Insurance Claim Eligibility Assessment</h1>
-    </div>
-    <span>Techno-Functional Multi-Agent System</span>
-  </header>
+<header class="topbar">
+  <div class="brand">
+    <h1>Claim Checker</h1>
+  </div>
 
-  <div class="layout">
+  <div class="top-actions">
+    <nav class="page-tabs" aria-label="Application pages">
+      <button type="button" [class.active]="activePage === 'input'" (click)="goToPage('input')">Input</button>
+      <button type="button" [class.active]="activePage === 'agents'" [disabled]="!canOpenAgents()" (click)="goToPage('agents')">Agents</button>
+      <button type="button" [class.active]="activePage === 'results'" [disabled]="!canOpenResults()" (click)="goToPage('results')">Results</button>
+    </nav>
+    <label class="search">
+      <span>Search</span>
+      <input type="search" placeholder="Search assessments...">
+    </label>
+    <span class="status-pill" *ngIf="loading || result">{{ loading ? 'Analysis active' : 'Results ready' }}</span>
+  </div>
+</header>
+
+<main class="workspace">
+  <section class="submission-screen" [hidden]="activePage !== 'input'">
+    <div class="submission-copy">
+      <h2>Submit a claim package for AI assessment</h2>
+      <p>
+        Upload the policy, describe the incident, and start the multi-agent review.
+        The orchestration view appears only after submission.
+      </p>
+    </div>
+
     <app-claim-submission
       (analysisStarted)="setLoading(true)"
       (analysisFinished)="setLoading(false)"
       (resultReady)="setResult($event)"
       (streamEvent)="handleStreamEvent($event)"
     />
+  </section>
+
+  <section class="analysis-screen" #analysisSection *ngIf="activePage === 'agents' && showAnalysis()">
     <app-results
+      view="agents"
+      [result]="result"
+      [loading]="loading"
+      [progress]="progress"
+      [activeAgent]="activeAgent"
+      [liveTrace]="liveTrace"
+      [liveEvents]="liveEvents"
+      (reviewResults)="goToPage('results')"
+    />
+  </section>
+
+  <section class="analysis-screen" *ngIf="activePage === 'results'">
+    <app-results
+      view="results"
       [result]="result"
       [loading]="loading"
       [progress]="progress"
@@ -22,6 +58,5 @@
       [liveTrace]="liveTrace"
       [liveEvents]="liveEvents"
     />
-  </div>
+  </section>
 </main>
-

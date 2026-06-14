@@ -13,13 +13,14 @@ import { Component, Input } from '@angular/core';
   `,
   styles: [`
     .section {
-      background: var(--surface);
+      background: rgba(255, 255, 255, 0.045);
       border: 1px solid var(--border);
       border-radius: 8px;
       padding: 18px;
     }
 
     h2 {
+      color: #eef3fb;
       font-size: 16px;
       margin: 0 0 12px;
     }
@@ -28,4 +29,3 @@ import { Component, Input } from '@angular/core';
 export class ResultSectionComponent {
   @Input({ required: true }) title = '';
 }
-

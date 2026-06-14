@@ -12,45 +12,67 @@ import { ResultsComponent } from './pages/results/results.component';
   styleUrl: './app.component.css'
 })
 export class AppComponent {
+  activePage: 'input' | 'agents' | 'results' = 'input';
   result: ClaimAnalysisResult | null = null;
   loading = false;
+  analysisStarted = false;
   progress = 0;
   activeAgent = '';
   liveTrace: AgentResponse[] = [];
   liveEvents: AgentStreamEvent[] = [];
-  private progressTimer: ReturnType<typeof setInterval> | null = null;
 
   setLoading(value: boolean): void {
     this.loading = value;
     if (value) {
-      if (this.progressTimer) {
-        clearInterval(this.progressTimer);
-      }
+      this.analysisStarted = true;
       this.result = null;
       this.liveTrace = [];
       this.liveEvents = [];
-      this.activeAgent = 'Starting agents';
-      this.progress = 3;
-      this.progressTimer = setInterval(() => {
-        this.progress = Math.min(this.progress + 4, 94);
-      }, 700);
+      this.activeAgent = '';
+      this.progress = 0;
+      this.goToPage('agents');
       return;
     }
 
-    this.progress = 100;
-    if (this.progressTimer) {
-      clearInterval(this.progressTimer);
-      this.progressTimer = null;
+    this.progress = this.result ? 100 : this.progress;
+  }
+
+  showAnalysis(): boolean {
+    return this.analysisStarted || this.loading || !!this.result || this.liveTrace.length > 0;
+  }
+
+  canOpenAgents(): boolean {
+    return this.showAnalysis();
+  }
+
+  canOpenResults(): boolean {
+    return !!this.result;
+  }
+
+  goToPage(page: 'input' | 'agents' | 'results'): void {
+    if (page === 'agents' && !this.canOpenAgents()) {
+      return;
     }
+    if (page === 'results' && !this.canOpenResults()) {
+      return;
+    }
+    this.activePage = page;
+    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 0);
   }
 
   setResult(result: ClaimAnalysisResult): void {
     this.result = result;
     this.liveTrace = result.agent_trace;
     this.activeAgent = '';
+    this.progress = 100;
   }
 
   handleStreamEvent(event: AgentStreamEvent): void {
+    if (event.event === 'analysis_started') {
+      this.analysisStarted = true;
+      this.progress = 0;
+      this.activePage = 'agents';
+    }
     this.liveEvents = [...this.liveEvents, event];
     if (event.event === 'agent_started' && event.agent_name) {
       this.activeAgent = event.agent_name;
@@ -78,4 +100,3 @@ export class AppComponent {
     );
   }
 }
-

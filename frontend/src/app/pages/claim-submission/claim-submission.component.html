@@ -1,11 +1,11 @@
-<section class="panel">
+<section class="claim-panel">
   <div class="panel-head">
     <h2>Claim Package</h2>
-    <p>Upload the policy and describe the event. Missing files are allowed for MVP testing.</p>
+    <p>Verify the policy and event details before starting orchestration.</p>
   </div>
 
-  <label>
-    Insurance type
+  <label class="field">
+    <span>Insurance type</span>
     <select [(ngModel)]="insuranceType">
       <option value="home">Home insurance</option>
       <option value="travel">Travel insurance</option>
@@ -13,36 +13,44 @@
     </select>
   </label>
 
-  <label>
-    Incident date
+  <label class="field">
+    <span>Incident date</span>
     <input type="date" [(ngModel)]="incidentDate">
   </label>
 
-  <label>
-    Claim description
+  <label class="field">
+    <span>Claim description</span>
     <textarea rows="6" [(ngModel)]="claimDescription" placeholder="Describe the real incident, cause, date, location, and visible damage."></textarea>
   </label>
 
-  <label class="file">
-    Policy PDF or text
+  <label class="file-card">
+    <span class="label">Policy PDF or text</span>
     <input type="file" accept=".pdf,.txt,.md" (change)="selectPolicy($event)">
-    <span>{{ policyFile?.name || 'No policy selected; backend sample excerpt will be used' }}</span>
+    <strong>DOC</strong>
+    <b>{{ policyFile?.name || 'Select policy document' }}</b>
+    <small>{{ policyFile ? 'Ready for extraction' : 'PDF, TXT or MD required' }}</small>
   </label>
 
-  <label class="file">
-    Damage image
+  <label class="evidence-card">
+    <span class="label">Damage image</span>
     <input type="file" accept="image/*" (change)="selectImage($event)">
-    <span>{{ damageImage?.name || 'Optional image' }}</span>
+    <div class="image-preview">
+      <span>IMG</span>
+    </div>
+    <b>{{ damageImage?.name || 'Optional image evidence' }}</b>
+    <small>{{ damageImage ? 'Queued for visual agent' : 'JPG, PNG or WEBP' }}</small>
   </label>
 
-  <label class="file">
-    Supporting documents
+  <label class="file-card compact">
+    <span class="label">Supporting documents</span>
     <input type="file" multiple accept=".pdf,.txt,.jpg,.jpeg,.png,.webp" (change)="selectSupportingDocuments($event)">
-    <span>{{ supportingDocuments.length ? supportingDocuments.length + ' selected' : 'Optional supporting evidence' }}</span>
+    <strong>SUP</strong>
+    <b>{{ supportingDocuments.length ? supportingDocuments.length + ' selected' : 'Optional supporting evidence' }}</b>
+    <small>Reports, photos, invoices</small>
   </label>
 
   <button class="analyze" type="button" (click)="analyze()" [disabled]="!claimDescription.trim() || !policyFile">
-    Analyze Claim
+    {{ policyFile ? 'Update Submission' : 'Attach Policy To Start' }}
   </button>
 
   <p class="error" *ngIf="error">{{ error }}</p>
