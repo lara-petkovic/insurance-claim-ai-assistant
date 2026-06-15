@@ -6,14 +6,24 @@ export interface EvidenceItem {
   score?: number | null;
 }
 
+export interface AgentMessage {
+  from_agent: string;
+  to_agent?: string | null;
+  message_type: 'handoff' | 'request' | 'response' | 'guidance' | 'feedback' | 'validation' | 'summary';
+  content: string;
+  metadata: Record<string, unknown>;
+}
+
 export interface AgentResponse {
   agent_name: string;
+  agent_type: 'orchestrator' | 'technical' | 'functional' | 'validator' | 'synthesis';
   status: 'completed' | 'warning' | 'failed' | 'skipped';
   findings: Record<string, unknown>;
   evidence: EvidenceItem[];
   confidence: number;
   warnings: string[];
   requires_human_review: boolean;
+  messages: AgentMessage[];
 }
 
 export interface ImageAssessment {

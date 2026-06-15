@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
-from app.schemas.agent import AgentResponse
+from app.schemas.agent import AgentMessage, AgentResponse, AgentType
 from app.schemas.claim import ClaimRequestData
 
 
@@ -12,16 +12,63 @@ class AgentContext:
     request: ClaimRequestData
     responses: list[AgentResponse] = field(default_factory=list)
     memory: dict[str, Any] = field(default_factory=dict)
+    messages: list[AgentMessage] = field(default_factory=list)
 
     def add(self, response: AgentResponse) -> AgentResponse:
         self.responses.append(response)
         self.memory[response.agent_name] = response.findings
+        self.messages.extend(response.messages)
+        return response
+
+    def replace(self, response: AgentResponse) -> AgentResponse:
+        self.responses.append(response)
+        self.memory[response.agent_name] = response.findings
+        self.messages.extend(response.messages)
         return response
 
 
 class BaseAgent:
     name = "BaseAgent"
+    agent_type: AgentType = "technical"
 
     def run(self, context: AgentContext) -> AgentResponse:
         raise NotImplementedError
 
+    def message(
+        self,
+        content: str,
+        *,
+        to_agent: str | None = None,
+        message_type: str = "summary",
+        metadata: dict[str, Any] | None = None,
+    ) -> AgentMessage:
+        return AgentMessage(
+            from_agent=self.name,
+            to_agent=to_agent,
+            message_type=message_type,
+            content=content,
+            metadata=metadata or {},
+        )
+
+    def respond(
+        self,
+        *,
+        findings: dict[str, Any] | None = None,
+        evidence: list | None = None,
+        confidence: float = 0.0,
+        warnings: list[str] | None = None,
+        requires_human_review: bool = False,
+        messages: list[AgentMessage] | None = None,
+        status: str = "completed",
+    ) -> AgentResponse:
+        return AgentResponse(
+            agent_name=self.name,
+            agent_type=self.agent_type,
+            status=status,
+            findings=findings or {},
+            evidence=evidence or [],
+            confidence=confidence,
+            warnings=warnings or [],
+            requires_human_review=requires_human_review,
+            messages=messages or [],
+        )

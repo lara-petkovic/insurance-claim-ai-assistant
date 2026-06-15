@@ -7,7 +7,11 @@
     <span>{{ trace.length }} steps</span>
   </header>
 
-  <article *ngFor="let agent of trace" class="trace-item" [class.review]="agent.requires_human_review">
+  <article
+    *ngFor="let agent of newestFirstTrace(); trackBy: trackAgent"
+    class="trace-item"
+    [class.review]="agent.requires_human_review"
+  >
     <div class="marker"></div>
     <div class="content">
       <div class="row">
@@ -17,14 +21,25 @@
         </div>
         <div class="chips">
           <span class="model-chip" *ngIf="modelUsed(agent)">model used</span>
-          <span class="role" [ngClass]="role(agent.agent_name)">{{ role(agent.agent_name) }}</span>
+          <span class="role" [ngClass]="role(agent)">{{ role(agent) }}</span>
           <span class="status">{{ agent.status }}</span>
         </div>
       </div>
+
+      <div class="communication" *ngIf="latestMessage(agent)">
+        <span class="node from">{{ latestMessage(agent)?.from_agent }}</span>
+        <span class="arrow">-></span>
+        <span class="node to" [class.broadcast]="!latestMessage(agent)?.to_agent">
+          {{ latestMessage(agent)?.to_agent || 'Team Trace' }}
+        </span>
+        <span class="message-kind">{{ latestMessage(agent)?.message_type }}</span>
+      </div>
+
       <div class="confidence" aria-label="Agent confidence score">
+        <div class="score-circle" [style.--score]="confidenceScore(agent.confidence)">
+          <strong>{{ confidencePercent(agent.confidence) }}</strong>
+        </div>
         <span>Confidence score</span>
-        <div class="bar"><i [style.width]="confidencePercent(agent.confidence)"></i></div>
-        <span>{{ confidencePercent(agent.confidence) }}</span>
       </div>
       <p *ngIf="agent.warnings.length" class="warnings">{{ agent.warnings.join(' | ') }}</p>
       <div class="evidence-line" *ngIf="agent.evidence.length">

@@ -19,7 +19,6 @@ export class AppComponent {
   progress = 0;
   activeAgent = '';
   liveTrace: AgentResponse[] = [];
-  liveEvents: AgentStreamEvent[] = [];
 
   setLoading(value: boolean): void {
     this.loading = value;
@@ -27,7 +26,6 @@ export class AppComponent {
       this.analysisStarted = true;
       this.result = null;
       this.liveTrace = [];
-      this.liveEvents = [];
       this.activeAgent = '';
       this.progress = 0;
       this.goToPage('agents');
@@ -73,7 +71,6 @@ export class AppComponent {
       this.progress = 0;
       this.activePage = 'agents';
     }
-    this.liveEvents = [...this.liveEvents, event];
     if (event.event === 'agent_started' && event.agent_name) {
       this.activeAgent = event.agent_name;
       this.setProgressFromEvent(event);

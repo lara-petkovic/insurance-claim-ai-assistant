@@ -1,13 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, Output, SimpleChanges } from '@angular/core';
 import { AgentTraceComponent } from '../../components/agent-trace/agent-trace.component';
-import { ResultSectionComponent } from '../../components/result-section/result-section.component';
-import { AgentResponse, AgentStreamEvent, ClaimAnalysisResult } from '../../models/claim.models';
+import { AgentResponse, ClaimAnalysisResult, EvidenceItem } from '../../models/claim.models';
 
 @Component({
   selector: 'app-results',
   standalone: true,
-  imports: [CommonModule, AgentTraceComponent, ResultSectionComponent],
+  imports: [CommonModule, AgentTraceComponent],
   templateUrl: './results.component.html',
   styleUrl: './results.component.css'
 })
@@ -18,19 +17,21 @@ export class ResultsComponent {
   @Input() progress = 0;
   @Input() activeAgent = '';
   @Input() liveTrace: AgentResponse[] = [];
-  @Input() liveEvents: AgentStreamEvent[] = [];
   @Output() reviewResults = new EventEmitter<void>();
 
   displayedTrace: AgentResponse[] = [];
   private revealQueue: AgentResponse[] = [];
   private revealTimer: ReturnType<typeof setTimeout> | null = null;
 
-  loadingSteps = [
+  knownSteps = [
+    { name: 'DynamicPlanningAgent', role: 'orchestrator', waitsFor: 'claim-specific execution plan' },
     { name: 'DocumentIngestionAgent', role: 'technical', waitsFor: 'policy PDF text extraction' },
+    { name: 'DocumentQualityAgent', role: 'validator', waitsFor: 'document extraction quality check' },
     { name: 'PolicyConceptExtractionAgent', role: 'model', waitsFor: 'normalized policy concepts' },
     { name: 'ClaimExtractionAgent', role: 'model', waitsFor: 'claim facts and incident details' },
     { name: 'GeneralInsuranceFunctionalAgent', role: 'functional', waitsFor: 'general insurance rules' },
     { name: 'HomeInsuranceFunctionalAgent', role: 'functional', waitsFor: 'home insurance rules' },
+    { name: 'QueryRewriteAgent', role: 'technical', waitsFor: 'retrieval query rewrite' },
     { name: 'RetrievalAgent', role: 'technical', waitsFor: 'relevant policy clauses' },
     { name: 'VisualEvidenceAgent', role: 'vision model', waitsFor: 'damage image interpretation' },
     { name: 'ImageAuthenticityAgent', role: 'vision model', waitsFor: 'image risk assessment' },
@@ -39,7 +40,8 @@ export class ResultsComponent {
     { name: 'MissingDocumentsAgent', role: 'validator', waitsFor: 'required evidence checklist' },
     { name: 'ConsistencyVerificationAgent', role: 'validator', waitsFor: 'cross-document consistency' },
     { name: 'CitationAgent', role: 'technical', waitsFor: 'source snippets' },
-    { name: 'OutputValidatorAgent', role: 'validator', waitsFor: 'final schema validation' }
+    { name: 'OutputValidatorAgent', role: 'validator', waitsFor: 'final schema validation' },
+    { name: 'FinalDecisionSynthesisAgent', role: 'synthesis', waitsFor: 'final team synthesis' }
   ];
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -65,199 +67,8 @@ export class ResultsComponent {
     return Math.round((total / trace.length) * 100);
   }
 
-  visibleAgentMessages(): Array<{
-    step: { name: string; role: string; waitsFor: string };
-    response?: AgentResponse;
-    state: 'complete' | 'active' | 'waiting';
-    index: number;
-  }> {
-    return this.loadingSteps
-      .map((step, index) => ({
-        step,
-        response: this.displayedTrace.find((agent) => agent.agent_name === step.name),
-        state: this.stepState(index),
-        index,
-      }))
-      .filter((item) => item.state !== 'waiting' || item.index <= this.firstWaitingIndex())
-      .sort((a, b) => {
-        if (a.state === 'waiting' && b.state !== 'waiting') {
-          return 1;
-        }
-        if (b.state === 'waiting' && a.state !== 'waiting') {
-          return -1;
-        }
-        return b.index - a.index;
-      });
-  }
-
   allAgentResponsesDisplayed(): boolean {
     return this.liveTrace.length > 0 && this.displayedTrace.length >= this.liveTrace.length && this.revealQueue.length === 0;
-  }
-
-  trackAgentMessage(_: number, item: { step: { name: string } }): string {
-    return item.step.name;
-  }
-
-  agentRoleLabel(step: { role: string }, response?: AgentResponse): string {
-    if (response?.findings?.['model_used'] === true) {
-      return `MODEL: ${step.role.toUpperCase()}`;
-    }
-    return step.role.toUpperCase();
-  }
-
-  agentTimeLabel(state: 'complete' | 'active' | 'waiting'): string {
-    if (state === 'active') {
-      return 'Now';
-    }
-    if (state === 'complete') {
-      return 'Completed';
-    }
-    return 'Queued';
-  }
-
-  agentMessage(item: { step: { name: string; role: string; waitsFor: string }; response?: AgentResponse; state: 'complete' | 'active' | 'waiting' }): string {
-    if (item.response) {
-      return this.agentSummary(item.response);
-    }
-    if (item.state === 'active') {
-      return `Processing ${item.step.waitsFor}. Waiting for streamed findings from the backend.`;
-    }
-    return `Queued after ${item.step.waitsFor}.`;
-  }
-
-  detailTitle(item: { step: { name: string }; response?: AgentResponse; state: 'complete' | 'active' | 'waiting' }): string {
-    if (item.response) {
-      return this.agentOutcomeTitle(item.step.name, item.response);
-    }
-    if (item.state === 'active') {
-      return 'Processing';
-    }
-    return 'Waiting';
-  }
-
-  detailSubtitle(item: { step: { waitsFor: string }; response?: AgentResponse; state: 'complete' | 'active' | 'waiting' }): string {
-    if (item.response) {
-      return this.agentOutcomeSubtitle(item.response);
-    }
-    if (item.state === 'active') {
-      return `Working on ${item.step.waitsFor}`;
-    }
-    return item.step.waitsFor;
-  }
-
-  agentOutcomeTitle(agentName: string, response: AgentResponse): string {
-    const findings = response.findings || {};
-
-    switch (agentName) {
-      case 'DocumentIngestionAgent':
-        return Number(findings['policy_text_length'] || 0) > 0 ? 'Policy document read' : 'Policy text needs review';
-      case 'PolicyConceptExtractionAgent':
-        return this.countLabel(findings['covered_events'], 'covered policy concept', 'covered policy concepts');
-      case 'ClaimExtractionAgent':
-        return `Claim classified as ${this.readable(findings['claim_type'] || 'unclear')}`;
-      case 'GeneralInsuranceFunctionalAgent':
-      case 'HomeInsuranceFunctionalAgent':
-        return 'Coverage rules loaded';
-      case 'RetrievalAgent':
-        return `${findings['retrieved_count'] || response.evidence.length || 0} relevant policy clause(s) found`;
-      case 'VisualEvidenceAgent':
-        return `Image check: ${this.readable(findings['detected_damage'] || 'no image evidence')}`;
-      case 'ImageAuthenticityAgent':
-        return `Image risk: ${this.readable(findings['risk_level'] || 'not assessed')}`;
-      case 'CoverageMatchingAgent':
-        return `Coverage looks ${this.readable(findings['coverage_assessment'] || 'unclear')}`;
-      case 'ExclusionCheckingAgent':
-        return this.countLabel(findings['potential_exclusions'], 'possible exclusion', 'possible exclusions', 'No exclusions found');
-      case 'MissingDocumentsAgent':
-        return this.countLabel(findings['missing_documents'], 'missing document', 'missing documents', 'No missing documents');
-      case 'ConsistencyVerificationAgent':
-        return this.countLabel(findings['consistency_issues'], 'consistency issue', 'consistency issues', 'No consistency issues');
-      case 'CitationAgent':
-        return `${findings['citation_count'] || response.evidence.length || 0} citation(s) attached`;
-      case 'OutputValidatorAgent':
-        return findings['schema_ready'] === false ? 'Final output needs review' : 'Final output validated';
-      default:
-        return response.evidence.length ? `${response.evidence.length} evidence item(s) used` : 'Agent completed';
-    }
-  }
-
-  agentOutcomeSubtitle(response: AgentResponse): string {
-    const findings = response.findings || {};
-    const confidence = Math.round((response.confidence || 0) * 100);
-    const details = this.agentDetailFragments(response.agent_name, findings);
-    const status = response.requires_human_review
-      ? `Human review flagged, confidence ${confidence}%`
-      : response.warnings.length
-        ? `${response.warnings.length} warning${response.warnings.length === 1 ? '' : 's'}, confidence ${confidence}%`
-        : `Confidence ${confidence}%`;
-
-    return details.length ? `${details.join(' | ')} | ${status}` : status;
-  }
-
-  agentDetailFragments(agentName: string, findings: Record<string, unknown>): string[] {
-    switch (agentName) {
-      case 'DocumentIngestionAgent':
-        return [
-          findings['policy_filename'] ? `Policy: ${findings['policy_filename']}` : '',
-          Number(findings['policy_text_length'] || 0) ? `${findings['policy_text_length']} chars extracted` : '',
-        ].filter(Boolean) as string[];
-      case 'PolicyConceptExtractionAgent':
-        return [
-          this.previewConcepts(findings['covered_events'], 'Covered'),
-          this.previewConcepts(findings['exclusions'], 'Exclusions'),
-        ].filter(Boolean) as string[];
-      case 'ClaimExtractionAgent':
-        return [
-          findings['incident_date'] ? `Date: ${findings['incident_date']}` : '',
-          findings['claimed_cause'] ? `Cause: ${this.readable(findings['claimed_cause'])}` : '',
-        ].filter(Boolean) as string[];
-      case 'CoverageMatchingAgent':
-        return [
-          this.previewConcepts(findings['matched_policy_concepts'], 'Matched'),
-          findings['reason'] ? `Reason: ${String(findings['reason']).slice(0, 90)}` : '',
-        ].filter(Boolean) as string[];
-      case 'ExclusionCheckingAgent':
-        return [this.previewConcepts(findings['potential_exclusions'], 'Checked exclusions')].filter(Boolean) as string[];
-      case 'MissingDocumentsAgent':
-        return [this.previewValues(findings['missing_documents'], 'Missing')].filter(Boolean) as string[];
-      case 'ConsistencyVerificationAgent':
-        return [this.previewValues(findings['consistency_issues'], 'Issues')].filter(Boolean) as string[];
-      case 'VisualEvidenceAgent':
-        return [this.previewValues(findings['notes'], 'Visual notes')].filter(Boolean) as string[];
-      case 'ImageAuthenticityAgent':
-        return [this.previewValues(findings['signals'], 'Signals')].filter(Boolean) as string[];
-      case 'OutputValidatorAgent':
-        return [
-          this.previewValues(findings['missing_agent_outputs'], 'Missing outputs'),
-          this.previewValues(findings['non_model_agents'], 'Fallback agents'),
-        ].filter(Boolean) as string[];
-      default:
-        return [];
-    }
-  }
-
-  private countLabel(value: unknown, singular: string, plural: string, emptyLabel = `No ${plural}`): string {
-    const count = Array.isArray(value) ? value.length : Number(value || 0);
-    if (!count) {
-      return emptyLabel;
-    }
-    return `${count} ${count === 1 ? singular : plural}`;
-  }
-
-  detailCode(item: { response?: AgentResponse; state: 'complete' | 'active' | 'waiting' }): string {
-    if (item.response?.requires_human_review) {
-      return 'REVIEW';
-    }
-    if (item.response?.warnings.length) {
-      return 'WARN';
-    }
-    if (item.response) {
-      return 'OK';
-    }
-    if (item.state === 'active') {
-      return 'RUN';
-    }
-    return 'NEXT';
   }
 
   currentAgentSummary(): string {
@@ -306,29 +117,55 @@ export class ResultsComponent {
     return this.result ? this.statusLabel(this.result.coverage_assessment) : 'Pending';
   }
 
-  agentProgress(index: number): number {
-    const state = this.stepState(index);
-    if (state === 'complete') {
-      return 100;
-    }
-    if (state === 'active') {
-      return 0;
-    }
-    return 0;
+  primaryMissingDocument(): string {
+    return this.result?.missing_documents[0] || 'None';
   }
 
-  agentProgressLabel(index: number): string {
-    const state = this.stepState(index);
-    if (state === 'complete') {
-      return '100%';
+  missingDocumentAction(): string {
+    const count = this.result?.missing_documents.length || 0;
+    if (!count) {
+      return 'Complete';
     }
-    if (state === 'active') {
-      return 'Running';
+    return count === 1 ? 'Action required' : `${count} actions required`;
+  }
+
+  exclusionCountLabel(): string {
+    const count = this.result?.potential_exclusions.length || 0;
+    return count ? `${count.toString().padStart(2, '0')} Trigger${count === 1 ? '' : 's'}` : 'No Triggers';
+  }
+
+  reviewChecklist(): Array<{ title: string; note: string; checked: boolean }> {
+    if (!this.result) {
+      return [];
     }
-    return 'Waiting';
+
+    const exclusions = this.result.potential_exclusions.map((item) => ({
+      title: `Review ${this.formatConcept(item)}`,
+      note: 'Confirm whether this exclusion applies to the submitted claim.',
+      checked: false,
+    }));
+    const missing = this.result.missing_documents.map((document) => ({
+      title: `Request ${document}`,
+      note: 'Add this document before a final adjuster decision.',
+      checked: false,
+    }));
+
+    return [...exclusions, ...missing].slice(0, 5);
+  }
+
+  topPolicyMatches(): Array<Record<string, unknown>> {
+    return this.result?.matched_policy_concepts.slice(0, 4) || [];
+  }
+
+  topEvidence(): EvidenceItem[] {
+    return this.result?.evidence.slice(0, 3) || [];
   }
 
   agentSummary(agent: AgentResponse): string {
+    const lastMessage = agent.messages?.at(-1);
+    if (lastMessage) {
+      return lastMessage.content;
+    }
     const findings = agent.findings || {};
     if ('claim_type' in findings) {
       return `Classified claim as ${findings['claim_type']}.`;
@@ -358,27 +195,44 @@ export class ResultsComponent {
     return String(value).replaceAll('_', ' ');
   }
 
-  private previewConcepts(value: unknown, label: string): string {
-    if (!Array.isArray(value) || !value.length) {
-      return '';
+  agentSteps(): Array<{ name: string; role: string; waitsFor: string }> {
+    const planned = this.plannedAgentNames();
+    if (planned.length) {
+      return planned.map((name) => this.stepForName(name));
     }
-    const names = value
-      .slice(0, 2)
-      .map((item) => this.formatConcept(item as Record<string, unknown>))
-      .map((item) => this.readable(item));
-    return `${label}: ${names.join(', ')}${value.length > 2 ? ` +${value.length - 2}` : ''}`;
+
+    const traceNames = [...this.liveTrace, ...(this.result?.agent_trace || [])].map((agent) => agent.agent_name);
+    const uniqueTraceNames = Array.from(new Set(traceNames));
+    if (uniqueTraceNames.length) {
+      return uniqueTraceNames.map((name) => this.stepForName(name));
+    }
+
+    return this.knownSteps;
   }
 
-  private previewValues(value: unknown, label: string): string {
-    if (!Array.isArray(value) || !value.length) {
-      return '';
+  plannedAgentNames(): string[] {
+    const planningAgent = [...this.liveTrace, ...(this.result?.agent_trace || [])]
+      .find((agent) => agent.agent_name === 'DynamicPlanningAgent');
+    const planned = planningAgent?.findings?.['planned_agents'];
+    if (!Array.isArray(planned)) {
+      return [];
     }
-    const names = value.slice(0, 2).map((item) => this.readable(item));
-    return `${label}: ${names.join(', ')}${value.length > 2 ? ` +${value.length - 2}` : ''}`;
+    return ['DynamicPlanningAgent', ...planned.map((name) => String(name))];
+  }
+
+  private stepForName(name: string): { name: string; role: string; waitsFor: string } {
+    return this.knownSteps.find((step) => step.name === name) || {
+      name,
+      role: 'agent',
+      waitsFor: 'planned agent work',
+    };
   }
 
   stepState(index: number): 'complete' | 'active' | 'waiting' {
-    const step = this.loadingSteps[index];
+    const step = this.agentSteps()[index];
+    if (!step) {
+      return 'waiting';
+    }
     if (this.displayedTrace.some((agent) => agent.agent_name === step.name)) {
       return 'complete';
     }
@@ -403,14 +257,6 @@ export class ResultsComponent {
       return 'Waiting for first agent';
     }
     return this.result ? 'Assessment complete' : 'Not started';
-  }
-
-  latestLiveResponses(): AgentResponse[] {
-    return this.displayedTrace.slice(-4).reverse();
-  }
-
-  hasLiveReasoning(): boolean {
-    return this.displayedTrace.length > 0;
   }
 
   private queueNewAgentResponses(): void {
@@ -462,19 +308,12 @@ export class ResultsComponent {
   }
 
   private estimatedActiveIndex(): number {
+    const steps = this.agentSteps();
     const activeIndex = Math.min(
-      Math.floor((this.progress / 100) * this.loadingSteps.length),
-      this.loadingSteps.length - 1
+      Math.floor((this.progress / 100) * steps.length),
+      steps.length - 1
     );
     return activeIndex;
   }
 
-  private firstWaitingIndex(): number {
-    const activeIndex = this.loadingSteps.findIndex((_, index) => this.stepState(index) === 'active');
-    if (activeIndex >= 0) {
-      return activeIndex + 1;
-    }
-    const firstWaiting = this.loadingSteps.findIndex((_, index) => this.stepState(index) === 'waiting');
-    return firstWaiting >= 0 ? firstWaiting : this.loadingSteps.length - 1;
-  }
 }

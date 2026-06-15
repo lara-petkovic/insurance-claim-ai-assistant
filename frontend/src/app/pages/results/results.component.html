@@ -11,34 +11,8 @@
       </div>
     </header>
 
-    <section class="agent-chat" aria-label="Agent communication chat">
-      <article
-        *ngFor="let item of visibleAgentMessages(); let index = index; trackBy: trackAgentMessage"
-        class="chat-message"
-        [ngClass]="item.state"
-        [style.--message-index]="index"
-      >
-        <div class="chat-icon">{{ detailCode(item) }}</div>
-        <div class="chat-content">
-          <header>
-            <h3>{{ item.step.name }}</h3>
-            <span class="chip">{{ agentRoleLabel(item.step, item.response) }}</span>
-            <time>{{ agentTimeLabel(item.state) }}</time>
-          </header>
-
-          <div class="bubble">
-            <p class="message-text">{{ agentMessage(item) }}</p>
-            <div class="detail-card">
-              <span>{{ detailCode(item) }}</span>
-              <div>
-                <strong>{{ detailTitle(item) }}</strong>
-                <small>{{ detailSubtitle(item) }}</small>
-              </div>
-            </div>
-          </div>
-        </div>
-      </article>
-
+    <section class="agent-chat trace-host" aria-label="Agent trace">
+      <app-agent-trace [trace]="displayedTrace" />
     </section>
 
     <article class="results-ready" *ngIf="result && !loading && allAgentResponsesDisplayed()">
@@ -82,7 +56,7 @@
       <div class="reasoning-log">
         <span>{{ displayedTrace.length }}</span>
         <div>
-          <strong>{{ displayedTrace.length }} of {{ loadingSteps.length }}</strong>
+          <strong>{{ displayedTrace.length }} of {{ agentSteps().length }}</strong>
           <p>Each completed agent appears in the central communication timeline.</p>
         </div>
       </div>
@@ -92,98 +66,121 @@
 
 <section class="results-page" *ngIf="view === 'results'">
   <ng-container *ngIf="result; else noResult">
-    <header class="report-hero" [ngClass]="decisionTone()">
+    <header class="report-hero final-hero" [ngClass]="decisionTone()">
       <div>
-        <p>Final assessment</p>
+        <p class="review-pill">{{ decisionTitle() }}</p>
         <h2>{{ decisionTitle() }}</h2>
-        <span>{{ result.recommendation }}</span>
+        <span>{{ result.reasoning_summary }}</span>
       </div>
-      <div class="score-card">
+      <div class="hero-gauge" [style.--score]="confidenceScore()">
         <strong>{{ confidenceScore() }}%</strong>
-        <span>Average confidence</span>
+        <span>Confidence</span>
       </div>
     </header>
 
     <section class="report-summary">
       <article>
-        <span>Coverage</span>
+        <span class="metric-icon">CV</span>
+        <small>Coverage</small>
         <strong>{{ coverageLabel() }}</strong>
+        <em>{{ result.coverage_assessment === 'covered' ? 'Policy match found' : 'Review reasoning' }}</em>
       </article>
       <article>
-        <span>Claim type</span>
+        <span class="metric-icon">CL</span>
+        <small>Claim type</small>
         <strong>{{ statusLabel(result.claim_type) }}</strong>
+        <em>{{ result.insurance_type }} insurance</em>
       </article>
       <article>
-        <span>Missing docs</span>
-        <strong>{{ result.missing_documents.length }}</strong>
+        <span class="metric-icon warn">MD</span>
+        <small>Missing docs</small>
+        <strong>{{ primaryMissingDocument() }}</strong>
+        <em>{{ missingDocumentAction() }}</em>
       </article>
       <article>
-        <span>Exclusions</span>
-        <strong>{{ result.potential_exclusions.length }}</strong>
+        <span class="metric-icon warn">EX</span>
+        <small>Exclusions</small>
+        <strong>{{ exclusionCountLabel() }}</strong>
+        <em>{{ result.potential_exclusions.length ? 'Review reasoning' : 'None detected' }}</em>
       </article>
     </section>
 
     <section class="decision-layout">
-      <article class="report-card primary">
-        <h3>Why this decision?</h3>
-        <p>{{ result.reasoning_summary }}</p>
-      </article>
+      <div class="main-stack">
+        <article class="report-card primary">
+          <h3>Assessment Summary</h3>
+          <p>{{ result.reasoning_summary }}</p>
+          <p>{{ result.recommendation }}</p>
 
-      <article class="report-card">
-        <h3>Policy Matches</h3>
-        <ul *ngIf="result.matched_policy_concepts.length; else noConcepts">
-          <li *ngFor="let concept of result.matched_policy_concepts">{{ formatConcept(concept) }}</li>
-        </ul>
-        <ng-template #noConcepts><p>No direct policy concept match was returned.</p></ng-template>
-      </article>
+          <div class="rationale-bars">
+            <div>
+              <span>Coverage Confidence</span>
+              <strong [style.width.%]="confidenceScore()"></strong>
+            </div>
+            <div>
+              <span>Review Load</span>
+              <strong class="warning-bar" [style.width.%]="(result.missing_documents.length + result.potential_exclusions.length) ? 64 : 12"></strong>
+            </div>
+          </div>
+        </article>
 
-      <article class="report-card">
-        <h3>Human Review Checklist</h3>
-        <div class="check-block">
-          <strong>Potential exclusions</strong>
-          <ul *ngIf="result.potential_exclusions.length; else noExclusions">
-            <li *ngFor="let exclusion of result.potential_exclusions">{{ formatConcept(exclusion) }}</li>
+        <article class="report-card evidence-card">
+          <div class="card-title-row">
+            <h3>Evidence Citations</h3>
+            <span>{{ result.evidence.length }} total</span>
+          </div>
+          <div class="citation" *ngFor="let item of topEvidence()">
+            <strong>{{ item.source }}</strong>
+            <p>{{ item.text }}</p>
+          </div>
+          <p *ngIf="!result.evidence.length">No citations returned.</p>
+        </article>
+      </div>
+
+      <aside class="side-stack">
+        <article class="report-card compact">
+          <h3>Policy Matches</h3>
+          <ul class="match-list" *ngIf="topPolicyMatches().length; else noConcepts">
+            <li *ngFor="let concept of topPolicyMatches()">
+              <span></span>
+              <strong>{{ formatConcept(concept) }}</strong>
+              <em>Match</em>
+            </li>
           </ul>
-          <ng-template #noExclusions><p>No potential exclusions detected.</p></ng-template>
-        </div>
-        <div class="check-block">
-          <strong>Missing documents</strong>
-          <ul *ngIf="result.missing_documents.length; else noMissing">
-            <li *ngFor="let document of result.missing_documents">{{ document }}</li>
-          </ul>
-          <ng-template #noMissing><p>No missing documents detected.</p></ng-template>
-        </div>
-      </article>
+          <ng-template #noConcepts><p>No direct policy concept match was returned.</p></ng-template>
+        </article>
 
-      <article class="report-card">
-        <h3>Visual Evidence</h3>
-        <dl>
-          <div>
-            <dt>Detected damage</dt>
-            <dd>{{ result.image_assessment.detected_damage }}</dd>
+        <article class="report-card checklist-card">
+          <h3>Human Review Checklist</h3>
+          <div class="review-item" *ngFor="let item of reviewChecklist()">
+            <span [class.checked]="item.checked"></span>
+            <div>
+              <strong>{{ item.title }}</strong>
+              <p>{{ item.note }}</p>
+            </div>
           </div>
-          <div>
-            <dt>Vision confidence</dt>
-            <dd>{{ result.image_assessment.confidence | percent:'1.0-0' }}</dd>
-          </div>
-          <div>
-            <dt>Authenticity risk</dt>
-            <dd>{{ result.image_authenticity.risk_level }} ({{ result.image_authenticity.risk_score }})</dd>
-          </div>
-        </dl>
-      </article>
+          <p *ngIf="!reviewChecklist().length">No additional human review checklist items were returned.</p>
+        </article>
 
-      <article class="report-card wide">
-        <h3>Evidence Citations</h3>
-        <div class="citation" *ngFor="let item of result.evidence">
-          <strong>{{ item.source }}</strong>
-          <p>{{ item.text }}</p>
-        </div>
-        <p *ngIf="!result.evidence.length">No citations returned.</p>
-      </article>
+        <article class="report-card visual-card">
+          <h3>Visual Evidence</h3>
+          <dl>
+            <div>
+              <dt>Detected damage</dt>
+              <dd>{{ result.image_assessment.detected_damage }}</dd>
+            </div>
+            <div>
+              <dt>Vision confidence</dt>
+              <dd>{{ result.image_assessment.confidence | percent:'1.0-0' }}</dd>
+            </div>
+            <div>
+              <dt>Authenticity risk</dt>
+              <dd>{{ result.image_authenticity.risk_level }} ({{ result.image_authenticity.risk_score }})</dd>
+            </div>
+          </dl>
+        </article>
+      </aside>
     </section>
-
-    <app-agent-trace [trace]="result.agent_trace" />
   </ng-container>
 
   <ng-template #noResult>

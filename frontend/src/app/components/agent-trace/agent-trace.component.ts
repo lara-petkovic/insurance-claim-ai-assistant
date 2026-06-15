@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input } from '@angular/core';
-import { AgentResponse } from '../../models/claim.models';
+import { AgentMessage, AgentResponse } from '../../models/claim.models';
 
 @Component({
   selector: 'app-agent-trace',
@@ -13,21 +13,35 @@ export class AgentTraceComponent {
   @Input({ required: true }) trace: AgentResponse[] = [];
   expanded = new Set<string>();
 
-  confidencePercent(value: number): string {
-    return `${Math.round((value || 0) * 100)}%`;
+  newestFirstTrace(): AgentResponse[] {
+    return [...this.trace].reverse();
   }
 
-  role(agentName: string): 'technical' | 'functional' | 'orchestrator' {
-    if (agentName.includes('Functional')) {
-      return 'functional';
-    }
-    if (agentName.includes('Orchestrator')) {
-      return 'orchestrator';
-    }
-    return 'technical';
+  trackAgent(_: number, agent: AgentResponse): string {
+    return `${agent.agent_name}-${agent.messages?.at(-1)?.message_type || agent.status}`;
+  }
+
+  confidencePercent(value: number): string {
+    return `${this.confidenceScore(value)}%`;
+  }
+
+  confidenceScore(value: number): number {
+    return Math.round((value || 0) * 100);
+  }
+
+  role(agent: AgentResponse): string {
+    return agent.agent_type || 'technical';
+  }
+
+  latestMessage(agent: AgentResponse): AgentMessage | null {
+    return agent.messages?.at(-1) || null;
   }
 
   summary(agent: AgentResponse): string {
+    const message = this.latestMessage(agent);
+    if (message) {
+      return message.content;
+    }
     const findings = agent.findings || {};
     const keys = Object.keys(findings);
     if (!keys.length) {
