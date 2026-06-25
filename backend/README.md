@@ -1,64 +1,81 @@
 # Backend
 
-FastAPI backend for the insurance claim multi-agent assessment prototype.
+FastAPI backend for the Claim Checker multi-agent assessment prototype.
+
+## Structure
+
+```text
+backend/
+  src/
+    api/       FastAPI app, routes, and API schemas
+    core/      Business logic, agents, orchestration, and domain schemas
+    data/      Document extraction and policy retrieval
+    models/    OpenAI model adapter
+    utils/     Logging helpers
+    config/    Environment-backed settings
+  tests/
+    unit/
+    integration/
+    e2e/
+  requirements/
+    base.txt
+    dev.txt
+    prod.txt
+  pyproject.toml
+  Dockerfile
+```
 
 ## Setup
 
-From the project root:
+From the repository root:
 
 ```powershell
 python -m venv backend\.venv
-.\backend\.venv\Scripts\python.exe -m pip install -r backend\requirements.txt
+.\backend\.venv\Scripts\python.exe -m pip install -r backend\requirements\dev.txt
+.\backend\.venv\Scripts\python.exe -m pip install -e backend
 Copy-Item backend\.env.example backend\.env
 ```
 
-If `python` is not available on Windows but Anaconda is installed, create the virtual environment with:
+The editable install makes the packages under `backend\src` importable by
+Python and IDEs without manually setting `PYTHONPATH`.
 
-```powershell
-& "$env:USERPROFILE\anaconda3\python.exe" -m venv backend\.venv
-```
-
-Edit `backend\.env` and add your OpenAI API key:
-
-```env
-MODEL_PROVIDER=openai
-OPENAI_API_KEY=your_api_key_here
-OPENAI_TEXT_MODEL=gpt-5.4-mini
-OPENAI_VISION_MODEL=gpt-5.4-mini
-OPENAI_REQUIRE_MODELS=true
-```
-
-Never commit `backend\.env`.
+Add your OpenAI key to `backend\.env`. Never commit this file.
 
 ## Run
 
-From the project root:
+From the repository root:
 
 ```powershell
-.\backend\.venv\Scripts\python.exe -m uvicorn app.main:app --app-dir backend --host 127.0.0.1 --port 8000
+.\backend\.venv\Scripts\python.exe -m uvicorn api.main:app --app-dir backend\src --host 127.0.0.1 --port 8000 --reload
 ```
 
-Docs:
+API documentation: `http://127.0.0.1:8000/docs`
+
+## PyCharm
+
+Use a Python run configuration with:
 
 ```text
-http://127.0.0.1:8000/docs
+Module: uvicorn
+Parameters: api.main:app --app-dir src --host 127.0.0.1 --port 8000 --reload
+Working directory: C:\Users\Lara\Desktop\insurance-claim-ai-assistant\backend
+Interpreter: backend\.venv\Scripts\python.exe
 ```
 
-## Useful Checks
+When opening `backend` as a standalone PyCharm project, `src` should be marked
+as **Sources Root** and `tests` as **Test Sources Root**. The included local
+module configuration already applies those markings.
+
+## Tests
 
 ```powershell
-Invoke-RestMethod http://127.0.0.1:8000/api/health
-Invoke-RestMethod http://127.0.0.1:8000/api/model-status
+cd backend
+$env:OPENAI_REQUIRE_MODELS='false'
+.\.venv\Scripts\python.exe -m pytest
 ```
 
-## Main Endpoints
+## Dependency Sets
 
-- `GET /api/health`
-- `GET /api/agents`
-- `GET /api/model-status`
-- `POST /api/model-test`
-- `POST /api/documents/extract`
-- `POST /api/claims/analyze`
-- `POST /api/claims/analyze-stream`
-
-The frontend uses `/api/claims/analyze-stream` for live agent progress.
+- `requirements/base.txt`: application libraries shared by all environments.
+- `requirements/dev.txt`: base dependencies plus tests, linting, and local Uvicorn.
+- `requirements/prod.txt`: base dependencies plus production Uvicorn.

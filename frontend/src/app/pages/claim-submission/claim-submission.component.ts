@@ -42,6 +42,13 @@ export class ClaimSubmissionComponent {
 
   analyze(): void {
     this.error = '';
+    let finished = false;
+    const finish = () => {
+      if (!finished) {
+        finished = true;
+        this.analysisFinished.emit();
+      }
+    };
     const formData = new FormData();
     formData.append('insurance_type', this.insuranceType);
     formData.append('claim_description', this.claimDescription);
@@ -67,15 +74,13 @@ export class ClaimSubmissionComponent {
         }
         if (event.event === 'analysis_failed') {
           this.error = event.error || 'Analysis failed.';
-          this.analysisFinished.emit();
+          finish();
         }
       },
-      complete: () => {
-        this.analysisFinished.emit();
-      },
+      complete: finish,
       error: (error) => {
         this.error = error?.message || 'Analysis failed.';
-        this.analysisFinished.emit();
+        finish();
       }
     });
   }

@@ -17,14 +17,20 @@ This is not a final insurance decision system. It is an explainable assistant wo
 
 ```text
 backend/
-  app/
-    agents/              Multi-agent orchestration and domain agents
-    schemas/             Pydantic API/result schemas
-    services/            OpenAI client, retrieval, logging, text extraction
-    main.py              FastAPI app and endpoints
-  tests/                 Backend tests
-  .env.example           Safe environment template
-  requirements.txt       Python dependencies
+  src/
+    api/                 FastAPI app, routes, and API schemas
+    core/                Multi-agent business logic and domain schemas
+    data/                Document extraction and policy retrieval
+    models/              OpenAI model adapter
+    utils/               Logging and tiny shared helpers
+    config/              Environment-backed settings
+  tests/
+    unit/
+    integration/
+    e2e/
+  requirements/          base.txt, dev.txt, prod.txt
+  pyproject.toml         Pytest and Ruff configuration
+  Dockerfile
 
 frontend/
   src/app/
@@ -82,8 +88,9 @@ From the project root:
 
 ```powershell
 python -m venv backend\.venv
-.\backend\.venv\Scripts\python.exe -m pip install -r backend\requirements.txt
-.\backend\.venv\Scripts\python.exe -m uvicorn app.main:app --app-dir backend --host 127.0.0.1 --port 8000
+.\backend\.venv\Scripts\python.exe -m pip install -r backend\requirements\dev.txt
+.\backend\.venv\Scripts\python.exe -m pip install -e backend
+.\backend\.venv\Scripts\python.exe -m uvicorn api.main:app --app-dir backend\src --host 127.0.0.1 --port 8000 --reload
 ```
 
 If `python` is not available on Windows but Anaconda is installed, create the virtual environment with:
@@ -172,9 +179,9 @@ Backend tests:
 From the project root:
 
 ```powershell
-$env:OPENAI_API_KEY='your_api_key_here'
 $env:OPENAI_REQUIRE_MODELS='false'
-.\backend\.venv\Scripts\python.exe -m pytest
+cd backend
+.\.venv\Scripts\python.exe -m pytest
 ```
 
 Frontend build:
@@ -194,7 +201,6 @@ The project was cleaned so generated files are not part of the source:
 - Removed `.pytest_cache`.
 - Removed Angular `frontend/dist`.
 - Removed the generated PPTX extraction dump under `outputs/pptx_extract_...`.
-- Removed empty unused backend packages: `app/models` and `app/utils`.
 - Removed unused frontend service methods that were not called by the UI.
 
 `node_modules`, virtual environments, Angular caches, build output, and local `.env` files are ignored by Git and should be recreated locally as needed.
@@ -206,7 +212,7 @@ If `/api/model-status` shows `ollama`, an old backend process is still running. 
 If Python reports missing compiled packages such as `jiter.jiter` or `pydantic_core._pydantic_core`, reinstall dependencies in the backend venv:
 
 ```powershell
-.\backend\.venv\Scripts\python.exe -m pip install --force-reinstall -r backend\requirements.txt
+.\backend\.venv\Scripts\python.exe -m pip install --force-reinstall -r backend\requirements\dev.txt
 ```
 
 If the model returns a slightly different JSON shape, the backend normalizes common list/dictionary fields before validating the final response.

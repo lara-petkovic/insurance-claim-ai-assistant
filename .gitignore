@@ -1,34 +1,120 @@
-__pycache__/
-.pytest_cache/
-.venv/
-venv/
-*.pyc
-*.pyo
+# ---------------------------------------------------------------------------
+# Secrets and environment-specific configuration
+# ---------------------------------------------------------------------------
 .env
 .env.*
-!.env.example
-backend/.env
-backend/.env.*
-!backend/.env.example
-*.log
-.coverage
-htmlcov/
-node_modules/
-dist/
-.angular/
-coverage/
-outputs/
+*.env
+*.env.*
+!*.env.example
+!**/*.env.example
+!conf/test.env
 
-# Local credentials and keys
+secrets/
+**/secrets/
+credentials.json
+credentials.*.json
+service-account*.json
+*.secret
+
+# Private keys and certificate bundles
 *.pem
 *.key
 *.p12
 *.pfx
+*.jks
+*.keystore
 id_rsa
+id_rsa.*
 id_ed25519
+id_ed25519.*
 
-# OS/editor noise
-.DS_Store
-Thumbs.db
+# ---------------------------------------------------------------------------
+# Python
+# ---------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+
+.venv/
+venv/
+env/
+ENV/
+
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.pyright/
+.hypothesis/
+.tox/
+.nox/
+
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+
+build/
+dist/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+
+# ---------------------------------------------------------------------------
+# Node / Angular
+# ---------------------------------------------------------------------------
+node_modules/
+.angular/
+coverage/
+.npm/
+.yarn/
+.pnpm-store/
+.eslintcache
+*.tsbuildinfo
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Keep dependency lockfiles committed for reproducible builds.
+!package-lock.json
+!yarn.lock
+!pnpm-lock.yaml
+
+# ---------------------------------------------------------------------------
+# Runtime and generated application data
+# ---------------------------------------------------------------------------
+outputs/
+artifacts/
+uploads/
+tmp/
+temp/
+
+*.log
+*.pid
+*.pid.lock
+*.sqlite
+*.sqlite3
+*.db-journal
+
+# ---------------------------------------------------------------------------
+# Notebooks, editors, and operating-system files
+# ---------------------------------------------------------------------------
+.ipynb_checkpoints/
+
 .idea/
 .vscode/
+*.iml
+*.swp
+*.swo
+*~
+
+.DS_Store
+._*
+Thumbs.db
+Desktop.ini
+
+# Local cloud/CLI credentials accidentally created inside the repository
+.aws/
+.azure/
+.config/gcloud/

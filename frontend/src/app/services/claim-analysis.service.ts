@@ -4,7 +4,7 @@ import { AgentStreamEvent } from '../models/claim.models';
 
 @Injectable({ providedIn: 'root' })
 export class ClaimAnalysisService {
-  private readonly baseUrl = 'http://localhost:8000/api';
+  private readonly baseUrl = '/api';
 
   analyzeStream(formData: FormData): Observable<AgentStreamEvent> {
     return new Observable<AgentStreamEvent>((subscriber) => {
@@ -18,7 +18,7 @@ export class ClaimAnalysisService {
         .then(async (response) => {
           if (!response.ok || !response.body) {
             const text = await response.text();
-            throw new Error(text || `Request failed with status ${response.status}`);
+            throw new Error(this.errorMessage(text, response.status));
           }
 
           const reader = response.body.getReader();
@@ -60,4 +60,20 @@ export class ClaimAnalysisService {
     });
   }
 
+  private errorMessage(body: string, status: number): string {
+    if (body) {
+      try {
+        const parsed = JSON.parse(body) as { detail?: unknown; error?: unknown };
+        if (typeof parsed.detail === 'string') {
+          return parsed.detail;
+        }
+        if (typeof parsed.error === 'string') {
+          return parsed.error;
+        }
+      } catch {
+        return body;
+      }
+    }
+    return `Request failed with status ${status}`;
+  }
 }
