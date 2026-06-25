@@ -8,7 +8,8 @@ backend/
     data/      Document extraction and retrieval
     models/    External AI model adapters
     utils/     Logging and other small helpers
-    config/    Environment-backed settings
+    config.py  Typed JSON configuration loader
+  config.json  Non-secret backend configuration
   tests/
     unit/
     integration/
@@ -19,4 +20,6 @@ backend/
     prod.txt
 ```
 
-Dependencies point inward: `api` calls `core`; `core` may use `data`, `models`, and `utils`; configuration is read through `config.settings`.
+Dependencies point inward: `api` calls `core`; `core` may use `data`, `models`,
+and `utils`; configuration is read through `config.py` from `config.json`.
+Secrets such as `OPENAI_API_KEY` are injected through the process environment.

@@ -29,7 +29,7 @@ async def model_call_error_handler(_, exc: ModelCallError) -> JSONResponse:
         content={
             "detail": "Model-backed agents are required, but a model call failed.",
             "error": str(exc),
-            "hint": "Check backend/.env, OPENAI_API_KEY, selected OpenAI model names, billing, and model access.",
+            "hint": "Check backend/config.json, OPENAI_API_KEY, selected OpenAI model names, billing, and model access.",
         },
     )
 

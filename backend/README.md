@@ -12,7 +12,8 @@ backend/
     data/      Document extraction and policy retrieval
     models/    OpenAI model adapter
     utils/     Logging helpers
-    config/    Environment-backed settings
+    config.py  Typed JSON configuration loader
+  config.json  Non-secret backend configuration
   tests/
     unit/
     integration/
@@ -33,13 +34,17 @@ From the repository root:
 python -m venv backend\.venv
 .\backend\.venv\Scripts\python.exe -m pip install -r backend\requirements\dev.txt
 .\backend\.venv\Scripts\python.exe -m pip install -e backend
-Copy-Item backend\.env.example backend\.env
 ```
 
 The editable install makes the packages under `backend\src` importable by
 Python and IDEs without manually setting `PYTHONPATH`.
 
-Add your OpenAI key to `backend\.env`. Never commit this file.
+Edit non-secret defaults in `backend\config.json`. Set the OpenAI API key in
+the environment before starting the backend:
+
+```powershell
+$env:OPENAI_API_KEY='your_api_key_here'
+```
 
 ## Run
 

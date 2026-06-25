@@ -3,7 +3,13 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    env_file:
-      - ./backend/.env
+    environment:
+      OPENAI_API_KEY_FILE: /run/secrets/openai_api_key
+    secrets:
+      - openai_api_key
     ports:
       - "8000:8000"
+
+secrets:
+  openai_api_key:
+    environment: OPENAI_API_KEY

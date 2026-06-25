@@ -23,7 +23,8 @@ backend/
     data/                Document extraction and policy retrieval
     models/              OpenAI model adapter
     utils/               Logging and tiny shared helpers
-    config/              Environment-backed settings
+    config.py            Typed JSON configuration loader
+  config.json            Non-secret backend configuration
   tests/
     unit/
     integration/
@@ -64,23 +65,17 @@ The `OrchestratorAgent` combines their outputs into the final `ClaimAnalysisResu
 
 ## OpenAI Setup
 
-Create `backend/.env` from the safe template:
+Backend model defaults live in `backend/config.json`. Keep secrets out of that
+file and provide the API key through the process environment:
 
 ```powershell
-Copy-Item backend\.env.example backend\.env
+$env:OPENAI_API_KEY='your_api_key_here'
 ```
 
-Then edit `backend/.env`:
-
-```env
-MODEL_PROVIDER=openai
-OPENAI_API_KEY=your_api_key_here
-OPENAI_TEXT_MODEL=gpt-5.4-mini
-OPENAI_VISION_MODEL=gpt-5.4-mini
-OPENAI_REQUIRE_MODELS=true
-```
-
-Do not commit `backend/.env`. It contains your real API key and is ignored by `.gitignore`.
+`MODEL_PROVIDER`, `OPENAI_TEXT_MODEL`, `OPENAI_VISION_MODEL`, and
+`OPENAI_REQUIRE_MODELS` can also override their matching JSON values.
+Containers receive the API key as a Docker secret rather than embedding it in
+the rendered Compose configuration.
 
 ## Run The Backend
 
@@ -141,10 +136,10 @@ Open:
 http://localhost:4200
 ```
 
-The frontend calls the backend at:
+The frontend calls the backend through the Angular proxy at:
 
 ```text
-http://localhost:8000/api
+/api
 ```
 
 ## API Endpoints
@@ -203,7 +198,8 @@ The project was cleaned so generated files are not part of the source:
 - Removed the generated PPTX extraction dump under `outputs/pptx_extract_...`.
 - Removed unused frontend service methods that were not called by the UI.
 
-`node_modules`, virtual environments, Angular caches, build output, and local `.env` files are ignored by Git and should be recreated locally as needed.
+`node_modules`, virtual environments, Angular caches, and build output are
+ignored by Git and should be recreated locally as needed.
 
 ## Troubleshooting
 

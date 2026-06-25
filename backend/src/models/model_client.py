@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from functools import lru_cache
 from typing import Any
 
-from config.settings import get_settings
+from config import get_settings
 from utils.agent_logger import log_agent_event
 
 
@@ -51,7 +51,7 @@ class ModelClient:
                 self.init_error = str(exc)
                 log_agent_event("ModelClient", "OpenAI client initialization failed.", error=self.init_error)
         else:
-            self.init_error = "OPENAI_API_KEY is not configured. Replace 'your_api_key_here' in backend/.env."
+            self.init_error = "OPENAI_API_KEY is not configured in the process environment."
             log_agent_event("ModelClient", "OpenAI API key is not configured.")
 
     @property

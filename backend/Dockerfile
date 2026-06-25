@@ -10,6 +10,7 @@ COPY requirements ./requirements
 RUN pip install --no-cache-dir -r requirements/prod.txt
 
 COPY src ./src
+COPY config.json ./config.json
 
 EXPOSE 8000
 
