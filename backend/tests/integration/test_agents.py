@@ -1,7 +1,7 @@
+from config import get_settings
 from core.agents.orchestrator import OrchestratorAgent
 from core.models.claim import ClaimRequestData
 from models.model_client import get_model_client
-
 
 TEST_POLICY_TEXT = """
 Household policy wording.
@@ -18,6 +18,7 @@ def disable_model_calls(monkeypatch):
     monkeypatch.setenv("OPENAI_REQUIRE_MODELS", "false")
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     monkeypatch.delenv("OPENAI_API_KEY_FILE", raising=False)
+    get_settings.cache_clear()
     get_model_client.cache_clear()
 
 

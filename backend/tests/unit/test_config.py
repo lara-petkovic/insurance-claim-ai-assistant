@@ -1,12 +1,22 @@
 import json
+from pathlib import Path
+from uuid import uuid4
 
 import pytest
 
 from config import ConfigurationError, get_settings
 
+TEST_TEMP_ROOT = Path(__file__).resolve().parents[2] / ".test_tmp"
 
-def write_config(tmp_path, model):
-    config_file = tmp_path / "config.json"
+
+def make_test_dir():
+    temp_path = TEST_TEMP_ROOT / uuid4().hex
+    temp_path.mkdir(parents=True)
+    return temp_path
+
+
+def write_config(test_dir, model):
+    config_file = test_dir / "config.json"
     config_file.write_text(
         json.dumps(
             {
@@ -23,8 +33,8 @@ def write_config(tmp_path, model):
     return config_file
 
 
-def write_profile_config(tmp_path, profile, model):
-    config_dir = tmp_path / "config"
+def write_profile_config(test_dir, profile, model):
+    config_dir = test_dir / "config"
     config_dir.mkdir()
     config_file = config_dir / f"config.{profile}.json"
     config_file.write_text(
@@ -43,9 +53,10 @@ def write_profile_config(tmp_path, profile, model):
     return config_file
 
 
-def test_settings_load_default_dev_profile(monkeypatch, tmp_path):
+def test_settings_load_default_dev_profile(monkeypatch):
+    test_dir = make_test_dir()
     write_profile_config(
-        tmp_path,
+        test_dir,
         "dev",
         {
             "text_model": "dev-text-model",
@@ -53,8 +64,8 @@ def test_settings_load_default_dev_profile(monkeypatch, tmp_path):
             "require_models": False,
         },
     )
-    monkeypatch.chdir(tmp_path)
-    monkeypatch.setattr("config.BACKEND_DIR", tmp_path)
+    monkeypatch.chdir(test_dir)
+    monkeypatch.setattr("config.BACKEND_DIR", test_dir)
     monkeypatch.delenv("APP_CONFIG_FILE", raising=False)
     monkeypatch.delenv("APP_ENV", raising=False)
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
@@ -75,9 +86,10 @@ def test_settings_load_default_dev_profile(monkeypatch, tmp_path):
     assert settings.log_to_console is False
 
 
-def test_settings_load_selected_prod_profile(monkeypatch, tmp_path):
+def test_settings_load_selected_prod_profile(monkeypatch):
+    test_dir = make_test_dir()
     write_profile_config(
-        tmp_path,
+        test_dir,
         "prod",
         {
             "text_model": "prod-text-model",
@@ -85,7 +97,7 @@ def test_settings_load_selected_prod_profile(monkeypatch, tmp_path):
             "require_models": True,
         },
     )
-    monkeypatch.setattr("config.BACKEND_DIR", tmp_path)
+    monkeypatch.setattr("config.BACKEND_DIR", test_dir)
     monkeypatch.delenv("APP_CONFIG_FILE", raising=False)
     monkeypatch.setenv("APP_ENV", "prod")
     monkeypatch.delenv("OPENAI_TEXT_MODEL", raising=False)
@@ -101,9 +113,10 @@ def test_settings_load_selected_prod_profile(monkeypatch, tmp_path):
     assert settings.log_file == "logs/prod.log"
 
 
-def test_environment_overrides_json(monkeypatch, tmp_path):
+def test_environment_overrides_json(monkeypatch):
+    test_dir = make_test_dir()
     config_file = write_config(
-        tmp_path,
+        test_dir,
         {
             "text_model": "json-model",
             "require_models": True,
@@ -131,8 +144,9 @@ def test_environment_overrides_json(monkeypatch, tmp_path):
     assert settings.log_to_console is False
 
 
-def test_invalid_json_configuration_is_rejected(monkeypatch, tmp_path):
-    config_file = tmp_path / "config.json"
+def test_invalid_json_configuration_is_rejected(monkeypatch):
+    test_dir = make_test_dir()
+    config_file = test_dir / "config.json"
     config_file.write_text("{invalid", encoding="utf-8")
     monkeypatch.setenv("APP_CONFIG_FILE", str(config_file))
     monkeypatch.delenv("APP_ENV", raising=False)
@@ -142,15 +156,16 @@ def test_invalid_json_configuration_is_rejected(monkeypatch, tmp_path):
         get_settings()
 
 
-def test_api_key_can_be_loaded_from_secret_file(monkeypatch, tmp_path):
+def test_api_key_can_be_loaded_from_secret_file(monkeypatch):
+    test_dir = make_test_dir()
     config_file = write_config(
-        tmp_path,
+        test_dir,
         {
             "text_model": "json-model",
             "require_models": True,
         },
     )
-    secret_file = tmp_path / "openai_api_key"
+    secret_file = test_dir / "openai_api_key"
     secret_file.write_text("file-based-test-key\n", encoding="utf-8")
     monkeypatch.setenv("APP_CONFIG_FILE", str(config_file))
     monkeypatch.delenv("APP_ENV", raising=False)
@@ -161,16 +176,17 @@ def test_api_key_can_be_loaded_from_secret_file(monkeypatch, tmp_path):
     assert get_settings().openai_api_key == "file-based-test-key"
 
 
-def test_invalid_app_env_is_rejected(monkeypatch, tmp_path):
+def test_invalid_app_env_is_rejected(monkeypatch):
+    test_dir = make_test_dir()
     write_profile_config(
-        tmp_path,
+        test_dir,
         "dev",
         {
             "text_model": "dev-text-model",
             "require_models": False,
         },
     )
-    monkeypatch.setattr("config.BACKEND_DIR", tmp_path)
+    monkeypatch.setattr("config.BACKEND_DIR", test_dir)
     monkeypatch.delenv("APP_CONFIG_FILE", raising=False)
     monkeypatch.setenv("APP_ENV", "staging")
     get_settings.cache_clear()
