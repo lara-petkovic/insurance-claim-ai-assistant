@@ -16,8 +16,7 @@ class DocumentIngestionAgent(BaseAgent):
             "supporting_documents": request.supporting_document_names,
             "damage_image_filename": request.damage_image_filename,
         }
-        return AgentResponse(
-            agent_name=self.name,
+        return self.respond(
             findings=findings,
             confidence=0.9 if policy_text else 0.0,
             warnings=warnings,

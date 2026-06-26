@@ -49,8 +49,7 @@ class CoverageMatchingAgent(BaseAgent):
             final_findings["coverage_assessment"] = "covered"
         elif assessment == "unclear" and claim_type == "unknown":
             final_findings["coverage_assessment"] = "unclear"
-        return AgentResponse(
-            agent_name=self.name,
+        return self.respond(
             findings=final_findings,
             confidence=0.82 if final_findings.get("matched_policy_concepts") else 0.4,
             warnings=(

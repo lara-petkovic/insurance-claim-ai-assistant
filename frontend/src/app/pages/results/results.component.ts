@@ -233,11 +233,8 @@ export class ResultsComponent {
       this.clearRevealTimer();
     }
 
-    const displayedNames = new Set(this.displayedTrace.map((agent) => agent.agent_name));
-    const queuedNames = new Set(this.revealQueue.map((agent) => agent.agent_name));
-    const newResponses = this.liveTrace.filter(
-      (agent) => !displayedNames.has(agent.agent_name) && !queuedNames.has(agent.agent_name)
-    );
+    const nextIndex = this.displayedTrace.length + this.revealQueue.length;
+    const newResponses = this.liveTrace.slice(nextIndex);
 
     if (!newResponses.length) {
       return;
@@ -255,7 +252,7 @@ export class ResultsComponent {
     this.revealTimer = setTimeout(() => {
       const [next, ...rest] = this.revealQueue;
       this.revealQueue = rest;
-      if (next && !this.displayedTrace.some((agent) => agent.agent_name === next.agent_name)) {
+      if (next) {
         this.displayedTrace = [...this.displayedTrace, next];
       }
       this.revealTimer = null;

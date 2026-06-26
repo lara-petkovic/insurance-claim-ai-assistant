@@ -30,6 +30,33 @@ def _log_agent_activity(agent_name: str, message: str, **details: Any) -> None:
     log_event(get_logger(f"agents.{agent_name}"), message, **details)
 
 
+def _log_agent_messages(response: AgentResponse) -> None:
+    for message in response.messages:
+        if not message.to_agent:
+            continue
+        _log_agent_activity(
+            message.from_agent or response.agent_name,
+            "Message emitted.",
+            from_agent=message.from_agent,
+            to_agent=message.to_agent,
+            message_type=message.message_type,
+            content=message.content,
+        )
+
+
+def _log_agent_completed(response: AgentResponse, **details: Any) -> None:
+    _log_agent_activity(
+        response.agent_name,
+        "Completed.",
+        status=response.status,
+        confidence=response.confidence,
+        evidence=len(response.evidence),
+        warnings=len(response.warnings),
+        human_review=response.requires_human_review,
+        **details,
+    )
+
+
 class FinalDecisionSynthesisAgent(BaseAgent):
     name = "FinalDecisionSynthesisAgent"
     agent_type = "synthesis"
@@ -170,8 +197,11 @@ class OrchestratorAgent(BaseAgent):
         self.agents: list[BaseAgent] = list(self.agent_registry.values())
 
     def run(self, context: AgentContext) -> AgentResponse:
+        _log_agent_activity(self.planner.name, "Started.", step="planning")
         plan_response = context.add(self.planner.run(context))
         planned_agents = self._agents_from_plan(plan_response)
+        _log_agent_messages(plan_response)
+        _log_agent_completed(plan_response, planned_agents=len(planned_agents))
         _log_agent_activity(
             self.name,
             "Analysis started.",
@@ -183,17 +213,10 @@ class OrchestratorAgent(BaseAgent):
         for index, agent in enumerate(planned_agents, start=1):
             _log_agent_activity(agent.name, "Started.", step=f"{index}/{len(planned_agents)}")
             response = context.add(agent.run(context))
+            _log_agent_messages(response)
             if agent.name == "OutputValidatorAgent":
                 self._run_feedback_repairs(context)
-            _log_agent_activity(
-                agent.name,
-                "Completed.",
-                status=response.status,
-                confidence=response.confidence,
-                evidence=len(response.evidence),
-                warnings=len(response.warnings),
-                human_review=response.requires_human_review,
-            )
+            _log_agent_completed(response)
         _log_agent_activity(self.name, "Analysis completed.", completed_agents=len(context.responses))
         return self.respond(
             findings={
@@ -213,9 +236,12 @@ class OrchestratorAgent(BaseAgent):
 
     def stream(self, request: ClaimRequestData) -> Iterator[dict[str, Any]]:
         context = AgentContext(request=request)
+        _log_agent_activity(self.planner.name, "Started.", step="planning")
         plan_response = context.add(self.planner.run(context))
         planned_agents = self._agents_from_plan(plan_response)
         total = len(planned_agents)
+        _log_agent_messages(plan_response)
+        _log_agent_completed(plan_response, planned_agents=total)
         _log_agent_activity(
             self.name,
             "Streaming analysis started.",
@@ -249,18 +275,11 @@ class OrchestratorAgent(BaseAgent):
             }
             _log_agent_activity(agent.name, "Started.", step=f"{index}/{total}")
             response = context.add(agent.run(context))
+            _log_agent_messages(response)
             repair_responses = []
             if agent.name == "OutputValidatorAgent":
                 repair_responses = self._run_feedback_repairs(context)
-            _log_agent_activity(
-                agent.name,
-                "Completed.",
-                status=response.status,
-                confidence=response.confidence,
-                evidence=len(response.evidence),
-                warnings=len(response.warnings),
-                human_review=response.requires_human_review,
-            )
+            _log_agent_completed(response)
             yield {
                 "event": "agent_completed",
                 "agent_name": agent.name,
@@ -326,6 +345,7 @@ class OrchestratorAgent(BaseAgent):
         repair_responses = []
         for target in ordered_unique[:4]:
             agent = self.agent_registry[target]
+            _log_agent_activity(agent.name, "Started.", step="validator-repair")
             response = agent.run(context)
             response.messages.append(
                 self.message(
@@ -336,11 +356,17 @@ class OrchestratorAgent(BaseAgent):
                 )
             )
             response = context.replace(response)
+            _log_agent_messages(response)
+            _log_agent_completed(response, step="validator-repair")
             repair_responses.append(response)
 
         if repair_responses:
             validator = self.agent_registry["OutputValidatorAgent"]
-            repair_responses.append(context.replace(validator.run(context)))
+            _log_agent_activity(validator.name, "Started.", step="validator-recheck")
+            validator_response = context.replace(validator.run(context))
+            _log_agent_messages(validator_response)
+            _log_agent_completed(validator_response, step="validator-recheck")
+            repair_responses.append(validator_response)
 
         return repair_responses
 

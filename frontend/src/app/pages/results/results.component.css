@@ -309,7 +309,7 @@
 .assessment-card {
   min-width: 0;
   overflow: hidden;
-  padding: 15px;
+  padding: 18px 15px;
 }
 
 .gauge {
@@ -353,43 +353,6 @@
   text-transform: uppercase;
 }
 
-.insight,
-.reasoning-log {
-  display: grid;
-  gap: 10px;
-  grid-template-columns: 30px minmax(0, 1fr);
-  min-width: 0;
-}
-
-.insight {
-  background: rgba(255, 255, 255, 0.045);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 6px;
-  margin-top: 12px;
-  padding: 11px;
-}
-
-.reasoning-log {
-  margin: 13px 0 0;
-}
-
-.insight > span,
-.reasoning-log > span {
-  color: var(--accent);
-  font-size: 12px;
-  font-weight: 900;
-}
-
-.insight strong,
-.reasoning-log strong {
-  display: block;
-  font-size: 14px;
-  line-height: 1.25;
-  overflow-wrap: anywhere;
-}
-
-.insight p,
-.reasoning-log p,
 .report-card p,
 .citation p {
   color: #c7ccd4;

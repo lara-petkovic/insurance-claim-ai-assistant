@@ -49,8 +49,7 @@ class RetrievalAgent(BaseAgent):
             if len(retry_evidence) > len(evidence):
                 query = rewritten_query
                 evidence = retry_evidence
-        return AgentResponse(
-            agent_name=self.name,
+        return self.respond(
             findings={"query": query, "retrieved_count": len(evidence), "attempts": attempts},
             evidence=evidence,
             confidence=0.75 if evidence else 0.25,

@@ -85,8 +85,7 @@ class PolicyConceptExtractionAgent(BaseAgent):
             exclusions,
             model_result.data.get("exclusions"),
         )
-        return AgentResponse(
-            agent_name=self.name,
+        return self.respond(
             findings=findings,
             confidence=0.78 if covered_events else 0.45,
             warnings=(
@@ -168,8 +167,7 @@ class ClaimExtractionAgent(BaseAgent):
         )
         findings = {**fallback, **model_result.data, "model_used": model_result.used_model}
         claim_type = str(findings.get("claim_type", claim_type))
-        return AgentResponse(
-            agent_name=self.name,
+        return self.respond(
             findings=findings,
             confidence=0.82 if claim_type != "unknown" else 0.35,
             warnings=(

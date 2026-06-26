@@ -26,38 +26,11 @@
 
   <aside class="assessment-panel">
     <section class="assessment-card">
-      <h2>Live Assessment</h2>
-      <div class="gauge" [style.--score]="confidenceScore()">
+      <h2>Overall Progress</h2>
+      <div class="gauge" [style.--score]="result ? 100 : progress">
         <div>
-          <strong>{{ confidenceScore() }}%</strong>
-          <span>Confidence</span>
-        </div>
-      </div>
-
-      <article class="insight">
-        <span>AI</span>
-        <div>
-          <strong>{{ activeStepName() }}</strong>
-          <p>{{ currentAgentSummary() }}</p>
-        </div>
-      </article>
-
-      <article class="insight">
-        <span>EX</span>
-        <div>
-          <strong>Exclusion Check</strong>
-          <p>{{ exclusionInsight() }}</p>
-        </div>
-      </article>
-    </section>
-
-    <section class="assessment-card active-insight">
-      <h3>Completed Agents</h3>
-      <div class="reasoning-log">
-        <span>{{ displayedTrace.length }}</span>
-        <div>
-          <strong>{{ displayedTrace.length }} of {{ agentStepCount() }}</strong>
-          <p>Each completed agent appears in the central communication timeline.</p>
+          <strong>{{ result ? 100 : progress }}%</strong>
+          <span>Progress</span>
         </div>
       </div>
     </section>

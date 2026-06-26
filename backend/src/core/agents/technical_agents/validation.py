@@ -46,11 +46,11 @@ class ExclusionCheckingAgent(BaseAgent):
             ),
             fallback=fallback,
         )
-        final_findings = {**fallback, **model_result.data, "model_used": model_result.used_model}
-        final_findings["potential_exclusions"] = _merge_dict_lists_by_key(
-            found,
-            model_result.data.get("potential_exclusions"),
-        )
+        final_findings = {**fallback, **model_result.data, "model_used": model_result.used_model,
+                          "potential_exclusions": _merge_dict_lists_by_key(
+                              found,
+                              model_result.data.get("potential_exclusions"),
+                          )}
         corroborated_concepts = {str(item.get("concept", "")).lower() for item in found}
         for exclusion in final_findings["potential_exclusions"]:
             concept = str(exclusion.get("concept", "")).lower()
@@ -59,8 +59,7 @@ class ExclusionCheckingAgent(BaseAgent):
                 exclusion["requires_corroboration"] = True
         found = final_findings.get("potential_exclusions", found)
 
-        return AgentResponse(
-            agent_name=self.name,
+        return self.respond(
             findings=final_findings,
             confidence=0.72,
             warnings=(
@@ -109,8 +108,7 @@ class MissingDocumentsAgent(BaseAgent):
             if not any(token in provided_names for token in tokens):
                 missing.append(requirement)
 
-        return AgentResponse(
-            agent_name=self.name,
+        return self.respond(
             findings={"missing_documents": missing, "targeted_checks": targeted_checks},
             confidence=0.83,
             warnings=[] if not missing else ["Claim package is incomplete."],
@@ -148,8 +146,7 @@ class ConsistencyVerificationAgent(BaseAgent):
         if not context.request.incident_date:
             issues.append("Incident date is missing, so policy-period validation cannot be completed.")
 
-        return AgentResponse(
-            agent_name=self.name,
+        return self.respond(
             findings={"consistency_issues": issues},
             confidence=0.78 if not issues else 0.5,
             warnings=issues,
@@ -172,8 +169,7 @@ class CitationAgent(BaseAgent):
         for response in context.responses:
             if response.agent_name == "RetrievalAgent":
                 retrieval_evidence.extend(response.evidence)
-        return AgentResponse(
-            agent_name=self.name,
+        return self.respond(
             findings={"citation_count": len(retrieval_evidence)},
             evidence=retrieval_evidence[:4],
             confidence=0.84 if retrieval_evidence else 0.25,
@@ -261,8 +257,7 @@ class OutputValidatorAgent(BaseAgent):
             warnings.append(f"These model-backed agents did not use a model: {', '.join(non_model_agents)}")
         if feedback:
             warnings.append("Validator feedback requires final synthesis to preserve human-review context.")
-        return AgentResponse(
-            agent_name=self.name,
+        return self.respond(
             findings={
                 "schema_ready": not missing and not (model_client.require_models and non_model_agents),
                 "missing_agent_outputs": missing,

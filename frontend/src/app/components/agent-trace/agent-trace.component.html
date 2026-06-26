@@ -1,54 +1,53 @@
 <section class="trace">
-  <header>
-    <div>
-      <h2>Agent Trace</h2>
-      <p>Structured communication between technical and functional agents.</p>
-    </div>
-    <span>{{ trace.length }} steps</span>
-  </header>
-
   <article
-    *ngFor="let agent of newestFirstTrace(); trackBy: trackAgent"
-    class="trace-item"
-    [class.review]="agent.requires_human_review"
+    *ngFor="let agent of orderedTrace(); trackBy: trackAgent"
+    class="trace-group"
+    [class.with-messages]="hasOutboundMessages(agent)"
+    [ngClass]="tone(agent)"
   >
-    <div class="marker"></div>
-    <div class="content">
-      <div class="row">
-        <div>
+    <div class="agent-card">
+      <div class="agent-main">
+        <div class="agent-title-row">
+          <span class="dot"></span>
           <strong>{{ agent.agent_name }}</strong>
-          <p>{{ summary(agent) }}</p>
+          <span class="confidence-chip">{{ confidencePercent(agent.confidence) }} confidence</span>
         </div>
-        <div class="chips">
-          <span class="model-chip" *ngIf="modelUsed(agent)">model used</span>
-          <span class="role" [ngClass]="role(agent)">{{ role(agent) }}</span>
-          <span class="status">{{ agent.status }}</span>
-        </div>
+        <p>{{ summary(agent) }}</p>
       </div>
 
-      <div class="communication" *ngIf="latestMessage(agent)">
-        <span class="node from">{{ latestMessage(agent)?.from_agent }}</span>
-        <span class="arrow">-></span>
-        <span class="node to" [class.broadcast]="!latestMessage(agent)?.to_agent">
-          {{ latestMessage(agent)?.to_agent || 'Team Trace' }}
-        </span>
-        <span class="message-kind">{{ latestMessage(agent)?.message_type }}</span>
+      <div class="agent-meta">
+        <span class="role-chip">{{ roleLabel(agent) }}</span>
+        <span class="status-chip">{{ statusLabel(agent) }}</span>
       </div>
 
-      <div class="confidence" aria-label="Agent confidence score">
-        <div class="score-circle" [style.--score]="confidenceScore(agent.confidence)">
-          <strong>{{ confidencePercent(agent.confidence) }}</strong>
-        </div>
-        <span>Confidence score</span>
-      </div>
-      <p *ngIf="agent.warnings.length" class="warnings">{{ agent.warnings.join(' | ') }}</p>
-      <div class="evidence-line" *ngIf="agent.evidence.length">
-        {{ agent.evidence.length }} evidence snippet(s)
-      </div>
-      <button type="button" class="details" (click)="toggle(agent.agent_name)">
+      <button
+        *ngIf="agent.warnings.length || agent.evidence.length || (agent.findings | json) !== '{}'"
+        type="button"
+        class="details"
+        (click)="toggle(agent.agent_name)"
+      >
         {{ isExpanded(agent.agent_name) ? 'Hide details' : 'View details' }}
       </button>
+
       <pre *ngIf="isExpanded(agent.agent_name)">{{ agent.findings | json }}</pre>
+    </div>
+
+    <div class="message-list" *ngIf="hasOutboundMessages(agent)">
+      <article class="message-card" *ngFor="let message of outboundMessages(agent)">
+        <div class="agent-main">
+          <div class="agent-title-row">
+            <span class="dot"></span>
+            <strong>{{ messageTitle(message) }}</strong>
+          </div>
+          <p>{{ message.content }}</p>
+          <small>{{ messageSubtitle(message) }}</small>
+        </div>
+
+        <div class="agent-meta">
+          <span class="role-chip">{{ messageTypeLabel(message) }}</span>
+          <span class="status-chip">MESSAGE</span>
+        </div>
+      </article>
     </div>
   </article>
 </section>

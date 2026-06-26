@@ -35,7 +35,7 @@
     />
   </section>
 
-  <section class="analysis-screen" #analysisSection *ngIf="activePage === 'agents' && showAnalysis()">
+  <section class="analysis-screen" #analysisSection [hidden]="activePage !== 'agents' || !showAnalysis()">
     <app-results
       view="agents"
       [result]="result"

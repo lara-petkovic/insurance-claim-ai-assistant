@@ -55,8 +55,7 @@ class VisualEvidenceAgent(BaseAgent):
         findings["notes"] = [str(note) for note in _as_list(findings.get("notes"))]
         detected = str(findings.get("detected_damage", detected))
         confidence = float(findings.get("confidence", confidence) or 0)
-        return AgentResponse(
-            agent_name=self.name,
+        return self.respond(
             findings=findings,
             confidence=confidence,
             warnings=(
@@ -129,8 +128,7 @@ class ImageAuthenticityAgent(BaseAgent):
         findings = {**findings, **model_result.data, "model_used": model_result.used_model}
         findings["signals"] = [str(signal) for signal in _as_list(findings.get("signals"))]
         risk = str(findings.get("risk_level", risk))
-        return AgentResponse(
-            agent_name=self.name,
+        return self.respond(
             findings=findings,
             confidence=0.6,
             warnings=(
