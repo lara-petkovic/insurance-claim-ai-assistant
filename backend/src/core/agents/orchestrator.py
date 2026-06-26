@@ -21,9 +21,13 @@ from core.agents.technical_agents import (
     RetrievalAgent,
     VisualEvidenceAgent,
 )
-from core.schemas.agent import AgentResponse
-from core.schemas.claim import ClaimAnalysisResult, ClaimRequestData, ImageAssessment, ImageAuthenticity
-from utils.agent_logger import log_agent_event
+from core.models.agent import AgentResponse
+from core.models.claim import ClaimAnalysisResult, ClaimRequestData, ImageAssessment, ImageAuthenticity
+from utils.app_logger import get_logger, log_event
+
+
+def _log_agent_activity(agent_name: str, message: str, **details: Any) -> None:
+    log_event(get_logger(f"agents.{agent_name}"), message, **details)
 
 
 class FinalDecisionSynthesisAgent(BaseAgent):
@@ -168,7 +172,7 @@ class OrchestratorAgent(BaseAgent):
     def run(self, context: AgentContext) -> AgentResponse:
         plan_response = context.add(self.planner.run(context))
         planned_agents = self._agents_from_plan(plan_response)
-        log_agent_event(
+        _log_agent_activity(
             self.name,
             "Analysis started.",
             agents=len(planned_agents),
@@ -177,11 +181,11 @@ class OrchestratorAgent(BaseAgent):
             has_image=bool(context.request.damage_image_filename),
         )
         for index, agent in enumerate(planned_agents, start=1):
-            log_agent_event(agent.name, "Started.", step=f"{index}/{len(planned_agents)}")
+            _log_agent_activity(agent.name, "Started.", step=f"{index}/{len(planned_agents)}")
             response = context.add(agent.run(context))
             if agent.name == "OutputValidatorAgent":
                 self._run_feedback_repairs(context)
-            log_agent_event(
+            _log_agent_activity(
                 agent.name,
                 "Completed.",
                 status=response.status,
@@ -190,7 +194,7 @@ class OrchestratorAgent(BaseAgent):
                 warnings=len(response.warnings),
                 human_review=response.requires_human_review,
             )
-        log_agent_event(self.name, "Analysis completed.", completed_agents=len(context.responses))
+        _log_agent_activity(self.name, "Analysis completed.", completed_agents=len(context.responses))
         return self.respond(
             findings={
                 "completed_agents": [agent.name for agent in planned_agents],
@@ -212,7 +216,7 @@ class OrchestratorAgent(BaseAgent):
         plan_response = context.add(self.planner.run(context))
         planned_agents = self._agents_from_plan(plan_response)
         total = len(planned_agents)
-        log_agent_event(
+        _log_agent_activity(
             self.name,
             "Streaming analysis started.",
             agents=total,
@@ -243,12 +247,12 @@ class OrchestratorAgent(BaseAgent):
                 "total_agents": total,
                 "message": f"{agent.name} started.",
             }
-            log_agent_event(agent.name, "Started.", step=f"{index}/{total}")
+            _log_agent_activity(agent.name, "Started.", step=f"{index}/{total}")
             response = context.add(agent.run(context))
             repair_responses = []
             if agent.name == "OutputValidatorAgent":
                 repair_responses = self._run_feedback_repairs(context)
-            log_agent_event(
+            _log_agent_activity(
                 agent.name,
                 "Completed.",
                 status=response.status,
@@ -275,7 +279,7 @@ class OrchestratorAgent(BaseAgent):
                     "agent_response": repair_response.model_dump(mode="json"),
                 }
         result = self._result_from_context(request, context)
-        log_agent_event(
+        _log_agent_activity(
             self.name,
             "Streaming analysis completed.",
             claim_status=result.claim_status,

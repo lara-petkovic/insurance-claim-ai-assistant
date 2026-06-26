@@ -3,8 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
-from core.schemas.agent import AgentMessage, AgentResponse, AgentType
-from core.schemas.claim import ClaimRequestData
+from core.models.agent import AgentMessage, AgentResponse, AgentType
+from core.models.claim import ClaimRequestData
 
 
 @dataclass

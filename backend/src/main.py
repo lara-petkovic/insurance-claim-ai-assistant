@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from api.routes import router as api_router
+from api.routes_api import router as api_router
 from models.model_client import ModelCallError
 
 app = FastAPI(
@@ -29,7 +29,7 @@ async def model_call_error_handler(_, exc: ModelCallError) -> JSONResponse:
         content={
             "detail": "Model-backed agents are required, but a model call failed.",
             "error": str(exc),
-            "hint": "Check backend/config.json, OPENAI_API_KEY, selected OpenAI model names, billing, and model access.",
+            "hint": "Check backend/config/config.*.json, APP_ENV, OPENAI_API_KEY, selected OpenAI model names, billing, and model access.",
         },
     )
 

@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 from collections import Counter
 
-from core.schemas.agent import EvidenceItem
+from core.models.agent import EvidenceItem
 
 
 def tokenize(text: str) -> list[str]:

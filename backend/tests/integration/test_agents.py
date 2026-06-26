@@ -1,5 +1,6 @@
 from core.agents.orchestrator import OrchestratorAgent
-from core.schemas.claim import ClaimRequestData
+from core.models.claim import ClaimRequestData
+from models.model_client import get_model_client
 
 
 TEST_POLICY_TEXT = """
@@ -13,7 +14,16 @@ damage. Theft requires police report and proof of ownership.
 """
 
 
-def test_orchestrator_returns_human_review_for_incomplete_water_claim():
+def disable_model_calls(monkeypatch):
+    monkeypatch.setenv("OPENAI_REQUIRE_MODELS", "false")
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.delenv("OPENAI_API_KEY_FILE", raising=False)
+    get_model_client.cache_clear()
+
+
+def test_orchestrator_returns_human_review_for_incomplete_water_claim(monkeypatch):
+    disable_model_calls(monkeypatch)
+
     result = OrchestratorAgent().analyze(
         ClaimRequestData(
             insurance_type="home",
@@ -35,7 +45,9 @@ def test_orchestrator_returns_human_review_for_incomplete_water_claim():
     assert any(agent.agent_name == "QueryRewriteAgent" for agent in result.agent_trace)
 
 
-def test_orchestrator_flags_gradual_damage_exclusion():
+def test_orchestrator_flags_gradual_damage_exclusion(monkeypatch):
+    disable_model_calls(monkeypatch)
+
     result = OrchestratorAgent().analyze(
         ClaimRequestData(
             insurance_type="home",
@@ -52,7 +64,9 @@ def test_orchestrator_flags_gradual_damage_exclusion():
     assert validator.findings["feedback"]
 
 
-def test_orchestrator_dynamic_plan_skips_vision_agents_without_image():
+def test_orchestrator_dynamic_plan_skips_vision_agents_without_image(monkeypatch):
+    disable_model_calls(monkeypatch)
+
     result = OrchestratorAgent().analyze(
         ClaimRequestData(
             insurance_type="home",

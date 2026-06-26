@@ -2,8 +2,8 @@ import json
 
 from fastapi.testclient import TestClient
 
-from api.main import app
-from api import routes
+from main import app
+from api import routes_api
 
 
 def test_health_endpoint():
@@ -21,7 +21,7 @@ def test_stream_endpoint_accepts_frontend_form_contract(monkeypatch):
         yield {"event": "analysis_started", "total_agents": 1}
         yield {"event": "analysis_completed", "result": {"claim_status": "requires_human_review"}}
 
-    monkeypatch.setattr(routes.orchestrator, "stream", fake_stream)
+    monkeypatch.setattr(routes_api.orchestrator, "stream", fake_stream)
 
     response = TestClient(app).post(
         "/api/claims/analyze-stream",

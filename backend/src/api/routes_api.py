@@ -6,11 +6,9 @@ from typing import Annotated
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from fastapi.responses import StreamingResponse
 
-from api.schemas import ModelTestRequest, ModelTestResponse
 from core.agents.orchestrator import OrchestratorAgent
-from core.schemas.claim import ClaimAnalysisResult, ClaimRequestData, DocumentExtractionResult
+from core.models.claim import ClaimAnalysisResult, ClaimRequestData, DocumentExtractionResult
 from data.text_extraction import extract_upload_text, infer_document_type
-from models.model_client import get_model_client
 
 router = APIRouter(prefix="/api")
 orchestrator = OrchestratorAgent()
@@ -19,29 +17,6 @@ orchestrator = OrchestratorAgent()
 @router.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
-
-
-@router.get("/agents")
-def agents() -> dict[str, list[str]]:
-    return {"agents": [agent.name for agent in orchestrator.agents]}
-
-
-@router.get("/model-status")
-def model_status() -> dict[str, object]:
-    return get_model_client().status()
-
-
-@router.post("/model-test", response_model=ModelTestResponse)
-def model_test(request: ModelTestRequest) -> ModelTestResponse:
-    client = get_model_client()
-    result = client.text_response(prompt=request.prompt, system=request.system, model=request.model)
-    selected_model = request.model or client.text_model
-    return ModelTestResponse(
-        provider=client.provider,
-        model=selected_model,
-        used_model=result.used_model,
-        answer=str(result.data.get("answer", "")),
-    )
 
 
 @router.post("/documents/extract", response_model=DocumentExtractionResult)

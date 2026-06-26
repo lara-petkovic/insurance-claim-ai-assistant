@@ -90,7 +90,7 @@ class PolicyConceptExtractionAgent(BaseAgent):
             findings=findings,
             confidence=0.78 if covered_events else 0.45,
             warnings=(
-                ["Used configured model provider for policy concept extraction."]
+                ["Used configured model for policy concept extraction."]
                 if model_result.used_model
                 else ([] if covered_events else ["No covered events were confidently extracted."])
             ),
@@ -173,7 +173,7 @@ class ClaimExtractionAgent(BaseAgent):
             findings=findings,
             confidence=0.82 if claim_type != "unknown" else 0.35,
             warnings=(
-                ["Used configured model provider for claim extraction."]
+                ["Used configured model for claim extraction."]
                 if model_result.used_model
                 else ([] if claim_type != "unknown" else ["Could not classify claim type from description."])
             ),

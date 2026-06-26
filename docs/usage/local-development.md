@@ -4,10 +4,9 @@ From the repository root:
 
 ```powershell
 python -m venv backend\.venv
-.\backend\.venv\Scripts\python.exe -m pip install -r backend\requirements\dev.txt
-.\backend\.venv\Scripts\python.exe -m pip install -e backend
+.\backend\.venv\Scripts\python.exe -m pip install -r backend\requirements.txt
 $env:OPENAI_API_KEY='your_api_key_here'
-.\backend\.venv\Scripts\python.exe -m uvicorn api.main:app --app-dir backend\src --host 127.0.0.1 --port 8000 --reload
+.\backend\.venv\Scripts\python.exe -m uvicorn main:app --app-dir backend\src --host 127.0.0.1 --port 8000 --reload
 ```
 
 In a second terminal:

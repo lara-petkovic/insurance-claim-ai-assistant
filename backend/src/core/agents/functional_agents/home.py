@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from core.agents.base import AgentContext, BaseAgent
-from core.schemas.agent import AgentResponse
+from core.models.agent import AgentResponse
 
 
 class HomeInsuranceFunctionalAgent(BaseAgent):

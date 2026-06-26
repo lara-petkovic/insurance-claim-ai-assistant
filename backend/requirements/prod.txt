@@ -1,3 +1,0 @@
--r base.txt
-
-uvicorn[standard]==0.34.0

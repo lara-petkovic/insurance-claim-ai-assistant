@@ -23,25 +23,25 @@ export class ResultsComponent {
   private revealQueue: AgentResponse[] = [];
   private revealTimer: ReturnType<typeof setTimeout> | null = null;
 
-  knownSteps = [
-    { name: 'DynamicPlanningAgent', role: 'orchestrator', waitsFor: 'claim-specific execution plan' },
-    { name: 'DocumentIngestionAgent', role: 'technical', waitsFor: 'policy PDF text extraction' },
-    { name: 'DocumentQualityAgent', role: 'validator', waitsFor: 'document extraction quality check' },
-    { name: 'PolicyConceptExtractionAgent', role: 'model', waitsFor: 'normalized policy concepts' },
-    { name: 'ClaimExtractionAgent', role: 'model', waitsFor: 'claim facts and incident details' },
-    { name: 'GeneralInsuranceFunctionalAgent', role: 'functional', waitsFor: 'general insurance rules' },
-    { name: 'HomeInsuranceFunctionalAgent', role: 'functional', waitsFor: 'home insurance rules' },
-    { name: 'QueryRewriteAgent', role: 'technical', waitsFor: 'retrieval query rewrite' },
-    { name: 'RetrievalAgent', role: 'technical', waitsFor: 'relevant policy clauses' },
-    { name: 'VisualEvidenceAgent', role: 'vision model', waitsFor: 'damage image interpretation' },
-    { name: 'ImageAuthenticityAgent', role: 'vision model', waitsFor: 'image risk assessment' },
-    { name: 'CoverageMatchingAgent', role: 'model', waitsFor: 'coverage decision evidence' },
-    { name: 'ExclusionCheckingAgent', role: 'model', waitsFor: 'possible exclusions' },
-    { name: 'MissingDocumentsAgent', role: 'validator', waitsFor: 'required evidence checklist' },
-    { name: 'ConsistencyVerificationAgent', role: 'validator', waitsFor: 'cross-document consistency' },
-    { name: 'CitationAgent', role: 'technical', waitsFor: 'source snippets' },
-    { name: 'OutputValidatorAgent', role: 'validator', waitsFor: 'final schema validation' },
-    { name: 'FinalDecisionSynthesisAgent', role: 'synthesis', waitsFor: 'final team synthesis' }
+  private readonly knownStepNames = [
+    'DynamicPlanningAgent',
+    'DocumentIngestionAgent',
+    'DocumentQualityAgent',
+    'PolicyConceptExtractionAgent',
+    'ClaimExtractionAgent',
+    'GeneralInsuranceFunctionalAgent',
+    'HomeInsuranceFunctionalAgent',
+    'QueryRewriteAgent',
+    'RetrievalAgent',
+    'VisualEvidenceAgent',
+    'ImageAuthenticityAgent',
+    'CoverageMatchingAgent',
+    'ExclusionCheckingAgent',
+    'MissingDocumentsAgent',
+    'ConsistencyVerificationAgent',
+    'CitationAgent',
+    'OutputValidatorAgent',
+    'FinalDecisionSynthesisAgent'
   ];
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -191,26 +191,22 @@ export class ResultsComponent {
     return status.replaceAll('_', ' ');
   }
 
-  private readable(value: unknown): string {
-    return String(value).replaceAll('_', ' ');
-  }
-
-  agentSteps(): Array<{ name: string; role: string; waitsFor: string }> {
+  agentStepCount(): number {
     const planned = this.plannedAgentNames();
     if (planned.length) {
-      return planned.map((name) => this.stepForName(name));
+      return planned.length;
     }
 
     const traceNames = [...this.liveTrace, ...(this.result?.agent_trace || [])].map((agent) => agent.agent_name);
     const uniqueTraceNames = Array.from(new Set(traceNames));
     if (uniqueTraceNames.length) {
-      return uniqueTraceNames.map((name) => this.stepForName(name));
+      return uniqueTraceNames.length;
     }
 
-    return this.knownSteps;
+    return this.knownStepNames.length;
   }
 
-  plannedAgentNames(): string[] {
+  private plannedAgentNames(): string[] {
     const planningAgent = [...this.liveTrace, ...(this.result?.agent_trace || [])]
       .find((agent) => agent.agent_name === 'DynamicPlanningAgent');
     const planned = planningAgent?.findings?.['planned_agents'];
@@ -218,35 +214,6 @@ export class ResultsComponent {
       return [];
     }
     return ['DynamicPlanningAgent', ...planned.map((name) => String(name))];
-  }
-
-  private stepForName(name: string): { name: string; role: string; waitsFor: string } {
-    return this.knownSteps.find((step) => step.name === name) || {
-      name,
-      role: 'agent',
-      waitsFor: 'planned agent work',
-    };
-  }
-
-  stepState(index: number): 'complete' | 'active' | 'waiting' {
-    const step = this.agentSteps()[index];
-    if (!step) {
-      return 'waiting';
-    }
-    if (this.displayedTrace.some((agent) => agent.agent_name === step.name)) {
-      return 'complete';
-    }
-    if (this.activeAgent === step.name) {
-      return 'active';
-    }
-    const activeIndex = this.estimatedActiveIndex();
-    if (index < activeIndex) {
-      return 'complete';
-    }
-    if (index === activeIndex) {
-      return 'active';
-    }
-    return 'waiting';
   }
 
   activeStepName(): string {
@@ -306,14 +273,4 @@ export class ResultsComponent {
   openResults(): void {
     this.reviewResults.emit();
   }
-
-  private estimatedActiveIndex(): number {
-    const steps = this.agentSteps();
-    const activeIndex = Math.min(
-      Math.floor((this.progress / 100) * steps.length),
-      steps.length - 1
-    );
-    return activeIndex;
-  }
-
 }

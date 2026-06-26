@@ -1,0 +1,12 @@
+{
+  "model": {
+    "text_model": "gpt-5.4-mini",
+    "vision_model": "gpt-5.4-mini",
+    "require_models": false
+  },
+  "logging": {
+    "level": "INFO",
+    "file": "logs/claim-checker.log",
+    "to_console": true
+  }
+}

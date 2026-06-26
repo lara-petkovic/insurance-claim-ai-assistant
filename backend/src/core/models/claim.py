@@ -4,7 +4,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
-from core.schemas.agent import AgentResponse, EvidenceItem
+from core.models.agent import AgentResponse, EvidenceItem
 
 ClaimStatus = Literal[
     "likely_covered",

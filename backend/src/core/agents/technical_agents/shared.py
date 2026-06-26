@@ -4,8 +4,8 @@ import re
 from pathlib import Path
 
 from core.agents.base import AgentContext, BaseAgent
-from core.schemas.agent import AgentResponse, EvidenceItem
-from core.schemas.claim import ImageAssessment, ImageAuthenticity
+from core.models.agent import AgentResponse, EvidenceItem
+from core.models.claim import ImageAssessment, ImageAuthenticity
 from data.retrieval import retrieve_passages
 from models.model_client import get_model_client
 

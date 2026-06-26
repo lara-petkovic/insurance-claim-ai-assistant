@@ -54,7 +54,7 @@ class CoverageMatchingAgent(BaseAgent):
             findings=final_findings,
             confidence=0.82 if final_findings.get("matched_policy_concepts") else 0.4,
             warnings=(
-                ["Used configured model provider for coverage matching."]
+                ["Used configured model for coverage matching."]
                 if model_result.used_model
                 else ([] if matches else ["No direct policy concept match found for the claim type."])
             ),

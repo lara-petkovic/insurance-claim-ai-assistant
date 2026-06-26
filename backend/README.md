@@ -7,22 +7,22 @@ FastAPI backend for the Claim Checker multi-agent assessment prototype.
 ```text
 backend/
   src/
-    api/       FastAPI app, routes, and API schemas
-    core/      Business logic, agents, orchestration, and domain schemas
+    main.py    FastAPI app entrypoint
+    api/       API routes
+    core/      Business logic, agents, orchestration, and domain models
     data/      Document extraction and policy retrieval
     models/    OpenAI model adapter
-    utils/     Logging helpers
+    utils/     Project logging helpers
     config.py  Typed JSON configuration loader
-  config.json  Non-secret backend configuration
+  config/
+    config.dev.json
+    config.env.json
+    config.prod.json
   tests/
     unit/
     integration/
     e2e/
-  requirements/
-    base.txt
-    dev.txt
-    prod.txt
-  pyproject.toml
+  requirements.txt
   Dockerfile
 ```
 
@@ -32,26 +32,32 @@ From the repository root:
 
 ```powershell
 python -m venv backend\.venv
-.\backend\.venv\Scripts\python.exe -m pip install -r backend\requirements\dev.txt
-.\backend\.venv\Scripts\python.exe -m pip install -e backend
+.\backend\.venv\Scripts\python.exe -m pip install -r backend\requirements.txt
 ```
 
-The editable install makes the packages under `backend\src` importable by
-Python and IDEs without manually setting `PYTHONPATH`.
-
-Edit non-secret defaults in `backend\config.json`. Set the OpenAI API key in
-the environment before starting the backend:
+Edit non-secret defaults in `backend\config\config.dev.json`,
+`backend\config\config.env.json`, or `backend\config\config.prod.json`. Set the
+OpenAI API key in the environment before starting the backend:
 
 ```powershell
 $env:OPENAI_API_KEY='your_api_key_here'
 ```
+
+`APP_ENV` selects the config file and defaults to `dev`. Docker sets
+`APP_ENV=prod`; use `APP_ENV=env` for `config\config.env.json`.
+`APP_CONFIG_FILE` can point to an exact custom config file.
+
+Application logging is configured in the selected backend config file under
+`logging`. Logs are written to `backend\logs\claim-checker.log` by default.
+`PROJECT_LOG_LEVEL`, `PROJECT_LOG_FILE`, and `PROJECT_LOG_TO_CONSOLE` can
+override the JSON values.
 
 ## Run
 
 From the repository root:
 
 ```powershell
-.\backend\.venv\Scripts\python.exe -m uvicorn api.main:app --app-dir backend\src --host 127.0.0.1 --port 8000 --reload
+.\backend\.venv\Scripts\python.exe -m uvicorn main:app --app-dir backend\src --host 127.0.0.1 --port 8000 --reload
 ```
 
 API documentation: `http://127.0.0.1:8000/docs`
@@ -62,7 +68,7 @@ Use a Python run configuration with:
 
 ```text
 Module: uvicorn
-Parameters: api.main:app --app-dir src --host 127.0.0.1 --port 8000 --reload
+Parameters: main:app --app-dir src --host 127.0.0.1 --port 8000 --reload
 Working directory: C:\Users\Lara\Desktop\insurance-claim-ai-assistant\backend
 Interpreter: backend\.venv\Scripts\python.exe
 ```
@@ -76,11 +82,10 @@ module configuration already applies those markings.
 ```powershell
 cd backend
 $env:OPENAI_REQUIRE_MODELS='false'
-.\.venv\Scripts\python.exe -m pytest
+$env:PYTHONPATH='src'
+.\.venv\Scripts\python.exe -m pytest tests -p no:cacheprovider
 ```
 
-## Dependency Sets
+## Dependencies
 
-- `requirements/base.txt`: application libraries shared by all environments.
-- `requirements/dev.txt`: base dependencies plus tests, linting, and local Uvicorn.
-- `requirements/prod.txt`: base dependencies plus production Uvicorn.
+Backend dependencies are kept in `requirements.txt`.

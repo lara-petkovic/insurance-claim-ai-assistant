@@ -64,7 +64,7 @@ class ExclusionCheckingAgent(BaseAgent):
             findings=final_findings,
             confidence=0.72,
             warnings=(
-                ["Used configured model provider for exclusion checking."]
+                ["Used configured model for exclusion checking."]
                 if model_result.used_model
                 else ([] if not found else ["Potential exclusions require adjuster review."])
             ),
