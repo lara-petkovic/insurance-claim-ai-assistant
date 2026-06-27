@@ -120,24 +120,6 @@ textarea {
   text-transform: uppercase;
 }
 
-.file-card.compact {
-  grid-template-columns: auto 1fr;
-  padding: 12px;
-}
-
-.file-card.compact .label {
-  grid-column: 1 / -1;
-}
-
-.file-card.compact strong {
-  margin: 0;
-}
-
-.file-card.compact b,
-.file-card.compact small {
-  text-align: left;
-}
-
 .image-preview {
   align-items: center;
   background:

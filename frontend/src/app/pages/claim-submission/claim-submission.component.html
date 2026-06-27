@@ -26,7 +26,6 @@
   <label class="file-card">
     <span class="label">Policy PDF or text</span>
     <input type="file" accept=".pdf,.txt,.md" (change)="selectPolicy($event)">
-    <strong>DOC</strong>
     <b>{{ policyFile?.name || 'Select policy document' }}</b>
     <small>{{ policyFile ? 'Ready for extraction' : 'PDF, TXT or MD required' }}</small>
   </label>
@@ -41,10 +40,9 @@
     <small>{{ damageImage ? 'Queued for visual agent' : 'JPG, PNG or WEBP' }}</small>
   </label>
 
-  <label class="file-card compact">
+  <label class="file-card">
     <span class="label">Supporting documents</span>
     <input type="file" multiple accept=".pdf,.txt,.jpg,.jpeg,.png,.webp" (change)="selectSupportingDocuments($event)">
-    <strong>SUP</strong>
     <b>{{ supportingDocuments.length ? supportingDocuments.length + ' selected' : 'Optional supporting evidence' }}</b>
     <small>Reports, photos, invoices</small>
   </label>

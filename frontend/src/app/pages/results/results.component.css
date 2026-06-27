@@ -16,7 +16,6 @@
   align-items: end;
   display: flex;
   gap: 16px;
-  justify-content: space-between;
 }
 
 .hero h2 {
@@ -32,18 +31,6 @@
   margin: 6px 0 0;
 }
 
-.overall {
-  text-align: right;
-}
-
-.overall strong {
-  color: var(--accent);
-  display: block;
-  font-size: 23px;
-  line-height: 1;
-}
-
-.overall span,
 .assessment-card h2,
 .assessment-card h3,
 .report-hero p,

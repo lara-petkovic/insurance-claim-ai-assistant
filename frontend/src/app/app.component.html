@@ -9,10 +9,6 @@
       <button type="button" [class.active]="activePage === 'agents'" [disabled]="!canOpenAgents()" (click)="goToPage('agents')">Agents</button>
       <button type="button" [class.active]="activePage === 'results'" [disabled]="!canOpenResults()" (click)="goToPage('results')">Results</button>
     </nav>
-    <label class="search">
-      <span>Search</span>
-      <input type="search" placeholder="Search assessments...">
-    </label>
     <span class="status-pill" *ngIf="loading || result">{{ loading ? 'Analysis active' : 'Results ready' }}</span>
   </div>
 </header>
