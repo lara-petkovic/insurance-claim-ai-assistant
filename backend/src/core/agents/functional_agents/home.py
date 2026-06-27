@@ -5,6 +5,8 @@ from core.models.agent import AgentResponse
 
 
 class HomeInsuranceFunctionalAgent(BaseAgent):
+    """Acts as a home-insurance domain expert and defines home-claim checks."""
+
     name = "HomeInsuranceFunctionalAgent"
     agent_type = "functional"
 

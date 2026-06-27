@@ -1,6 +1,8 @@
 from core.agents.technical_agents.shared import *
 
 class DocumentIngestionAgent(BaseAgent):
+    """Loads extracted policy text and upload metadata into shared agent memory."""
+
     name = "DocumentIngestionAgent"
 
     def run(self, context: AgentContext) -> AgentResponse:
@@ -32,6 +34,8 @@ class DocumentIngestionAgent(BaseAgent):
         )
 
 class DocumentQualityAgent(BaseAgent):
+    """Checks whether extracted policy text looks usable before downstream analysis."""
+
     name = "DocumentQualityAgent"
     agent_type = "validator"
 

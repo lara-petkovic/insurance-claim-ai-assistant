@@ -1,6 +1,8 @@
 from core.agents.technical_agents.shared import *
 
 class PolicyConceptExtractionAgent(BaseAgent):
+    """Extracts normalized coverage, exclusion, and policy-condition concepts."""
+
     name = "PolicyConceptExtractionAgent"
 
     COVERAGE_PATTERNS = {
@@ -9,6 +11,10 @@ class PolicyConceptExtractionAgent(BaseAgent):
         "theft": ["theft", "attempted theft", "stolen", "forcible"],
         "water_damage": ["escape of water", "water installation", "pipe", "leak", "washing machine"],
         "broken_glass": ["breakage", "fixed glass", "sanitary ware", "glass"],
+        "vehicle_damage": ["vehicle", "car", "collision", "accidental damage", "comprehensive"],
+        "medical": ["medical", "hospital", "emergency treatment", "doctor", "illness"],
+        "baggage_loss": ["baggage", "luggage", "personal belongings", "lost luggage"],
+        "trip_cancellation": ["trip cancellation", "cancellation", "curtailment", "covered reason"],
     }
 
     EXCLUSION_PATTERNS = {
@@ -18,6 +24,9 @@ class PolicyConceptExtractionAgent(BaseAgent):
         "poor_maintenance": ["poor maintenance", "lack of maintenance"],
         "pipe_or_apparatus_itself": ["apparatus", "pipes from which the water escaped"],
         "subsidence_landslip": ["subsidence", "landslip", "ground heave"],
+        "mechanical_breakdown": ["mechanical breakdown", "wear and tear"],
+        "unattended_baggage": ["unattended baggage", "left unattended"],
+        "pre_existing_medical": ["pre-existing", "pre existing", "known medical condition"],
     }
 
     def run(self, context: AgentContext) -> AgentResponse:
@@ -114,6 +123,8 @@ class PolicyConceptExtractionAgent(BaseAgent):
         )
 
 class ClaimExtractionAgent(BaseAgent):
+    """Extracts structured claim facts and classifies the claim type."""
+
     name = "ClaimExtractionAgent"
 
     def run(self, context: AgentContext) -> AgentResponse:
@@ -126,8 +137,16 @@ class ClaimExtractionAgent(BaseAgent):
             claim_type = "storm_damage"
         elif _contains(text, "stole", "stolen", "theft", "break", "broke into", "burglar"):
             claim_type = "theft"
+        elif _contains(text, "car", "vehicle", "collision", "crash", "accident", "bumper"):
+            claim_type = "vehicle_damage"
         elif _contains(text, "fire", "smoke", "burn"):
             claim_type = "fire_damage"
+        elif _contains(text, "doctor", "hospital", "medical", "illness", "injury", "ambulance"):
+            claim_type = "medical"
+        elif _contains(text, "baggage", "luggage", "suitcase", "lost bag"):
+            claim_type = "baggage_loss"
+        elif _contains(text, "cancel", "cancelled", "cancellation", "missed trip"):
+            claim_type = "trip_cancellation"
         elif _contains(text, "glass", "window", "sanitary"):
             claim_type = "broken_glass"
 
@@ -179,7 +198,7 @@ class ClaimExtractionAgent(BaseAgent):
             messages=[
                 self.message(
                     f"Claim facts extracted and classified as {claim_type}.",
-                    to_agent="HomeInsuranceFunctionalAgent",
+                    to_agent=_specialized_functional_agent_name(context.request.insurance_type),
                     message_type="handoff",
                     metadata={"claim_type": claim_type, "incident_date": findings.get("incident_date")},
                 ),

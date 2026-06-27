@@ -31,6 +31,8 @@ export class ResultsComponent {
     'ClaimExtractionAgent',
     'GeneralInsuranceFunctionalAgent',
     'HomeInsuranceFunctionalAgent',
+    'AutoInsuranceFunctionalAgent',
+    'TravelInsuranceFunctionalAgent',
     'QueryRewriteAgent',
     'RetrievalAgent',
     'VisualEvidenceAgent',

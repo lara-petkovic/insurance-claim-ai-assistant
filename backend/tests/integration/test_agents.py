@@ -85,3 +85,42 @@ def test_orchestrator_dynamic_plan_skips_vision_agents_without_image(monkeypatch
     assert "VisualEvidenceAgent" in planner.findings["skipped_agents"]
     assert any("water damage" in reason for reason in planner.findings["rationale"])
     assert "FinalDecisionSynthesisAgent" in trace_names
+
+
+def test_orchestrator_uses_auto_functional_agent_for_auto_claim(monkeypatch):
+    disable_model_calls(monkeypatch)
+
+    result = OrchestratorAgent().analyze(
+        ClaimRequestData(
+            insurance_type="auto",
+            claim_description="My car was in a collision and the bumper needs repair.",
+            incident_date="2026-03-12",
+            policy_text="Comprehensive vehicle cover includes collision and accidental damage. Claims require damage photos and repair estimate.",
+            damage_image_filename="vehicle_damage.jpg",
+        )
+    )
+
+    trace_names = [agent.agent_name for agent in result.agent_trace]
+
+    assert result.claim_type == "vehicle_damage"
+    assert "AutoInsuranceFunctionalAgent" in trace_names
+    assert "HomeInsuranceFunctionalAgent" not in trace_names
+
+
+def test_orchestrator_uses_travel_functional_agent_for_travel_claim(monkeypatch):
+    disable_model_calls(monkeypatch)
+
+    result = OrchestratorAgent().analyze(
+        ClaimRequestData(
+            insurance_type="travel",
+            claim_description="The airline lost my luggage during the trip.",
+            incident_date="2026-03-12",
+            policy_text="Travel policy covers baggage and lost luggage. Claims require carrier report and proof of ownership.",
+        )
+    )
+
+    trace_names = [agent.agent_name for agent in result.agent_trace]
+
+    assert result.claim_type == "baggage_loss"
+    assert "TravelInsuranceFunctionalAgent" in trace_names
+    assert "HomeInsuranceFunctionalAgent" not in trace_names

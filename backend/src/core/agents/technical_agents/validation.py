@@ -1,6 +1,8 @@
 from core.agents.technical_agents.shared import *
 
 class ExclusionCheckingAgent(BaseAgent):
+    """Checks whether policy exclusions or domain-specific exclusion risks apply."""
+
     name = "ExclusionCheckingAgent"
     agent_type = "validator"
 
@@ -9,7 +11,7 @@ class ExclusionCheckingAgent(BaseAgent):
         policy_exclusions = context.memory.get("PolicyConceptExtractionAgent", {}).get("exclusions", [])
         targeted_checks = [
             item
-            for item in context.memory.get("HomeInsuranceFunctionalAgent", {}).get("checklist", [])
+            for item in _functional_checklist(context)
             if isinstance(item, dict) and item.get("target_agent") == self.name
         ]
         found = []
@@ -79,6 +81,8 @@ class ExclusionCheckingAgent(BaseAgent):
         )
 
 class MissingDocumentsAgent(BaseAgent):
+    """Checks whether required claim evidence or supporting documents are missing."""
+
     name = "MissingDocumentsAgent"
     agent_type = "validator"
 
@@ -88,6 +92,10 @@ class MissingDocumentsAgent(BaseAgent):
         "theft": ["police report", "proof of ownership"],
         "fire_damage": ["damage photos", "incident report", "repair estimate"],
         "broken_glass": ["damage photos", "repair estimate"],
+        "vehicle_damage": ["damage photos", "repair estimate"],
+        "medical": ["medical report", "medical receipts"],
+        "baggage_loss": ["carrier or police report", "proof of ownership"],
+        "trip_cancellation": ["booking confirmation", "cancellation evidence"],
     }
 
     def run(self, context: AgentContext) -> AgentResponse:
@@ -95,7 +103,7 @@ class MissingDocumentsAgent(BaseAgent):
         provided_names = " ".join(context.request.supporting_document_names).lower()
         targeted_checks = [
             item
-            for item in context.memory.get("HomeInsuranceFunctionalAgent", {}).get("checklist", [])
+            for item in _functional_checklist(context)
             if isinstance(item, dict) and item.get("target_agent") == self.name
         ]
         missing = []
@@ -124,6 +132,8 @@ class MissingDocumentsAgent(BaseAgent):
         )
 
 class ConsistencyVerificationAgent(BaseAgent):
+    """Cross-checks claim facts, image findings, and required dates for inconsistencies."""
+
     name = "ConsistencyVerificationAgent"
     agent_type = "validator"
 
@@ -162,6 +172,8 @@ class ConsistencyVerificationAgent(BaseAgent):
         )
 
 class CitationAgent(BaseAgent):
+    """Attaches retrieved policy evidence as citations for the final decision."""
+
     name = "CitationAgent"
 
     def run(self, context: AgentContext) -> AgentResponse:
@@ -186,6 +198,8 @@ class CitationAgent(BaseAgent):
         )
 
 class OutputValidatorAgent(BaseAgent):
+    """Validates the full agent output and emits feedback for repair or human review."""
+
     name = "OutputValidatorAgent"
     agent_type = "validator"
 

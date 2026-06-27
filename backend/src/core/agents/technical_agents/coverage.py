@@ -1,12 +1,14 @@
 from core.agents.technical_agents.shared import *
 
 class CoverageMatchingAgent(BaseAgent):
+    """Compares claim facts with policy concepts and retrieved evidence to assess coverage."""
+
     name = "CoverageMatchingAgent"
 
     def run(self, context: AgentContext) -> AgentResponse:
         claim_type = context.memory.get("ClaimExtractionAgent", {}).get("claim_type", "unknown")
         covered_events = context.memory.get("PolicyConceptExtractionAgent", {}).get("covered_events", [])
-        functional_checks = context.memory.get("HomeInsuranceFunctionalAgent", {}).get("checklist", [])
+        functional_checks = _functional_checklist(context)
         matches = [event for event in covered_events if event.get("concept") == claim_type]
         assessment = "covered" if matches else "unclear"
         if claim_type == "storm_damage" and any(event.get("concept") == "storm_damage" for event in covered_events):

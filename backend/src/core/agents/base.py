@@ -9,6 +9,8 @@ from core.models.claim import ClaimRequestData
 
 @dataclass
 class AgentContext:
+    """Carries the request, shared memory, responses, and messages through an agent run."""
+
     request: ClaimRequestData
     responses: list[AgentResponse] = field(default_factory=list)
     memory: dict[str, Any] = field(default_factory=dict)
@@ -28,6 +30,8 @@ class AgentContext:
 
 
 class BaseAgent:
+    """Base interface for agents that perform one focused unit of work."""
+
     name = "BaseAgent"
     agent_type: AgentType = "technical"
 

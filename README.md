@@ -47,24 +47,99 @@ frontend/
 
 ## Agents
 
-The backend runs these agents in order:
+The backend uses a techno-functional multi-agent workflow. The important idea
+is that functional agents decide **what should be checked**, while technical
+agents know **how to perform their specific task**.
 
-1. `DocumentIngestionAgent`
-2. `PolicyConceptExtractionAgent`
-3. `ClaimExtractionAgent`
-4. `GeneralInsuranceFunctionalAgent`
-5. `HomeInsuranceFunctionalAgent`
-6. `RetrievalAgent`
-7. `VisualEvidenceAgent`
-8. `ImageAuthenticityAgent`
-9. `CoverageMatchingAgent`
-10. `ExclusionCheckingAgent`
-11. `MissingDocumentsAgent`
-12. `ConsistencyVerificationAgent`
-13. `CitationAgent`
-14. `OutputValidatorAgent`
+### Orchestration Agents
 
-The `OrchestratorAgent` combines their outputs into the final `ClaimAnalysisResult`.
+- `DynamicPlanningAgent` selects the execution plan for the claim. It always
+  includes the general insurance functional agent and then chooses the
+  specialized functional agent from the selected insurance type:
+  - `home` -> `HomeInsuranceFunctionalAgent`
+  - `auto` -> `AutoInsuranceFunctionalAgent`
+  - `travel` -> `TravelInsuranceFunctionalAgent`
+- `OrchestratorAgent` runs the selected agents in order, stores their shared
+  memory, streams progress events to the frontend, logs agent activity, and
+  triggers validator-feedback repair steps when needed.
+- `FinalDecisionSynthesisAgent` combines the final agent outputs into the
+  structured `ClaimAnalysisResult`.
+
+### Functional Agents
+
+Functional agents are domain experts. Their main task is to define the rules,
+checklists, and guidance that describe what should be checked for the selected
+insurance domain and claim type.
+
+- `GeneralInsuranceFunctionalAgent` provides checks that apply to all claim
+  types, such as policy period, insured subject, evidence completeness,
+  exclusions, and human-review conditions.
+- `HomeInsuranceFunctionalAgent` provides home-insurance checks, such as water
+  damage, storm damage, theft, glass breakage, missing reports, and exclusions.
+- `AutoInsuranceFunctionalAgent` provides auto-insurance checks, such as
+  collision cover, vehicle theft conditions, repair estimates, damage photos,
+  and mechanical-breakdown or wear-and-tear exclusions.
+- `TravelInsuranceFunctionalAgent` provides travel-insurance checks, such as
+  baggage loss, medical claims, trip cancellation, carrier reports, proof of
+  ownership, medical receipts, and cancellation evidence.
+
+### Technical Agents
+
+Technical agents execute concrete analysis tasks. They use the claim request,
+policy text, extracted concepts, retrieval evidence, functional checklists,
+model calls, image inputs, and shared memory to perform their part of the
+workflow.
+
+- `DocumentIngestionAgent` loads extracted policy text and upload metadata into
+  shared memory.
+- `DocumentQualityAgent` checks whether the extracted policy text looks usable.
+- `PolicyConceptExtractionAgent` extracts normalized policy concepts, covered
+  events, exclusions, conditions, and required documents.
+- `ClaimExtractionAgent` extracts structured claim facts and classifies the
+  claim type, such as `water_damage`, `vehicle_damage`, `baggage_loss`, or
+  `medical`.
+- `QueryRewriteAgent` builds a better retrieval query from claim facts and the
+  active functional checklist.
+- `RetrievalAgent` retrieves relevant policy passages and can retry with the
+  rewritten query.
+- `CoverageMatchingAgent` compares the claim facts with policy concepts,
+  retrieved evidence, and functional checks to assess coverage.
+- `VisualEvidenceAgent` classifies visible damage from an uploaded image when
+  image evidence is present.
+- `ImageAuthenticityAgent` estimates image-authenticity risk signals.
+
+### Validator Agents
+
+Validator agents check the quality, consistency, and supportability of the
+analysis.
+
+- `ExclusionCheckingAgent` checks whether policy exclusions or functional
+  exclusion risks apply.
+- `MissingDocumentsAgent` checks whether required claim evidence is missing.
+- `ConsistencyVerificationAgent` cross-checks claim facts, visual findings, and
+  required dates.
+- `CitationAgent` attaches retrieved policy evidence as citations for the final
+  decision.
+- `OutputValidatorAgent` validates the full agent output and emits feedback
+  for repair or human review.
+
+### Agent Communication
+
+The orchestrator controls which agents run and in what order. Individual agents
+emit explicit messages such as handoffs, requests, validations, feedback, and
+summaries. Those messages are stored in shared context, logged by the backend,
+and shown in the frontend agent trace.
+
+In short:
+
+```text
+Planner decides who participates.
+Orchestrator decides who runs next.
+Functional agents define what should be checked.
+Technical agents perform the checks.
+Validator agents verify the output.
+Shared context carries findings and inter-agent messages.
+```
 
 ## OpenAI Setup
 

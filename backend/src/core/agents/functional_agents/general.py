@@ -5,6 +5,8 @@ from core.models.agent import AgentResponse
 
 
 class GeneralInsuranceFunctionalAgent(BaseAgent):
+    """Provides general insurance rules that every claim flow should check."""
+
     name = "GeneralInsuranceFunctionalAgent"
     agent_type = "functional"
 

@@ -1,12 +1,14 @@
 from core.agents.technical_agents.shared import *
 
 class QueryRewriteAgent(BaseAgent):
+    """Builds a retrieval query from claim facts and functional checklists."""
+
     name = "QueryRewriteAgent"
 
     def run(self, context: AgentContext) -> AgentResponse:
         claim = context.memory.get("ClaimExtractionAgent", {})
         claim_type = str(claim.get("claim_type", "unknown"))
-        functional_checks = context.memory.get("HomeInsuranceFunctionalAgent", {}).get("checklist", [])
+        functional_checks = _functional_checklist(context)
         check_terms = " ".join(str(item.get("check", "")) for item in functional_checks if isinstance(item, dict))
         rewritten_query = (
             f"{claim_type} {claim_type.replace('_', ' ')} {check_terms} "
@@ -32,6 +34,8 @@ class QueryRewriteAgent(BaseAgent):
         )
 
 class RetrievalAgent(BaseAgent):
+    """Retrieves policy evidence passages and retries with the rewritten query when useful."""
+
     name = "RetrievalAgent"
 
     def run(self, context: AgentContext) -> AgentResponse:

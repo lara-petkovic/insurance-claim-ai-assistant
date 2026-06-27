@@ -4,7 +4,12 @@ from collections.abc import Iterator
 from typing import Any
 
 from core.agents.base import AgentContext, BaseAgent
-from core.agents.functional_agents import GeneralInsuranceFunctionalAgent, HomeInsuranceFunctionalAgent
+from core.agents.functional_agents import (
+    AutoInsuranceFunctionalAgent,
+    GeneralInsuranceFunctionalAgent,
+    HomeInsuranceFunctionalAgent,
+    TravelInsuranceFunctionalAgent,
+)
 from core.agents.technical_agents import (
     CitationAgent,
     ClaimExtractionAgent,
@@ -21,6 +26,7 @@ from core.agents.technical_agents import (
     RetrievalAgent,
     VisualEvidenceAgent,
 )
+from core.agents.technical_agents.shared import _specialized_functional_agent_name
 from core.models.agent import AgentResponse
 from core.models.claim import ClaimAnalysisResult, ClaimRequestData, ImageAssessment, ImageAuthenticity
 from utils.app_logger import get_logger, log_event
@@ -58,6 +64,8 @@ def _log_agent_completed(response: AgentResponse, **details: Any) -> None:
 
 
 class FinalDecisionSynthesisAgent(BaseAgent):
+    """Synthesizes all agent outputs into the final claim recommendation."""
+
     name = "FinalDecisionSynthesisAgent"
     agent_type = "synthesis"
 
@@ -101,16 +109,19 @@ class FinalDecisionSynthesisAgent(BaseAgent):
 
 
 class DynamicPlanningAgent(BaseAgent):
+    """Selects the execution plan and specialized functional agent for each claim."""
+
     name = "DynamicPlanningAgent"
     agent_type = "orchestrator"
 
-    BASE_PLAN = [
+    BASE_PLAN_BEFORE_FUNCTIONAL = [
         "DocumentIngestionAgent",
         "DocumentQualityAgent",
         "PolicyConceptExtractionAgent",
         "ClaimExtractionAgent",
         "GeneralInsuranceFunctionalAgent",
-        "HomeInsuranceFunctionalAgent",
+    ]
+    BASE_PLAN_AFTER_FUNCTIONAL = [
         "QueryRewriteAgent",
         "RetrievalAgent",
         "CoverageMatchingAgent",
@@ -123,9 +134,15 @@ class DynamicPlanningAgent(BaseAgent):
     ]
 
     def run(self, context: AgentContext) -> AgentResponse:
-        planned_agents = list(self.BASE_PLAN)
+        functional_agent = _specialized_functional_agent_name(context.request.insurance_type)
+        planned_agents = [
+            *self.BASE_PLAN_BEFORE_FUNCTIONAL,
+            functional_agent,
+            *self.BASE_PLAN_AFTER_FUNCTIONAL,
+        ]
         rationale = [
             "Always ingest the policy, extract policy concepts, classify the claim, retrieve evidence, validate, and synthesize.",
+            f"{functional_agent} selected for {context.request.insurance_type} insurance guidance.",
         ]
         lower_claim = context.request.claim_description.lower()
         if any(term in lower_claim for term in ["stolen", "theft", "burglar", "broke into"]):
@@ -167,6 +184,8 @@ class DynamicPlanningAgent(BaseAgent):
 
 
 class OrchestratorAgent(BaseAgent):
+    """Coordinates the agent team, shared memory, streaming events, and feedback repairs."""
+
     name = "OrchestratorAgent"
     agent_type = "orchestrator"
 
@@ -181,6 +200,8 @@ class OrchestratorAgent(BaseAgent):
                 ClaimExtractionAgent(),
                 GeneralInsuranceFunctionalAgent(),
                 HomeInsuranceFunctionalAgent(),
+                AutoInsuranceFunctionalAgent(),
+                TravelInsuranceFunctionalAgent(),
                 QueryRewriteAgent(),
                 RetrievalAgent(),
                 VisualEvidenceAgent(),

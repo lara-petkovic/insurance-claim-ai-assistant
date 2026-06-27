@@ -1,6 +1,8 @@
 from core.agents.technical_agents.shared import *
 
 class VisualEvidenceAgent(BaseAgent):
+    """Assesses uploaded damage images and classifies visible insurance damage."""
+
     name = "VisualEvidenceAgent"
 
     LABEL_KEYWORDS = {
@@ -75,6 +77,8 @@ class VisualEvidenceAgent(BaseAgent):
         )
 
 class ImageAuthenticityAgent(BaseAgent):
+    """Estimates authenticity risk signals for uploaded claim images."""
+
     name = "ImageAuthenticityAgent"
 
     def run(self, context: AgentContext) -> AgentResponse:
