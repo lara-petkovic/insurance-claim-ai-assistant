@@ -6,7 +6,7 @@ from typing import Annotated
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from fastapi.responses import StreamingResponse
 
-from core.agents.orchestrator import OrchestratorAgent
+from core.agents import OrchestratorAgent
 from core.models.claim import ClaimAnalysisResult, ClaimRequestData, DocumentExtractionResult
 from data.text_extraction import extract_upload_text, infer_document_type
 

@@ -10,6 +10,8 @@ from core.agents.functional_agents import (
     HomeInsuranceFunctionalAgent,
     TravelInsuranceFunctionalAgent,
 )
+from core.agents.orchestrator.planning import DynamicPlanningAgent
+from core.agents.orchestrator.synthesis import FinalDecisionSynthesisAgent
 from core.agents.technical_agents import (
     CitationAgent,
     ClaimExtractionAgent,
@@ -26,9 +28,15 @@ from core.agents.technical_agents import (
     RetrievalAgent,
     VisualEvidenceAgent,
 )
-from core.agents.technical_agents.shared import _specialized_functional_agent_name
 from core.models.agent import AgentResponse
-from core.models.claim import ClaimAnalysisResult, ClaimRequestData, ImageAssessment, ImageAuthenticity
+from core.models.claim import (
+    ClaimAnalysisResult,
+    ClaimRequestData,
+    ClaimStatus,
+    CoverageAssessment,
+    ImageAssessment,
+    ImageAuthenticity,
+)
 from utils.app_logger import get_logger, log_event
 
 
@@ -61,126 +69,6 @@ def _log_agent_completed(response: AgentResponse, **details: Any) -> None:
         human_review=response.requires_human_review,
         **details,
     )
-
-
-class FinalDecisionSynthesisAgent(BaseAgent):
-    """Synthesizes all agent outputs into the final claim recommendation."""
-
-    name = "FinalDecisionSynthesisAgent"
-    agent_type = "synthesis"
-
-    def run(self, context: AgentContext) -> AgentResponse:
-        claim = context.memory.get("ClaimExtractionAgent", {})
-        coverage = context.memory.get("CoverageMatchingAgent", {})
-        validator_feedback = context.memory.get("OutputValidatorAgent", {}).get("feedback", [])
-        exclusions = context.memory.get("ExclusionCheckingAgent", {}).get("potential_exclusions", [])
-        missing_docs = context.memory.get("MissingDocumentsAgent", {}).get("missing_documents", [])
-        consistency = context.memory.get("ConsistencyVerificationAgent", {}).get("consistency_issues", [])
-
-        review_reasons = []
-        if validator_feedback:
-            review_reasons.append("validator feedback")
-        if exclusions:
-            review_reasons.append("potential exclusions")
-        if missing_docs:
-            review_reasons.append("missing documents")
-        if consistency:
-            review_reasons.append("consistency issues")
-
-        return self.respond(
-            findings={
-                "claim_type": claim.get("claim_type", "unknown"),
-                "coverage_assessment": coverage.get("coverage_assessment", "unclear"),
-                "validator_feedback": validator_feedback,
-                "review_reasons": review_reasons,
-                "message_count": len(context.messages),
-            },
-            confidence=0.88 if not review_reasons else 0.68,
-            requires_human_review=bool(review_reasons),
-            messages=[
-                self.message(
-                    f"Final synthesis prepared after reviewing {len(context.messages)} inter-agent message(s).",
-                    to_agent="OrchestratorAgent",
-                    message_type="summary",
-                    metadata={"review_reasons": review_reasons, "feedback_count": len(validator_feedback)},
-                )
-            ],
-        )
-
-
-class DynamicPlanningAgent(BaseAgent):
-    """Selects the execution plan and specialized functional agent for each claim."""
-
-    name = "DynamicPlanningAgent"
-    agent_type = "orchestrator"
-
-    BASE_PLAN_BEFORE_FUNCTIONAL = [
-        "DocumentIngestionAgent",
-        "DocumentQualityAgent",
-        "PolicyConceptExtractionAgent",
-        "ClaimExtractionAgent",
-        "GeneralInsuranceFunctionalAgent",
-    ]
-    BASE_PLAN_AFTER_FUNCTIONAL = [
-        "QueryRewriteAgent",
-        "RetrievalAgent",
-        "CoverageMatchingAgent",
-        "ExclusionCheckingAgent",
-        "MissingDocumentsAgent",
-        "ConsistencyVerificationAgent",
-        "CitationAgent",
-        "OutputValidatorAgent",
-        "FinalDecisionSynthesisAgent",
-    ]
-
-    def run(self, context: AgentContext) -> AgentResponse:
-        functional_agent = _specialized_functional_agent_name(context.request.insurance_type)
-        planned_agents = [
-            *self.BASE_PLAN_BEFORE_FUNCTIONAL,
-            functional_agent,
-            *self.BASE_PLAN_AFTER_FUNCTIONAL,
-        ]
-        rationale = [
-            "Always ingest the policy, extract policy concepts, classify the claim, retrieve evidence, validate, and synthesize.",
-            f"{functional_agent} selected for {context.request.insurance_type} insurance guidance.",
-        ]
-        lower_claim = context.request.claim_description.lower()
-        if any(term in lower_claim for term in ["stolen", "theft", "burglar", "broke into"]):
-            rationale.append("The claim text suggests theft, so evidence planning emphasizes police report and ownership checks.")
-        elif any(term in lower_claim for term in ["storm", "roof", "hail", "wind"]):
-            rationale.append("The claim text suggests storm damage, so planning emphasizes weather evidence and wear-and-tear exclusions.")
-        elif any(term in lower_claim for term in ["leak", "water", "pipe", "ceiling", "flood"]):
-            rationale.append("The claim text suggests water damage, so planning emphasizes sudden escape of water, gradual damage exclusions, and plumber evidence.")
-        else:
-            rationale.append("The claim type is not obvious from text, so the complete validation path is kept.")
-        if context.request.damage_image_bytes or context.request.damage_image_filename:
-            insertion_index = planned_agents.index("CoverageMatchingAgent")
-            planned_agents[insertion_index:insertion_index] = ["VisualEvidenceAgent", "ImageAuthenticityAgent"]
-            rationale.append("Damage image was provided, so visual evidence and authenticity agents are required.")
-        else:
-            rationale.append("No damage image was provided, so vision agents are skipped and evidence completeness is checked instead.")
-
-        return self.respond(
-            findings={
-                "planned_agents": planned_agents,
-                "skipped_agents": [
-                    name
-                    for name in ["VisualEvidenceAgent", "ImageAuthenticityAgent"]
-                    if name not in planned_agents
-                ],
-                "rationale": rationale,
-                "planning_mode": "dynamic_rule_based",
-            },
-            confidence=0.94,
-            messages=[
-                self.message(
-                    f"Dynamic execution plan selected {len(planned_agents)} agent(s).",
-                    to_agent="OrchestratorAgent",
-                    message_type="guidance",
-                    metadata={"planned_agents": planned_agents, "rationale": rationale},
-                )
-            ],
-        )
 
 
 class OrchestratorAgent(BaseAgent):
@@ -408,9 +296,10 @@ class OrchestratorAgent(BaseAgent):
             if response.agent_name == "CitationAgent":
                 citations = response.evidence
 
-        coverage_assessment = coverage.get("coverage_assessment", "unclear")
+        coverage_assessment = self._coverage_assessment(coverage.get("coverage_assessment", "unclear"))
         requires_review = any(response.requires_human_review for response in context.responses)
 
+        claim_status: ClaimStatus
         if exclusions and any(item.get("severity") == "high" for item in exclusions):
             claim_status = "likely_not_covered"
         elif coverage_assessment == "covered" and not missing_docs and not exclusions and image_authenticity.risk_level in {"low", "medium"}:
@@ -456,7 +345,7 @@ class OrchestratorAgent(BaseAgent):
     @staticmethod
     def _build_reasoning(
         claim_type: str,
-        coverage_assessment: str,
+        coverage_assessment: CoverageAssessment,
         exclusions: list[dict],
         missing_docs: list[str],
         consistency: list[str],
@@ -477,7 +366,7 @@ class OrchestratorAgent(BaseAgent):
         return " ".join(parts)
 
     @staticmethod
-    def _build_recommendation(status: str) -> str:
+    def _build_recommendation(status: ClaimStatus) -> str:
         if status == "likely_covered":
             return "Proceed with adjuster review and payment workflow after verifying original documents."
         if status == "likely_not_covered":
@@ -485,6 +374,16 @@ class OrchestratorAgent(BaseAgent):
         if status == "partially_covered":
             return "Send to human adjuster to separate covered and non-covered components."
         return "Send to human adjuster with highlighted evidence, missing documents, and risk flags."
+
+    @staticmethod
+    def _coverage_assessment(value: object) -> CoverageAssessment:
+        if value == "covered":
+            return "covered"
+        if value == "not_covered":
+            return "not_covered"
+        if value == "possibly_covered":
+            return "possibly_covered"
+        return "unclear"
 
     @staticmethod
     def _as_text_list(value: object) -> list[str]:

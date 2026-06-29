@@ -1,5 +1,14 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input } from '@angular/core';
+import {
+  AfterViewChecked,
+  Component,
+  ElementRef,
+  Input,
+  OnChanges,
+  QueryList,
+  SimpleChanges,
+  ViewChildren
+} from '@angular/core';
 import { AgentMessage, AgentResponse } from '../../models/claim.models';
 
 @Component({
@@ -9,12 +18,40 @@ import { AgentMessage, AgentResponse } from '../../models/claim.models';
   templateUrl: './agent-trace.component.html',
   styleUrl: './agent-trace.component.css'
 })
-export class AgentTraceComponent {
+export class AgentTraceComponent implements OnChanges, AfterViewChecked {
   @Input({ required: true }) trace: AgentResponse[] = [];
+  @ViewChildren('traceItem') traceItems!: QueryList<ElementRef<HTMLElement>>;
+
   expanded = new Set<string>();
+  private latestTraceKey = '';
+  private shouldFocusLatest = false;
 
   orderedTrace(): AgentResponse[] {
     return this.trace;
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (!changes['trace']) {
+      return;
+    }
+
+    const latest = this.trace.at(-1);
+    const nextTraceKey = latest ? `${this.trace.length}-${this.trackAgent(this.trace.length - 1, latest)}` : '';
+    if (nextTraceKey && nextTraceKey !== this.latestTraceKey) {
+      this.latestTraceKey = nextTraceKey;
+      this.shouldFocusLatest = true;
+    }
+  }
+
+  ngAfterViewChecked(): void {
+    if (!this.shouldFocusLatest || !this.traceItems?.length) {
+      return;
+    }
+
+    this.shouldFocusLatest = false;
+    const latest = this.traceItems.last.nativeElement;
+    latest.focus({ preventScroll: true });
+    latest.scrollIntoView({ behavior: 'smooth', block: 'end' });
   }
 
   trackAgent(index: number, agent: AgentResponse): string {

@@ -1,9 +1,11 @@
 <section class="trace">
   <article
     *ngFor="let agent of orderedTrace(); trackBy: trackAgent"
+    #traceItem
     class="trace-group"
     [class.with-messages]="hasOutboundMessages(agent)"
     [ngClass]="tone(agent)"
+    tabindex="-1"
   >
     <div class="agent-card">
       <div class="agent-main">

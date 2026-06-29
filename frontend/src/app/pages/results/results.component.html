@@ -5,23 +5,12 @@
         <h2>Agent Communication</h2>
         <p>{{ loading ? 'Autonomous reasoning pipeline in progress.' : result ? 'Agent run completed. Open Results for the decision report.' : 'Waiting for claim package submission.' }}</p>
       </div>
-      <div class="overall">
-        <strong>{{ result ? 100 : progress }}%</strong>
-        <span>Overall Progress</span>
-      </div>
     </header>
 
     <section class="agent-chat trace-host" aria-label="Agent trace">
       <app-agent-trace [trace]="displayedTrace" />
     </section>
 
-    <article class="results-ready" *ngIf="result && !loading && allAgentResponsesDisplayed()">
-      <div>
-        <strong>Results are ready</strong>
-        <p>All agents finished their checks. Review the final coverage decision, reasoning, citations, and human review checklist.</p>
-      </div>
-      <button type="button" (click)="openResults()">Review Results</button>
-    </article>
   </div>
 
   <aside class="assessment-panel">
@@ -34,6 +23,14 @@
         </div>
       </div>
     </section>
+
+    <article class="results-ready" *ngIf="result && !loading && allAgentResponsesDisplayed()">
+      <div>
+        <strong>Results are ready</strong>
+        <p>All agents finished their checks. Review the final coverage decision, reasoning, citations, and human review checklist.</p>
+      </div>
+      <button type="button" (click)="openResults()">Review Results</button>
+    </article>
   </aside>
 </section>
 

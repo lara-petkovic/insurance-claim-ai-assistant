@@ -127,7 +127,9 @@
 }
 
 .analysis-screen {
+  height: calc(100vh - 86px);
   min-height: calc(100vh - 86px);
+  min-width: 0;
   scroll-margin-top: 68px;
 }
 

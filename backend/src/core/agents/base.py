@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
-from core.models.agent import AgentMessage, AgentResponse, AgentType
+from core.models.agent import AgentMessage, AgentResponse, AgentStatus, AgentType, MessageType
 from core.models.claim import ClaimRequestData
 
 
@@ -43,7 +43,7 @@ class BaseAgent:
         content: str,
         *,
         to_agent: str | None = None,
-        message_type: str = "summary",
+        message_type: MessageType = "summary",
         metadata: dict[str, Any] | None = None,
     ) -> AgentMessage:
         return AgentMessage(
@@ -63,7 +63,7 @@ class BaseAgent:
         warnings: list[str] | None = None,
         requires_human_review: bool = False,
         messages: list[AgentMessage] | None = None,
-        status: str = "completed",
+        status: AgentStatus = "completed",
     ) -> AgentResponse:
         return AgentResponse(
             agent_name=self.name,

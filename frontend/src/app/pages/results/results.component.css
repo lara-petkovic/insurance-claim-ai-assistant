@@ -2,13 +2,15 @@
   display: grid;
   gap: 18px;
   grid-template-columns: minmax(0, 1fr) minmax(300px, 340px);
-  min-height: calc(100vh - 118px);
+  height: 100%;
+  min-height: 0;
 }
 
 .orchestration-main {
   display: grid;
   gap: 11px;
   grid-template-rows: auto minmax(0, 1fr);
+  min-height: 0;
   min-width: 0;
 }
 
@@ -59,8 +61,8 @@
 }
 
 .agent-chat {
-  max-height: calc(100vh - 194px);
-  min-height: 450px;
+  max-height: none;
+  min-height: 0;
   overflow: auto;
   padding: 18px 20px 18px 18px;
   position: relative;
@@ -205,18 +207,17 @@
 }
 
 .results-ready {
-  align-items: center;
+  align-items: stretch;
   animation: ready-enter 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
   background:
     linear-gradient(115deg, rgba(25, 216, 203, 0.16), rgba(102, 214, 255, 0.07)),
     rgba(255, 255, 255, 0.055);
   border: 1px solid rgba(25, 216, 203, 0.34);
   border-radius: 8px;
-  display: flex;
-  gap: 16px;
-  justify-content: space-between;
+  display: grid;
+  gap: 14px;
   margin: 0;
-  padding: 14px;
+  padding: 16px;
 }
 
 .results-ready strong {
@@ -237,8 +238,8 @@
   border: 1px solid rgba(25, 216, 203, 0.6);
   border-radius: 6px;
   color: #05211e;
-  flex: 0 0 auto;
   font-weight: 900;
+  justify-self: stretch;
   padding: 10px 14px;
   transition: transform 260ms ease, box-shadow 260ms ease, background 260ms ease;
 }

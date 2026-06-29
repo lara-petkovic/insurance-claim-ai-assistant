@@ -56,7 +56,7 @@ def _merge_dict_lists_by_key(
     return merged
 
 
-def _specialized_functional_agent_name(insurance_type: str) -> str:
+def specialized_functional_agent_name(insurance_type: str) -> str:
     return {
         "auto": "AutoInsuranceFunctionalAgent",
         "travel": "TravelInsuranceFunctionalAgent",
@@ -64,7 +64,7 @@ def _specialized_functional_agent_name(insurance_type: str) -> str:
 
 
 def _functional_checklist(context: AgentContext) -> list:
-    agent_name = _specialized_functional_agent_name(context.request.insurance_type)
+    agent_name = specialized_functional_agent_name(context.request.insurance_type)
     return context.memory.get(agent_name, {}).get("checklist", [])
 
 
@@ -83,6 +83,6 @@ __all__ = [
     "_as_list",
     "_as_dict_list",
     "_merge_dict_lists_by_key",
-    "_specialized_functional_agent_name",
+    "specialized_functional_agent_name",
     "_functional_checklist",
 ]
