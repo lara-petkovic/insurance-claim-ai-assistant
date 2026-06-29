@@ -32,6 +32,7 @@ class ModelClient:
         self.require_models = settings.openai_require_models
         self.api_key = settings.openai_api_key
         self.text_model = settings.openai_text_model
+        self.planning_model = settings.openai_planning_model
         self.vision_model = settings.openai_vision_model
 
         self._client: Any = None
@@ -46,6 +47,7 @@ class ModelClient:
                     logger,
                     "OpenAI client initialized.",
                     text_model=self.text_model,
+                    planning_model=self.planning_model,
                     vision_model=self.vision_model,
                     require_models=self.require_models,
                 )

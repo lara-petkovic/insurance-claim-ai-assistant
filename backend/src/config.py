@@ -20,6 +20,7 @@ class ConfigurationError(RuntimeError):
 class Settings:
     openai_api_key: str | None
     openai_text_model: str
+    openai_planning_model: str
     openai_vision_model: str
     openai_require_models: bool
     log_level: str
@@ -102,6 +103,12 @@ def get_settings() -> Settings:
         raise ConfigurationError("Configuration value 'logging' must be a JSON object.")
 
     text_model = os.getenv("OPENAI_TEXT_MODEL") or _required_string(model, "text_model")
+    configured_planning_model = model.get("planning_model")
+    planning_model = os.getenv("OPENAI_PLANNING_MODEL") or (
+        configured_planning_model.strip()
+        if isinstance(configured_planning_model, str) and configured_planning_model.strip()
+        else text_model
+    )
     configured_vision_model = model.get("vision_model")
     vision_model = os.getenv("OPENAI_VISION_MODEL") or (
         configured_vision_model.strip()
@@ -121,6 +128,7 @@ def get_settings() -> Settings:
     return Settings(
         openai_api_key=_secret_value("OPENAI_API_KEY"),
         openai_text_model=text_model,
+        openai_planning_model=planning_model,
         openai_vision_model=vision_model,
         openai_require_models=_environment_bool("OPENAI_REQUIRE_MODELS", require_models),
         log_level=log_level.upper(),

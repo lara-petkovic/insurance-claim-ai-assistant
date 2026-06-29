@@ -1,7 +1,9 @@
 from config import get_settings
+from core.agents.base import AgentContext
+from core.agents.orchestrator.planning import DynamicPlanningAgent
 from core.agents.orchestrator import OrchestratorAgent
 from core.models.claim import ClaimRequestData
-from models.model_client import get_model_client
+from models.model_client import ModelResult, get_model_client
 
 TEST_POLICY_TEXT = """
 Household policy wording.
@@ -18,6 +20,7 @@ def disable_model_calls(monkeypatch):
     monkeypatch.setenv("OPENAI_REQUIRE_MODELS", "false")
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     monkeypatch.delenv("OPENAI_API_KEY_FILE", raising=False)
+    monkeypatch.delenv("OPENAI_PLANNING_MODEL", raising=False)
     get_settings.cache_clear()
     get_model_client.cache_clear()
 
@@ -85,6 +88,40 @@ def test_orchestrator_dynamic_plan_skips_vision_agents_without_image(monkeypatch
     assert "VisualEvidenceAgent" in planner.findings["skipped_agents"]
     assert any("water damage" in reason for reason in planner.findings["rationale"])
     assert "FinalDecisionSynthesisAgent" in trace_names
+
+
+def test_dynamic_planner_uses_model_signals_without_model_generated_agent_list(monkeypatch):
+    class FakeModelClient:
+        planning_model = "planner-test-model"
+
+        def json_response(self, **kwargs):
+            assert kwargs["model"] == self.planning_model
+            return ModelResult(
+                data={
+                    "claim_theme": "theft",
+                    "evidence_focus": ["police report", "ownership proof"],
+                    "rationale": "The user says valuable items disappeared from the home.",
+                    "planned_agents": ["UntrustedAgent"],
+                },
+                used_model=True,
+            )
+
+    monkeypatch.setattr("core.agents.orchestrator.planning.get_model_client", lambda: FakeModelClient())
+    response = DynamicPlanningAgent().run(
+        AgentContext(
+            request=ClaimRequestData(
+                insurance_type="home",
+                claim_description="My watch disappeared after someone entered the house.",
+                policy_text=TEST_POLICY_TEXT,
+            )
+        )
+    )
+
+    assert response.findings["planning_signals"]["claim_theme"] == "theft"
+    assert response.findings["planning_signals"]["model_used"] is True
+    assert response.findings["planning_signals"]["model_name"] == "planner-test-model"
+    assert "UntrustedAgent" not in response.findings["planned_agents"]
+    assert "HomeInsuranceFunctionalAgent" in response.findings["planned_agents"]
 
 
 def test_orchestrator_uses_auto_functional_agent_for_auto_claim(monkeypatch):

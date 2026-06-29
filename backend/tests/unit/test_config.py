@@ -60,6 +60,7 @@ def test_settings_load_default_dev_profile(monkeypatch):
         "dev",
         {
             "text_model": "dev-text-model",
+            "planning_model": "dev-planning-model",
             "vision_model": "dev-vision-model",
             "require_models": False,
         },
@@ -71,6 +72,7 @@ def test_settings_load_default_dev_profile(monkeypatch):
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     monkeypatch.delenv("OPENAI_API_KEY_FILE", raising=False)
     monkeypatch.delenv("OPENAI_TEXT_MODEL", raising=False)
+    monkeypatch.delenv("OPENAI_PLANNING_MODEL", raising=False)
     monkeypatch.delenv("OPENAI_VISION_MODEL", raising=False)
     monkeypatch.delenv("OPENAI_REQUIRE_MODELS", raising=False)
     get_settings.cache_clear()
@@ -78,6 +80,7 @@ def test_settings_load_default_dev_profile(monkeypatch):
     settings = get_settings()
 
     assert settings.openai_text_model == "dev-text-model"
+    assert settings.openai_planning_model == "dev-planning-model"
     assert settings.openai_vision_model == "dev-vision-model"
     assert settings.openai_require_models is False
     assert settings.openai_api_key is None
@@ -93,6 +96,7 @@ def test_settings_load_selected_prod_profile(monkeypatch):
         "prod",
         {
             "text_model": "prod-text-model",
+            "planning_model": "prod-planning-model",
             "vision_model": "prod-vision-model",
             "require_models": True,
         },
@@ -101,6 +105,7 @@ def test_settings_load_selected_prod_profile(monkeypatch):
     monkeypatch.delenv("APP_CONFIG_FILE", raising=False)
     monkeypatch.setenv("APP_ENV", "prod")
     monkeypatch.delenv("OPENAI_TEXT_MODEL", raising=False)
+    monkeypatch.delenv("OPENAI_PLANNING_MODEL", raising=False)
     monkeypatch.delenv("OPENAI_VISION_MODEL", raising=False)
     monkeypatch.delenv("OPENAI_REQUIRE_MODELS", raising=False)
     get_settings.cache_clear()
@@ -108,6 +113,7 @@ def test_settings_load_selected_prod_profile(monkeypatch):
     settings = get_settings()
 
     assert settings.openai_text_model == "prod-text-model"
+    assert settings.openai_planning_model == "prod-planning-model"
     assert settings.openai_vision_model == "prod-vision-model"
     assert settings.openai_require_models is True
     assert settings.log_file == "logs/prod.log"
@@ -126,6 +132,7 @@ def test_environment_overrides_json(monkeypatch):
     monkeypatch.setenv("APP_ENV", "env")
     monkeypatch.setenv("OPENAI_API_KEY", "test-key")
     monkeypatch.setenv("OPENAI_TEXT_MODEL", "environment-text-model")
+    monkeypatch.setenv("OPENAI_PLANNING_MODEL", "environment-planning-model")
     monkeypatch.setenv("OPENAI_VISION_MODEL", "environment-vision-model")
     monkeypatch.setenv("OPENAI_REQUIRE_MODELS", "false")
     monkeypatch.setenv("PROJECT_LOG_LEVEL", "debug")
@@ -137,6 +144,7 @@ def test_environment_overrides_json(monkeypatch):
 
     assert settings.openai_api_key == "test-key"
     assert settings.openai_text_model == "environment-text-model"
+    assert settings.openai_planning_model == "environment-planning-model"
     assert settings.openai_vision_model == "environment-vision-model"
     assert settings.openai_require_models is False
     assert settings.log_level == "DEBUG"
@@ -189,6 +197,7 @@ def test_invalid_app_env_is_rejected(monkeypatch):
     monkeypatch.setattr("config.BACKEND_DIR", test_dir)
     monkeypatch.delenv("APP_CONFIG_FILE", raising=False)
     monkeypatch.setenv("APP_ENV", "staging")
+    monkeypatch.delenv("OPENAI_PLANNING_MODEL", raising=False)
     get_settings.cache_clear()
 
     with pytest.raises(ConfigurationError, match="APP_ENV"):

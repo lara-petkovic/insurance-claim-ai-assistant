@@ -1,6 +1,7 @@
 {
   "model": {
     "text_model": "gpt-5.4-mini",
+    "planning_model": "gpt-5.4-mini",
     "vision_model": "gpt-5.4-mini",
     "require_models": false
   },
