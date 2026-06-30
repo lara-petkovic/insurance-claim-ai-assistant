@@ -198,8 +198,4 @@ export class AgentTraceComponent implements OnChanges, AfterViewChecked {
   isExpanded(agentName: string): boolean {
     return this.expanded.has(agentName);
   }
-
-  modelUsed(agent: AgentResponse): boolean {
-    return agent.findings?.['model_used'] === true;
-  }
 }

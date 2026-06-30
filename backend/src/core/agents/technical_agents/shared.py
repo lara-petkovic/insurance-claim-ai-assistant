@@ -1,13 +1,6 @@
 from __future__ import annotations
 
-import re
-from pathlib import Path
-
-from core.agents.base import AgentContext, BaseAgent
-from core.models.agent import AgentResponse, EvidenceItem
-from core.models.claim import ImageAssessment, ImageAuthenticity
-from data.retrieval import retrieve_passages
-from models.model_client import get_model_client
+from core.agents.base import AgentContext
 
 
 def _contains(text: str, *terms: str) -> bool:
@@ -69,16 +62,6 @@ def _functional_checklist(context: AgentContext) -> list:
 
 
 __all__ = [
-    "re",
-    "Path",
-    "AgentContext",
-    "BaseAgent",
-    "AgentResponse",
-    "EvidenceItem",
-    "ImageAssessment",
-    "ImageAuthenticity",
-    "get_model_client",
-    "retrieve_passages",
     "_contains",
     "_as_list",
     "_as_dict_list",

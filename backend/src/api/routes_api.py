@@ -89,13 +89,17 @@ async def _build_claim_request(
 ) -> ClaimRequestData:
     policy_text = ""
     policy_filename = None
+    policy_extraction_warnings: list[str] = []
     if policy_file:
         policy_filename = policy_file.filename
-        policy_text, _ = await extract_upload_text(policy_file.filename or "policy.pdf", await policy_file.read())
+        policy_text, policy_extraction_warnings = await extract_upload_text(
+            policy_file.filename or "policy.pdf",
+            await policy_file.read(),
+        )
     if not policy_text.strip():
         raise HTTPException(
             status_code=400,
-            detail="Policy text is required. Upload a text-based PDF or .txt policy document that can be extracted.",
+            detail="Policy text is required. Upload a PDF or text policy document that can be extracted by text or vision fallback.",
         )
 
     damage_image_filename = None
@@ -118,6 +122,7 @@ async def _build_claim_request(
         incident_date=incident_date,
         policy_text=policy_text,
         policy_filename=policy_filename,
+        policy_extraction_warnings=policy_extraction_warnings,
         damage_image_filename=damage_image_filename,
         damage_image_size=damage_image_size,
         damage_image_mime_type=damage_image_mime_type,

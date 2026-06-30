@@ -111,6 +111,34 @@ HOME_CHECKLIST_BY_CLAIM_TYPE: dict[str, list[FunctionalChecklistItem]] = {
     ],
 }
 
+PLANNING_SIGNALS_JSON_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "claim_theme": {
+            "type": "string",
+            "enum": [
+                "theft",
+                "storm_damage",
+                "water_damage",
+                "fire_damage",
+                "vehicle_damage",
+                "medical",
+                "baggage_loss",
+                "trip_cancellation",
+                "unknown",
+            ],
+        },
+        "evidence_focus": {
+            "type": "array",
+            "items": {"type": "string"},
+            "maxItems": 5,
+        },
+        "rationale": {"type": "string"},
+    },
+    "required": ["claim_theme", "evidence_focus", "rationale"],
+}
+
 UNKNOWN_THEME = "unknown"
 UNKNOWN_THEME_RATIONALE = "The claim type is not obvious from text, so the complete validation path is kept."
 
@@ -118,6 +146,7 @@ __all__ = [
     "CLAIM_THEME_CONFIG",
     "HOME_CHECKLIST_BY_CLAIM_TYPE",
     "HOME_RULES_BY_CLAIM_TYPE",
+    "PLANNING_SIGNALS_JSON_SCHEMA",
     "UNKNOWN_THEME",
     "UNKNOWN_THEME_RATIONALE",
 ]

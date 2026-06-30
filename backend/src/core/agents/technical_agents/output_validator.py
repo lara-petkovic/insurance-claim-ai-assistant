@@ -1,4 +1,6 @@
-from core.agents.technical_agents.shared import *
+from core.agents.base import AgentContext, BaseAgent
+from core.models.agent import AgentResponse
+from models.model_client import get_model_client
 
 
 class OutputValidatorAgent(BaseAgent):

@@ -1,4 +1,6 @@
-from core.agents.technical_agents.shared import *
+from core.agents.base import AgentContext, BaseAgent
+from core.models.agent import AgentResponse
+from data.retrieval import retrieve_passages
 
 
 class RetrievalAgent(BaseAgent):

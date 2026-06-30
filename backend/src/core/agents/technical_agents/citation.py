@@ -1,4 +1,5 @@
-from core.agents.technical_agents.shared import *
+from core.agents.base import AgentContext, BaseAgent
+from core.models.agent import AgentResponse
 
 
 class CitationAgent(BaseAgent):

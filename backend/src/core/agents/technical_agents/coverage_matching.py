@@ -1,6 +1,9 @@
 from typing import Any
 
-from core.agents.technical_agents.shared import *
+from core.agents.base import AgentContext, BaseAgent
+from core.agents.technical_agents.shared import _functional_checklist, _merge_dict_lists_by_key
+from core.models.agent import AgentResponse
+from models.model_client import get_model_client
 
 
 class CoverageMatchingAgent(BaseAgent):

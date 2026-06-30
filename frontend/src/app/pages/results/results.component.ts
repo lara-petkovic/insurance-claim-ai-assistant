@@ -23,29 +23,6 @@ export class ResultsComponent {
   private revealQueue: AgentResponse[] = [];
   private revealTimer: ReturnType<typeof setTimeout> | null = null;
 
-  private readonly knownStepNames = [
-    'DynamicPlanningAgent',
-    'DocumentIngestionAgent',
-    'DocumentQualityAgent',
-    'PolicyConceptExtractionAgent',
-    'ClaimExtractionAgent',
-    'GeneralInsuranceFunctionalAgent',
-    'HomeInsuranceFunctionalAgent',
-    'AutoInsuranceFunctionalAgent',
-    'TravelInsuranceFunctionalAgent',
-    'QueryRewriteAgent',
-    'RetrievalAgent',
-    'VisualEvidenceAgent',
-    'ImageAuthenticityAgent',
-    'CoverageMatchingAgent',
-    'ExclusionCheckingAgent',
-    'MissingDocumentsAgent',
-    'ConsistencyVerificationAgent',
-    'CitationAgent',
-    'OutputValidatorAgent',
-    'FinalDecisionSynthesisAgent'
-  ];
-
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['liveTrace']) {
       this.queueNewAgentResponses();
@@ -71,19 +48,6 @@ export class ResultsComponent {
 
   allAgentResponsesDisplayed(): boolean {
     return this.liveTrace.length > 0 && this.displayedTrace.length >= this.liveTrace.length && this.revealQueue.length === 0;
-  }
-
-  currentAgentSummary(): string {
-    const latest = this.displayedTrace.at(-1) || this.result?.agent_trace?.at(-1);
-    if (!latest) {
-      return 'Awaiting first agent signal from the orchestration pipeline.';
-    }
-    return this.agentSummary(latest);
-  }
-
-  exclusionInsight(): string {
-    const count = this.result?.potential_exclusions.length || 0;
-    return count ? `${count} potential exclusion(s) detected.` : 'Awaiting exclusion and consistency review.';
   }
 
   decisionTone(): 'success' | 'warning' | 'danger' {
@@ -163,69 +127,8 @@ export class ResultsComponent {
     return this.result?.evidence.slice(0, 3) || [];
   }
 
-  agentSummary(agent: AgentResponse): string {
-    const lastMessage = agent.messages?.at(-1);
-    if (lastMessage) {
-      return lastMessage.content;
-    }
-    const findings = agent.findings || {};
-    if ('claim_type' in findings) {
-      return `Classified claim as ${findings['claim_type']}.`;
-    }
-    if ('coverage_assessment' in findings) {
-      return `Coverage assessment is ${findings['coverage_assessment']}.`;
-    }
-    if ('missing_documents' in findings) {
-      const missing = findings['missing_documents'] as unknown[];
-      return missing.length ? `${missing.length} missing document(s) detected.` : 'No missing documents detected.';
-    }
-    if ('potential_exclusions' in findings) {
-      const exclusions = findings['potential_exclusions'] as unknown[];
-      return exclusions.length ? `${exclusions.length} potential exclusion(s) found.` : 'No potential exclusions found.';
-    }
-    if ('retrieved_count' in findings) {
-      return `${findings['retrieved_count']} relevant policy clause(s) retrieved.`;
-    }
-    return agent.evidence.length ? `${agent.evidence.length} evidence item(s) returned.` : `${agent.agent_name} completed its reasoning step.`;
-  }
-
   statusLabel(status: string): string {
     return status.replaceAll('_', ' ');
-  }
-
-  agentStepCount(): number {
-    const planned = this.plannedAgentNames();
-    if (planned.length) {
-      return planned.length;
-    }
-
-    const traceNames = [...this.liveTrace, ...(this.result?.agent_trace || [])].map((agent) => agent.agent_name);
-    const uniqueTraceNames = Array.from(new Set(traceNames));
-    if (uniqueTraceNames.length) {
-      return uniqueTraceNames.length;
-    }
-
-    return this.knownStepNames.length;
-  }
-
-  private plannedAgentNames(): string[] {
-    const planningAgent = [...this.liveTrace, ...(this.result?.agent_trace || [])]
-      .find((agent) => agent.agent_name === 'DynamicPlanningAgent');
-    const planned = planningAgent?.findings?.['planned_agents'];
-    if (!Array.isArray(planned)) {
-      return [];
-    }
-    return ['DynamicPlanningAgent', ...planned.map((name) => String(name))];
-  }
-
-  activeStepName(): string {
-    if (this.activeAgent) {
-      return this.activeAgent;
-    }
-    if (this.loading) {
-      return 'Waiting for first agent';
-    }
-    return this.result ? 'Assessment complete' : 'Not started';
   }
 
   private queueNewAgentResponses(): void {

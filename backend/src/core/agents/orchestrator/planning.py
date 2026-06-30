@@ -3,7 +3,12 @@ from __future__ import annotations
 from typing import Any
 
 from core.agents.base import AgentContext, BaseAgent
-from core.agents.constants import CLAIM_THEME_CONFIG, UNKNOWN_THEME, UNKNOWN_THEME_RATIONALE
+from core.agents.constants import (
+    CLAIM_THEME_CONFIG,
+    PLANNING_SIGNALS_JSON_SCHEMA,
+    UNKNOWN_THEME,
+    UNKNOWN_THEME_RATIONALE,
+)
 from core.agents.technical_agents.shared import specialized_functional_agent_name
 from core.models.agent import AgentResponse
 from models.model_client import get_model_client
@@ -133,6 +138,9 @@ class DynamicPlanningAgent(BaseAgent):
             ),
             fallback=fallback,
             model=model_client.planning_model,
+            schema_name="planning_signals",
+            json_schema=PLANNING_SIGNALS_JSON_SCHEMA,
+            schema_description="Planning signals used to explain deterministic insurance agent selection.",
         )
         data = model_result.data
         theme = self._valid_theme(data.get("claim_theme"))

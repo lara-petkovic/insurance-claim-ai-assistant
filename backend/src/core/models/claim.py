@@ -27,6 +27,7 @@ class ClaimRequestData(BaseModel):
     incident_date: str | None = None
     policy_text: str = ""
     policy_filename: str | None = None
+    policy_extraction_warnings: list[str] = Field(default_factory=list)
     damage_image_filename: str | None = None
     damage_image_size: int | None = None
     damage_image_mime_type: str | None = None

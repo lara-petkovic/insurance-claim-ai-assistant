@@ -1,4 +1,5 @@
-from core.agents.technical_agents.shared import *
+from core.agents.base import AgentContext, BaseAgent
+from core.models.agent import AgentResponse
 
 
 class DocumentIngestionAgent(BaseAgent):
@@ -9,13 +10,14 @@ class DocumentIngestionAgent(BaseAgent):
     def run(self, context: AgentContext) -> AgentResponse:
         request = context.request
         policy_text = request.policy_text.strip()
-        warnings = []
+        warnings = list(request.policy_extraction_warnings)
         if not request.policy_text.strip():
             warnings.append("No policy text was provided or extracted. Upload a policy PDF/text file before analysis.")
         findings = {
             "policy_filename": request.policy_filename,
             "policy_text": policy_text,
             "policy_text_length": len(policy_text),
+            "policy_extraction_warnings": warnings,
             "supporting_documents": request.supporting_document_names,
             "damage_image_filename": request.damage_image_filename,
         }
