@@ -22,3 +22,14 @@ def test_retrieve_passages_returns_ranked_evidence():
     assert len(evidence) == 1
     assert evidence[0].source == "policy"
     assert "water" in evidence[0].text.lower()
+
+
+def test_retrieve_passages_preserves_supporting_document_source():
+    evidence = retrieve_passages(
+        "The plumber confirmed a sudden pipe rupture.",
+        "plumber pipe",
+        source="supporting:plumber-report.pdf",
+    )
+
+    assert evidence
+    assert evidence[0].source == "supporting:plumber-report.pdf"

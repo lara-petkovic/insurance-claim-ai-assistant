@@ -52,3 +52,43 @@ def test_stream_endpoint_accepts_frontend_form_contract(monkeypatch):
     assert request.policy_filename == "policy.txt"
     assert request.damage_image_filename == "damage.jpg"
     assert request.supporting_document_names == ["plumber-report.txt"]
+    assert request.supporting_documents[0].text == "report"
+    assert request.supporting_documents[0].text_length == 6
+
+
+def test_supporting_documents_are_extracted_independently_and_warnings_are_preserved(monkeypatch):
+    captured = {}
+
+    async def fake_extract(filename, content):
+        if filename == "broken.pdf":
+            raise ValueError("unreadable upload")
+        return content.decode(), (["partial extraction"] if filename == "estimate.txt" else [])
+
+    def fake_analyze(request):
+        captured["request"] = request
+        from core.models.claim import ClaimAnalysisResult
+        return ClaimAnalysisResult(
+            claim_status="requires_human_review", insurance_type="home", claim_type="water_damage",
+            coverage_assessment="unclear", reasoning_summary="Review required.", recommendation="Review."
+        )
+
+    monkeypatch.setattr(routes_api, "extract_upload_text", fake_extract)
+    monkeypatch.setattr(routes_api.orchestrator, "analyze", fake_analyze)
+    response = TestClient(app).post(
+        "/api/claims/analyze",
+        data={"claim_description": "Water damage"},
+        files=[
+            ("policy_file", ("policy.txt", b"Water damage is covered", "text/plain")),
+            ("supporting_documents", ("estimate.txt", b"Repair estimate: 500", "text/plain")),
+            ("supporting_documents", ("broken.pdf", b"bad", "application/pdf")),
+            ("supporting_documents", ("receipt.txt", b"Receipt paid", "text/plain")),
+        ],
+    )
+
+    assert response.status_code == 200
+    documents = captured["request"].supporting_documents
+    assert [document.filename for document in documents] == ["estimate.txt", "broken.pdf", "receipt.txt"]
+    assert documents[0].extraction_warnings == ["partial extraction"]
+    assert documents[1].text == ""
+    assert "unreadable upload" in documents[1].extraction_warnings[0]
+    assert documents[2].text == "Receipt paid"

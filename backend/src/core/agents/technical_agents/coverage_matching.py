@@ -29,13 +29,13 @@ class CoverageMatchingAgent(BaseAgent):
         retrieved_evidence = []
         for response in context.responses:
             if response.agent_name == "RetrievalAgent":
-                retrieved_evidence = [item.model_dump() for item in response.evidence]
+                retrieved_evidence = [item.model_dump() for item in response.evidence if item.source == "policy"]
                 break
         model_client = get_model_client()
         model_result = model_client.json_response(
             system=(
                 "You are an insurance coverage matching agent. "
-                "Return only valid JSON. Use policy evidence conservatively."
+                "Return only valid JSON. Coverage rules, exclusions, limits, and conditions must come only from policy evidence."
             ),
             prompt=(
                 "Compare the claim facts with the normalized policy concepts and decide coverage. "
@@ -44,7 +44,7 @@ class CoverageMatchingAgent(BaseAgent):
                 f"CLAIM FACTS:\n{context.memory.get('ClaimExtractionAgent', {})}\n\n"
                 f"POLICY CONCEPTS:\n{context.memory.get('PolicyConceptExtractionAgent', {})}\n\n"
                 f"FUNCTIONAL CHECKLIST:\n{functional_checks}\n\n"
-                f"RETRIEVED EVIDENCE:\n{retrieved_evidence}"
+                f"RETRIEVED POLICY EVIDENCE:\n{retrieved_evidence}"
             ),
             fallback=fallback,
         )

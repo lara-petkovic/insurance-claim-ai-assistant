@@ -38,6 +38,9 @@ class OutputValidatorAgent(BaseAgent):
         exclusions = context.memory.get("ExclusionCheckingAgent", {}).get("potential_exclusions", [])
         missing_docs = context.memory.get("MissingDocumentsAgent", {}).get("missing_documents", [])
         consistency = context.memory.get("ConsistencyVerificationAgent", {}).get("consistency_issues", [])
+        supporting_extraction_problems = context.memory.get("DocumentIngestionAgent", {}).get(
+            "documents_with_extraction_problems", 0
+        )
         if coverage.get("coverage_assessment") == "covered" and not citations.get("citation_count"):
             feedback.append(
                 {
@@ -68,6 +71,14 @@ class OutputValidatorAgent(BaseAgent):
                     "target_agent": "ConsistencyVerificationAgent",
                     "issue": "Cross-check found inconsistent or incomplete claim facts.",
                     "suggested_action": "Highlight consistency issue in final reasoning.",
+                }
+            )
+        if supporting_extraction_problems:
+            feedback.append(
+                {
+                    "target_agent": "DocumentIngestionAgent",
+                    "issue": "One or more supporting documents could not be reliably extracted.",
+                    "suggested_action": "Treat facts from unreadable documents as unconfirmed and require human review.",
                 }
             )
         warnings = []

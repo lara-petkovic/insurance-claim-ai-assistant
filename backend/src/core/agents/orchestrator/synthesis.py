@@ -17,6 +17,7 @@ class FinalDecisionSynthesisAgent(BaseAgent):
         exclusions = context.memory.get("ExclusionCheckingAgent", {}).get("potential_exclusions", [])
         missing_docs = context.memory.get("MissingDocumentsAgent", {}).get("missing_documents", [])
         consistency = context.memory.get("ConsistencyVerificationAgent", {}).get("consistency_issues", [])
+        extraction_problems = context.memory.get("DocumentIngestionAgent", {}).get("documents_with_extraction_problems", 0)
 
         review_reasons = []
         if validator_feedback:
@@ -27,6 +28,8 @@ class FinalDecisionSynthesisAgent(BaseAgent):
             review_reasons.append("missing documents")
         if consistency:
             review_reasons.append("consistency issues")
+        if extraction_problems:
+            review_reasons.append("supporting-document extraction problems")
 
         return self.respond(
             findings={

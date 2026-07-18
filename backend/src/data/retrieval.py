@@ -5,7 +5,7 @@ from collections import Counter
 
 from core.models.agent import EvidenceItem
 
-
+# ¨y
 def tokenize(text: str) -> list[str]:
     return re.findall(r"[a-zA-Z0-9]+", text.lower())
 
@@ -27,13 +27,13 @@ def split_passages(text: str, max_chars: int = 900) -> list[str]:
     return chunks
 
 
-def retrieve_passages(policy_text: str, query: str, top_k: int = 5) -> list[EvidenceItem]:
+def retrieve_passages(text: str, query: str, source: str = "policy", top_k: int = 5) -> list[EvidenceItem]:
     query_terms = Counter(tokenize(query))
     if not query_terms:
         return []
 
     scored: list[tuple[float, str]] = []
-    for passage in split_passages(policy_text):
+    for passage in split_passages(text):
         terms = Counter(tokenize(passage))
         score = sum(min(count, terms.get(term, 0)) for term, count in query_terms.items())
         if score:
@@ -42,6 +42,6 @@ def retrieve_passages(policy_text: str, query: str, top_k: int = 5) -> list[Evid
 
     scored.sort(key=lambda item: item[0], reverse=True)
     return [
-        EvidenceItem(source="policy", text=passage[:700], score=round(score, 3))
+        EvidenceItem(source=source, text=passage[:700], score=round(score, 3))
         for score, passage in scored[:top_k]
     ]

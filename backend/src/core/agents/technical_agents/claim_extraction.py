@@ -45,7 +45,10 @@ class ClaimExtractionAgent(BaseAgent):
             "claimed_amount": amount_match.group(1).strip() if amount_match else None,
             "user_provided_evidence": {
                 "has_image": bool(context.request.damage_image_filename),
-                "supporting_documents": context.request.supporting_document_names,
+                "supporting_documents": [
+                    {"filename": item.filename, "document_type": item.document_type}
+                    for item in context.request.supporting_documents
+                ],
             },
         }
         fallback = findings
@@ -63,7 +66,8 @@ class ClaimExtractionAgent(BaseAgent):
                 "claim_type should be one of water_damage, storm_damage, theft, fire_damage, "
                 "broken_glass, vehicle_damage, medical, baggage_loss, unknown.\n\n"
                 f"INCIDENT DATE FIELD: {context.request.incident_date}\n"
-                f"SUPPORTING DOCUMENT NAMES: {context.request.supporting_document_names}\n"
+                f"SUPPORTING DOCUMENTS: "
+                f"{[{'filename': item.filename, 'document_type': item.document_type} for item in context.request.supporting_documents]}\n"
                 f"DAMAGE IMAGE FILENAME: {context.request.damage_image_filename}\n"
                 f"CLAIM DESCRIPTION:\n{description}"
             ),

@@ -7,7 +7,7 @@ from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from fastapi.responses import StreamingResponse
 
 from core.agents import OrchestratorAgent
-from core.models.claim import ClaimAnalysisResult, ClaimRequestData, DocumentExtractionResult
+from core.models.claim import ClaimAnalysisResult, ClaimRequestData, DocumentExtractionResult, SupportingDocumentData
 from data.text_extraction import extract_upload_text, infer_document_type
 
 router = APIRouter(prefix="/api")
@@ -112,9 +112,27 @@ async def _build_claim_request(
         damage_image_bytes = await damage_image.read()
         damage_image_size = len(damage_image_bytes)
 
-    supporting_document_names = []
-    if supporting_documents:
-        supporting_document_names = [doc.filename or "supporting_document" for doc in supporting_documents]
+    extracted_supporting_documents: list[SupportingDocumentData] = []
+    for document in supporting_documents or []:
+        filename = document.filename or "supporting_document"
+        text = ""
+        warnings: list[str] = []
+        try:
+            content = await document.read()
+            text, warnings = await extract_upload_text(filename, content)
+            if not text.strip() and not warnings:
+                warnings.append("Supporting document extraction returned no usable text.")
+        except Exception as exc:
+            warnings.append(f"Supporting document extraction failed: {exc}")
+        extracted_supporting_documents.append(
+            SupportingDocumentData(
+                filename=filename,
+                document_type=infer_document_type(filename),
+                text=text,
+                extraction_warnings=warnings,
+                text_length=len(text),
+            )
+        )
 
     return ClaimRequestData(
         insurance_type=insurance_type,
@@ -127,5 +145,5 @@ async def _build_claim_request(
         damage_image_size=damage_image_size,
         damage_image_mime_type=damage_image_mime_type,
         damage_image_bytes=damage_image_bytes,
-        supporting_document_names=supporting_document_names,
+        supporting_documents=extracted_supporting_documents,
     )

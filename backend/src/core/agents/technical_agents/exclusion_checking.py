@@ -48,7 +48,7 @@ class ExclusionCheckingAgent(BaseAgent):
                 f"POLICY EXCLUSIONS:\n{policy_exclusions}\n\n"
                 f"FUNCTIONAL TARGETED CHECKS:\n{targeted_checks}\n\n"
                 f"RETRIEVED POLICY EVIDENCE:\n"
-                f"{[item.model_dump() for response in context.responses if response.agent_name == 'RetrievalAgent' for item in response.evidence]}"
+                f"{[item.model_dump() for response in context.responses if response.agent_name == 'RetrievalAgent' for item in response.evidence if item.source == 'policy']}"
             ),
             fallback=fallback,
         )

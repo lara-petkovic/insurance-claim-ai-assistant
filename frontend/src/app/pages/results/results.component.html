@@ -100,7 +100,7 @@
             <span>{{ result.evidence.length }} total</span>
           </div>
           <div class="citation" *ngFor="let item of topEvidence()">
-            <strong>{{ item.source }}</strong>
+            <strong>{{ evidenceSourceLabel(item.source) }}</strong>
             <p>{{ item.text }}</p>
           </div>
           <p *ngIf="!result.evidence.length">No citations returned.</p>

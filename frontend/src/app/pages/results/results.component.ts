@@ -131,6 +131,12 @@ export class ResultsComponent {
     return status.replaceAll('_', ' ');
   }
 
+  evidenceSourceLabel(source: string): string {
+    return source === 'policy' ? 'Policy' : source.startsWith('supporting:')
+      ? `Supporting document: ${source.slice('supporting:'.length)}`
+      : source;
+  }
+
   private queueNewAgentResponses(): void {
     if (this.liveTrace.length < this.displayedTrace.length) {
       this.displayedTrace = [];

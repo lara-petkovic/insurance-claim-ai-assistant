@@ -21,6 +21,14 @@ CoverageAssessment = Literal[
 ]
 
 
+class SupportingDocumentData(BaseModel):
+    filename: str
+    document_type: str
+    text: str = ""
+    extraction_warnings: list[str] = Field(default_factory=list)
+    text_length: int = 0
+
+
 class ClaimRequestData(BaseModel):
     insurance_type: str = "home"
     claim_description: str
@@ -32,7 +40,12 @@ class ClaimRequestData(BaseModel):
     damage_image_size: int | None = None
     damage_image_mime_type: str | None = None
     damage_image_bytes: bytes | None = Field(default=None, exclude=True)
-    supporting_document_names: list[str] = Field(default_factory=list)
+    supporting_documents: list[SupportingDocumentData] = Field(default_factory=list)
+
+    @property
+    def supporting_document_names(self) -> list[str]:
+        """Backward-compatible view; new code should use supporting_documents."""
+        return [document.filename for document in self.supporting_documents]
 
 
 class ImageAssessment(BaseModel):

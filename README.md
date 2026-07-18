@@ -6,7 +6,7 @@ This is not a final insurance decision system. It is an explainable assistant wo
 
 ## What It Does
 
-- Extracts text from uploaded policy files.
+- Extracts text from uploaded policy files and every supporting document.
 - Runs a multi-agent backend pipeline for policy concepts, claim facts, retrieval, coverage matching, exclusions, missing documents, citations, and output validation.
 - Uses OpenAI models for semantic and vision-backed agents.
 - Streams live agent progress to the Angular frontend.
@@ -90,8 +90,10 @@ policy text, extracted concepts, retrieval evidence, functional checklists,
 model calls, image inputs, and shared memory to perform their part of the
 workflow.
 
-- `DocumentIngestionAgent` loads extracted policy text and upload metadata into
-  shared memory.
+- `DocumentIngestionAgent` loads extracted policy text and structured supporting
+  documents into shared memory. Supporting documents contain filename, inferred
+  type, extracted text, text length, and extraction warnings; raw document bytes
+  are not stored in shared agent context.
 - `DocumentQualityAgent` checks whether the extracted policy text looks usable.
 - `PolicyConceptExtractionAgent` extracts normalized policy concepts, covered
   events, exclusions, conditions, and required documents.
@@ -100,8 +102,8 @@ workflow.
   `medical`.
 - `QueryRewriteAgent` builds a better retrieval query from claim facts and the
   active functional checklist.
-- `RetrievalAgent` retrieves relevant policy passages and can retry with the
-  rewritten query.
+- `RetrievalAgent` searches policy wording and supporting documents separately,
+  preserves each passage's source, and can retry with the rewritten query.
 - `CoverageMatchingAgent` compares the claim facts with policy concepts,
   retrieved evidence, and functional checks to assess coverage.
 - `VisualEvidenceAgent` classifies visible damage from an uploaded image when
@@ -118,8 +120,8 @@ analysis.
 - `MissingDocumentsAgent` checks whether required claim evidence is missing.
 - `ConsistencyVerificationAgent` cross-checks claim facts, visual findings, and
   required dates.
-- `CitationAgent` attaches retrieved policy evidence as citations for the final
-  decision.
+- `CitationAgent` attaches prioritized policy citations and relevant citations
+  from named supporting documents for claim facts.
 - `OutputValidatorAgent` validates the full agent output and emits feedback
   for repair or human review.
 
@@ -217,6 +219,33 @@ The frontend calls the backend through the Angular proxy at:
 - `POST /api/claims/analyze-stream`
 
 The Angular app uses the streaming endpoint so progress can be shown as each agent completes.
+
+## Supporting Documents
+
+The claim endpoints accept multiple `supporting_documents` uploads. Each upload
+is read and extracted independently, so an unreadable file does not prevent the
+other documents or the claim from being processed. Extraction problems are
+recorded against the affected filename and cause the result to require human
+review rather than silently treating unverified facts as confirmed.
+
+Text extraction currently supports UTF-8 `.txt`, `.md`, `.json`, and `.csv`
+files. PDFs use embedded-text extraction and, when that text is insufficient,
+the configured model-based visual fallback. Unsupported formats produce an
+extraction warning and no text. Image uploads remain handled through the
+separate damage-image workflow rather than supporting-document text retrieval.
+
+The policy is always mandatory and is the only authoritative source for
+coverage, exclusions, limits, and policy conditions. Supporting documents such
+as reports, invoices, estimates, receipts, and confirmations provide only
+claim-specific facts and corroborating evidence. Lexical retrieval labels policy
+passages as `policy` and document passages as `supporting:<filename>`; the result
+screen displays those sources separately.
+
+Known limitations: retrieval is deterministic lexical matching rather than
+semantic/vector search; document-type and missing-document recognition use
+normalized filename/content keywords; scanned-PDF quality depends on the
+configured visual extraction model; and password-protected, corrupt, or
+unsupported files require manual review.
 
 ## Application Logging
 
