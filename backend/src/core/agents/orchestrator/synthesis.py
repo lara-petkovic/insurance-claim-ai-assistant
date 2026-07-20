@@ -18,6 +18,7 @@ class FinalDecisionSynthesisAgent(BaseAgent):
         missing_docs = context.memory.get("MissingDocumentsAgent", {}).get("missing_documents", [])
         consistency = context.memory.get("ConsistencyVerificationAgent", {}).get("consistency_issues", [])
         extraction_problems = context.memory.get("DocumentIngestionAgent", {}).get("documents_with_extraction_problems", 0)
+        security_flags = context.request.security_flags
 
         review_reasons = []
         if validator_feedback:
@@ -30,6 +31,8 @@ class FinalDecisionSynthesisAgent(BaseAgent):
             review_reasons.append("consistency issues")
         if extraction_problems:
             review_reasons.append("supporting-document extraction problems")
+        if security_flags:
+            review_reasons.append("suspected prompt injection")
 
         return self.respond(
             findings={
@@ -38,6 +41,7 @@ class FinalDecisionSynthesisAgent(BaseAgent):
                 "validator_feedback": validator_feedback,
                 "review_reasons": review_reasons,
                 "message_count": len(context.messages),
+                "security_flags": security_flags,
             },
             confidence=0.88 if not review_reasons else 0.68,
             requires_human_review=bool(review_reasons),

@@ -1,12 +1,33 @@
 from __future__ import annotations
 
-from typing import Any, Literal
+from enum import StrEnum
+from typing import Any
 
 from pydantic import BaseModel, Field
 
-AgentStatus = Literal["completed", "warning", "failed", "skipped"]
-AgentType = Literal["orchestrator", "technical", "functional", "validator", "synthesis"]
-MessageType = Literal["handoff", "request", "response", "guidance", "feedback", "validation", "summary"]
+class AgentStatus(StrEnum):
+    COMPLETED = "completed"
+    WARNING = "warning"
+    FAILED = "failed"
+    SKIPPED = "skipped"
+
+
+class AgentType(StrEnum):
+    ORCHESTRATOR = "orchestrator"
+    TECHNICAL = "technical"
+    FUNCTIONAL = "functional"
+    VALIDATOR = "validator"
+    SYNTHESIS = "synthesis"
+
+
+class MessageType(StrEnum):
+    HANDOFF = "handoff"
+    REQUEST = "request"
+    RESPONSE = "response"
+    GUIDANCE = "guidance"
+    FEEDBACK = "feedback"
+    VALIDATION = "validation"
+    SUMMARY = "summary"
 
 
 class EvidenceItem(BaseModel):
@@ -20,15 +41,15 @@ class EvidenceItem(BaseModel):
 class AgentMessage(BaseModel):
     from_agent: str
     to_agent: str | None = None
-    message_type: MessageType = "summary"
+    message_type: MessageType = MessageType.SUMMARY
     content: str
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 
 class AgentResponse(BaseModel):
     agent_name: str
-    agent_type: AgentType = "technical"
-    status: AgentStatus = "completed"
+    agent_type: AgentType = AgentType.TECHNICAL
+    status: AgentStatus = AgentStatus.COMPLETED
     findings: dict[str, Any] = Field(default_factory=dict)
     evidence: list[EvidenceItem] = Field(default_factory=list)
     confidence: float = 0.0

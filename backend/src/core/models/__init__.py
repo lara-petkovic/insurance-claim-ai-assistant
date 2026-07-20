@@ -1,3 +1,23 @@
-from core.models.claim import ClaimAnalysisResult, ClaimRequestData, DocumentExtractionResult, SupportingDocumentData
+from core.models.agent import AgentStatus, AgentType, MessageType
+from core.models.claim import (
+    ClaimAnalysisResult,
+    ClaimRequestData,
+    ClaimStatus,
+    CoverageAssessment,
+    DocumentExtractionResult,
+    RiskLevel,
+    SupportingDocumentData,
+)
 
-__all__ = ["ClaimAnalysisResult", "ClaimRequestData", "DocumentExtractionResult", "SupportingDocumentData"]
+__all__ = [
+    "AgentStatus",
+    "AgentType",
+    "ClaimAnalysisResult",
+    "ClaimRequestData",
+    "ClaimStatus",
+    "CoverageAssessment",
+    "DocumentExtractionResult",
+    "MessageType",
+    "RiskLevel",
+    "SupportingDocumentData",
+]

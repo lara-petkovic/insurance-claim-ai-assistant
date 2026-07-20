@@ -49,21 +49,7 @@ export class ClaimSubmissionComponent {
         this.analysisFinished.emit();
       }
     };
-    const formData = new FormData();
-    formData.append('insurance_type', this.insuranceType);
-    formData.append('claim_description', this.claimDescription);
-    if (this.incidentDate) {
-      formData.append('incident_date', this.incidentDate);
-    }
-    if (this.policyFile) {
-      formData.append('policy_file', this.policyFile);
-    }
-    if (this.damageImage) {
-      formData.append('damage_image', this.damageImage);
-    }
-    for (const document of this.supportingDocuments) {
-      formData.append('supporting_documents', document);
-    }
+    const formData = this.buildFormData();
 
     this.analysisStarted.emit();
     this.service.analyzeStream(formData).subscribe({
@@ -83,6 +69,26 @@ export class ClaimSubmissionComponent {
         finish();
       }
     });
+  }
+
+  private buildFormData(): FormData {
+    const formData = new FormData();
+    formData.append('insurance_type', this.insuranceType);
+    formData.append('claim_description', this.claimDescription);
+    if (this.incidentDate) {
+      formData.append('incident_date', this.incidentDate);
+    }
+    if (this.policyFile) {
+      formData.append('policy_file', this.policyFile);
+    }
+    if (this.damageImage) {
+      formData.append('damage_image', this.damageImage);
+    }
+    for (const document of this.supportingDocuments) {
+      formData.append('supporting_documents', document);
+    }
+
+    return formData;
   }
 
   private firstFile(event: Event): File | null {

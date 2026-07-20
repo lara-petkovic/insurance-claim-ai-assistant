@@ -41,6 +41,10 @@ class OutputValidatorAgent(BaseAgent):
         supporting_extraction_problems = context.memory.get("DocumentIngestionAgent", {}).get(
             "documents_with_extraction_problems", 0
         )
+        model_injection_flags = [
+            name for name, findings in context.memory.items()
+            if isinstance(findings, dict) and findings.get("suspected_prompt_injection") is True
+        ]
         if coverage.get("coverage_assessment") == "covered" and not citations.get("citation_count"):
             feedback.append(
                 {
@@ -81,6 +85,14 @@ class OutputValidatorAgent(BaseAgent):
                     "suggested_action": "Treat facts from unreadable documents as unconfirmed and require human review.",
                 }
             )
+        if context.request.security_flags or model_injection_flags:
+            feedback.append(
+                {
+                    "target_agent": "OrchestratorAgent",
+                    "issue": "Potential prompt injection was detected in untrusted claim evidence.",
+                    "suggested_action": "Do not automate the outcome; require human review of original evidence.",
+                }
+            )
         warnings = []
         if missing:
             warnings.append(f"Missing agent outputs: {', '.join(missing)}")
@@ -95,6 +107,8 @@ class OutputValidatorAgent(BaseAgent):
                 "model_required": model_client.require_models,
                 "non_model_agents": non_model_agents,
                 "feedback": feedback,
+                "security_flags": context.request.security_flags,
+                "model_injection_flags": model_injection_flags,
             },
             confidence=1.0 if not missing and not non_model_agents else 0.2,
             warnings=warnings,

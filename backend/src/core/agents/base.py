@@ -33,7 +33,7 @@ class BaseAgent:
     """Base interface for agents that perform one focused unit of work."""
 
     name = "BaseAgent"
-    agent_type: AgentType = "technical"
+    agent_type: AgentType = AgentType.TECHNICAL
 
     def run(self, context: AgentContext) -> AgentResponse:
         raise NotImplementedError
@@ -43,7 +43,7 @@ class BaseAgent:
         content: str,
         *,
         to_agent: str | None = None,
-        message_type: MessageType = "summary",
+        message_type: MessageType = MessageType.SUMMARY,
         metadata: dict[str, Any] | None = None,
     ) -> AgentMessage:
         return AgentMessage(
@@ -63,7 +63,7 @@ class BaseAgent:
         warnings: list[str] | None = None,
         requires_human_review: bool = False,
         messages: list[AgentMessage] | None = None,
-        status: AgentStatus = "completed",
+        status: AgentStatus = AgentStatus.COMPLETED,
     ) -> AgentResponse:
         return AgentResponse(
             agent_name=self.name,

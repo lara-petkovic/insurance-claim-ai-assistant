@@ -5,6 +5,7 @@ from core.agents.base import AgentContext, BaseAgent
 from core.agents.technical_agents.shared import _merge_dict_lists_by_key
 from core.models.agent import AgentResponse
 from models.model_client import get_model_client
+from security.input_security import UNTRUSTED_INPUT_SYSTEM_RULE, untrusted_block
 
 
 class PolicyConceptExtractionAgent(BaseAgent):
@@ -80,7 +81,9 @@ class PolicyConceptExtractionAgent(BaseAgent):
         model_result = model_client.json_response(
             system=(
                 "You are an insurance policy concept extraction agent. "
-                "Return only valid JSON. Normalize heterogeneous policy wording into a shared insurance schema."
+                "Return only valid JSON. Normalize heterogeneous policy wording into a shared insurance schema. "
+                "Every model-added covered event or exclusion must include an exact evidence_text copied from the policy. "
+                + UNTRUSTED_INPUT_SYSTEM_RULE
             ),
             prompt=(
                 "Extract normalized insurance policy concepts from this policy text. "
@@ -88,18 +91,20 @@ class PolicyConceptExtractionAgent(BaseAgent):
                 "{policy_type, policy_period, insured_subject, covered_events, exclusions, limits, "
                 "deductible_or_excess, required_claim_documents, special_conditions}. "
                 "covered_events and exclusions must be arrays of objects with at least concept and evidence_text.\n\n"
-                f"POLICY TEXT:\n{policy_text[:12000]}"
+                f"POLICY TEXT:\n{untrusted_block('policy_text', policy_text, max_chars=12000)}"
             ),
             fallback=fallback,
         )
         findings: dict[str, Any] = {**fallback, **model_result.data, "model_used": model_result.used_model}
+        verified_model_covered = self._verified_items(model_result.data.get("covered_events"), policy_text)
+        verified_model_exclusions = self._verified_items(model_result.data.get("exclusions"), policy_text)
         findings["covered_events"] = _merge_dict_lists_by_key(
             covered_events,
-            model_result.data.get("covered_events"),
+            verified_model_covered,
         )
         findings["exclusions"] = _merge_dict_lists_by_key(
             exclusions,
-            model_result.data.get("exclusions"),
+            verified_model_exclusions,
         )
         return self.respond(
             findings=findings,
@@ -128,3 +133,17 @@ class PolicyConceptExtractionAgent(BaseAgent):
                 ),
             ],
         )
+
+    @staticmethod
+    def _verified_items(value: object, policy_text: str) -> list[dict[str, Any]]:
+        """Model-only policy concepts are accepted only with evidence present in the source."""
+        if not isinstance(value, list):
+            return []
+        verified = []
+        for item in value:
+            if not isinstance(item, dict):
+                continue
+            evidence = str(item.get("evidence_text", "")).strip()
+            if evidence and evidence.casefold() in policy_text.casefold():
+                verified.append(item)
+        return verified

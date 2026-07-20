@@ -36,6 +36,7 @@ from core.models.claim import (
     CoverageAssessment,
     ImageAssessment,
     ImageAuthenticity,
+    RiskLevel,
 )
 from utils.app_logger import get_logger, log_event
 
@@ -297,21 +298,23 @@ class OrchestratorAgent(BaseAgent):
                 citations = response.evidence
 
         coverage_assessment = self._coverage_assessment(coverage.get("coverage_assessment", "unclear"))
-        requires_review = any(response.requires_human_review for response in context.responses)
+        requires_review = bool(request.security_flags) or any(response.requires_human_review for response in context.responses)
 
         claim_status: ClaimStatus
-        if exclusions and any(item.get("severity") == "high" for item in exclusions):
-            claim_status = "likely_not_covered"
-        elif coverage_assessment == "covered" and not missing_docs and not exclusions and image_authenticity.risk_level in {"low", "medium"}:
-            claim_status = "likely_covered"
+        if request.security_flags:
+            claim_status = ClaimStatus.REQUIRES_HUMAN_REVIEW
+        elif exclusions and any(item.get("severity") == "high" for item in exclusions):
+            claim_status = ClaimStatus.LIKELY_NOT_COVERED
+        elif coverage_assessment == "covered" and not missing_docs and not exclusions and image_authenticity.risk_level in {RiskLevel.LOW, RiskLevel.MEDIUM}:
+            claim_status = ClaimStatus.LIKELY_COVERED
         elif coverage_assessment == "covered" and (missing_docs or exclusions or consistency):
-            claim_status = "requires_human_review"
+            claim_status = ClaimStatus.REQUIRES_HUMAN_REVIEW
         elif coverage_assessment == "possibly_covered":
-            claim_status = "requires_human_review"
+            claim_status = ClaimStatus.REQUIRES_HUMAN_REVIEW
         elif coverage_assessment == "unclear" and requires_review:
-            claim_status = "requires_human_review"
+            claim_status = ClaimStatus.REQUIRES_HUMAN_REVIEW
         else:
-            claim_status = "likely_not_covered"
+            claim_status = ClaimStatus.LIKELY_NOT_COVERED
 
         reasoning_summary = self._build_reasoning(
             claim_type=claim.get("claim_type", "unknown"),
@@ -339,6 +342,7 @@ class OrchestratorAgent(BaseAgent):
             evidence=citations,
             reasoning_summary=reasoning_summary,
             recommendation=recommendation,
+            security_flags=request.security_flags,
             agent_trace=context.responses,
         )
 
@@ -367,23 +371,20 @@ class OrchestratorAgent(BaseAgent):
 
     @staticmethod
     def _build_recommendation(status: ClaimStatus) -> str:
-        if status == "likely_covered":
+        if status is ClaimStatus.LIKELY_COVERED:
             return "Proceed with adjuster review and payment workflow after verifying original documents."
-        if status == "likely_not_covered":
+        if status is ClaimStatus.LIKELY_NOT_COVERED:
             return "Send to human adjuster with highlighted exclusions before any denial decision."
-        if status == "partially_covered":
+        if status is ClaimStatus.PARTIALLY_COVERED:
             return "Send to human adjuster to separate covered and non-covered components."
         return "Send to human adjuster with highlighted evidence, missing documents, and risk flags."
 
     @staticmethod
     def _coverage_assessment(value: object) -> CoverageAssessment:
-        if value == "covered":
-            return "covered"
-        if value == "not_covered":
-            return "not_covered"
-        if value == "possibly_covered":
-            return "possibly_covered"
-        return "unclear"
+        try:
+            return CoverageAssessment(str(value))
+        except ValueError:
+            return CoverageAssessment.UNCLEAR
 
     @staticmethod
     def _as_text_list(value: object) -> list[str]:

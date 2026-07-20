@@ -5,6 +5,7 @@ from core.agents.base import AgentContext, BaseAgent
 from core.agents.technical_agents.shared import _contains, specialized_functional_agent_name
 from core.models.agent import AgentResponse
 from models.model_client import get_model_client
+from security.input_security import UNTRUSTED_INPUT_SYSTEM_RULE, untrusted_block
 
 
 class ClaimExtractionAgent(BaseAgent):
@@ -56,7 +57,7 @@ class ClaimExtractionAgent(BaseAgent):
         model_result = model_client.json_response(
             system=(
                 "You are an insurance claim extraction agent. "
-                "Return only valid JSON using the requested schema."
+                "Return only valid JSON using the requested schema. " + UNTRUSTED_INPUT_SYSTEM_RULE
             ),
             prompt=(
                 "Extract structured claim facts from this description. "
@@ -69,7 +70,7 @@ class ClaimExtractionAgent(BaseAgent):
                 f"SUPPORTING DOCUMENTS: "
                 f"{[{'filename': item.filename, 'document_type': item.document_type} for item in context.request.supporting_documents]}\n"
                 f"DAMAGE IMAGE FILENAME: {context.request.damage_image_filename}\n"
-                f"CLAIM DESCRIPTION:\n{description}"
+                f"CLAIM DESCRIPTION:\n{untrusted_block('claim_description', description, max_chars=8000)}"
             ),
             fallback=fallback,
         )

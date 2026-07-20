@@ -1,7 +1,9 @@
 from core.agents.base import AgentContext, BaseAgent
 from core.agents.technical_agents.shared import _contains, _functional_checklist, _merge_dict_lists_by_key
 from core.models.agent import AgentResponse
+from core.models.model_schemas import EXCLUSION_SCHEMA
 from models.model_client import get_model_client
+from security.input_security import UNTRUSTED_INPUT_SYSTEM_RULE, untrusted_block
 
 
 class ExclusionCheckingAgent(BaseAgent):
@@ -37,13 +39,14 @@ class ExclusionCheckingAgent(BaseAgent):
         model_result = model_client.json_response(
             system=(
                 "You are an insurance exclusion checking agent. "
-                "Return only valid JSON. Be conservative: uncertainty should be flagged for human review."
+                "Return only valid JSON. Be conservative: uncertainty should be flagged for human review. "
+                + UNTRUSTED_INPUT_SYSTEM_RULE
             ),
             prompt=(
                 "Check whether policy exclusions may apply to this claim. "
                 "Use this JSON shape: {potential_exclusions}. "
                 "potential_exclusions must be an array of objects with concept, severity, reason, and evidence_text if available.\n\n"
-                f"CLAIM DESCRIPTION:\n{context.request.claim_description}\n\n"
+                f"CLAIM DESCRIPTION:\n{untrusted_block('claim_description', context.request.claim_description, max_chars=8000)}\n\n"
                 f"CLAIM FACTS:\n{context.memory.get('ClaimExtractionAgent', {})}\n\n"
                 f"POLICY EXCLUSIONS:\n{policy_exclusions}\n\n"
                 f"FUNCTIONAL TARGETED CHECKS:\n{targeted_checks}\n\n"
@@ -51,6 +54,8 @@ class ExclusionCheckingAgent(BaseAgent):
                 f"{[item.model_dump() for response in context.responses if response.agent_name == 'RetrievalAgent' for item in response.evidence if item.source == 'policy']}"
             ),
             fallback=fallback,
+            schema_name="exclusion_assessment",
+            json_schema=EXCLUSION_SCHEMA,
         )
         final_findings = {**fallback, **model_result.data, "model_used": model_result.used_model,
                           "potential_exclusions": _merge_dict_lists_by_key(

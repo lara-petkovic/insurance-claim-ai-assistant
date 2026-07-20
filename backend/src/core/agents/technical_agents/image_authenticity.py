@@ -3,7 +3,7 @@ from pathlib import Path
 from core.agents.base import AgentContext, BaseAgent
 from core.agents.technical_agents.shared import _as_list, _contains
 from core.models.agent import AgentResponse
-from core.models.claim import ImageAuthenticity
+from core.models.claim import ImageAuthenticity, RiskLevel
 from models.model_client import get_model_client
 
 
@@ -35,15 +35,15 @@ class ImageAuthenticityAgent(BaseAgent):
 
         score = min(round(score, 2), 1.0)
         if score >= 0.75:
-            risk = "requires_human_review"
+            risk = RiskLevel.REQUIRES_HUMAN_REVIEW
         elif score >= 0.5:
-            risk = "high"
+            risk = RiskLevel.HIGH
         elif score >= 0.25:
-            risk = "medium"
+            risk = RiskLevel.MEDIUM
         else:
-            risk = "low"
+            risk = RiskLevel.LOW
 
-        findings = ImageAuthenticity(risk_level=risk, risk_score=score, signals=signals).model_dump()
+        findings = ImageAuthenticity(risk_level=risk, risk_score=score, signals=signals).model_dump(mode="json")
         model_client = get_model_client()
         model_result = model_client.image_json_response(
             system=(
@@ -62,7 +62,12 @@ class ImageAuthenticityAgent(BaseAgent):
         )
         findings = {**findings, **model_result.data, "model_used": model_result.used_model}
         findings["signals"] = [str(signal) for signal in _as_list(findings.get("signals"))]
-        risk = str(findings.get("risk_level", risk))
+        try:
+            risk = RiskLevel(str(findings.get("risk_level", risk)))
+        except ValueError:
+            risk = RiskLevel.REQUIRES_HUMAN_REVIEW
+            findings["risk_level"] = risk.value
+            findings["signals"].append("invalid_model_risk_level")
         return self.respond(
             findings=findings,
             confidence=0.6,
@@ -71,13 +76,13 @@ class ImageAuthenticityAgent(BaseAgent):
                 if model_result.used_model
                 else ["Authenticity assessment did not use a model because no image was uploaded or fallback mode is enabled."]
             ),
-            requires_human_review=risk in {"high", "requires_human_review"},
+            requires_human_review=risk in {RiskLevel.HIGH, RiskLevel.REQUIRES_HUMAN_REVIEW},
             messages=[
                 self.message(
                     f"Image authenticity risk estimated as {risk}.",
                     to_agent="OrchestratorAgent",
                     message_type="validation",
-                    metadata={"risk_level": risk, "risk_score": findings.get("risk_score"), "signals": findings.get("signals", [])},
+                    metadata={"risk_level": risk.value, "risk_score": findings.get("risk_score"), "signals": findings.get("signals", [])},
                 )
             ],
         )

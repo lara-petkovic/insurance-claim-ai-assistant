@@ -3,7 +3,9 @@ from typing import Any
 from core.agents.base import AgentContext, BaseAgent
 from core.agents.technical_agents.shared import _functional_checklist, _merge_dict_lists_by_key
 from core.models.agent import AgentResponse
+from core.models.model_schemas import COVERAGE_SCHEMA
 from models.model_client import get_model_client
+from security.input_security import UNTRUSTED_INPUT_SYSTEM_RULE
 
 
 class CoverageMatchingAgent(BaseAgent):
@@ -35,7 +37,8 @@ class CoverageMatchingAgent(BaseAgent):
         model_result = model_client.json_response(
             system=(
                 "You are an insurance coverage matching agent. "
-                "Return only valid JSON. Coverage rules, exclusions, limits, and conditions must come only from policy evidence."
+                "Return only valid JSON. Coverage rules, exclusions, limits, and conditions must come only from policy evidence. "
+                + UNTRUSTED_INPUT_SYSTEM_RULE
             ),
             prompt=(
                 "Compare the claim facts with the normalized policy concepts and decide coverage. "
@@ -47,6 +50,8 @@ class CoverageMatchingAgent(BaseAgent):
                 f"RETRIEVED POLICY EVIDENCE:\n{retrieved_evidence}"
             ),
             fallback=fallback,
+            schema_name="coverage_assessment",
+            json_schema=COVERAGE_SCHEMA,
         )
         final_findings: dict[str, Any] = {**fallback, **model_result.data, "model_used": model_result.used_model,
                                           "matched_policy_concepts": _merge_dict_lists_by_key(

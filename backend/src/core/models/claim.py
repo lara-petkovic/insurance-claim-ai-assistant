@@ -1,24 +1,31 @@
 from __future__ import annotations
 
-from typing import Any, Literal
+from enum import StrEnum
+from typing import Any
 
 from pydantic import BaseModel, Field
 
 from core.models.agent import AgentResponse, EvidenceItem
 
-ClaimStatus = Literal[
-    "likely_covered",
-    "likely_not_covered",
-    "partially_covered",
-    "requires_human_review",
-]
+class ClaimStatus(StrEnum):
+    LIKELY_COVERED = "likely_covered"
+    LIKELY_NOT_COVERED = "likely_not_covered"
+    PARTIALLY_COVERED = "partially_covered"
+    REQUIRES_HUMAN_REVIEW = "requires_human_review"
 
-CoverageAssessment = Literal[
-    "covered",
-    "not_covered",
-    "possibly_covered",
-    "unclear",
-]
+
+class CoverageAssessment(StrEnum):
+    COVERED = "covered"
+    NOT_COVERED = "not_covered"
+    POSSIBLY_COVERED = "possibly_covered"
+    UNCLEAR = "unclear"
+
+
+class RiskLevel(StrEnum):
+    LOW = "low"
+    MEDIUM = "medium"
+    HIGH = "high"
+    REQUIRES_HUMAN_REVIEW = "requires_human_review"
 
 
 class SupportingDocumentData(BaseModel):
@@ -41,6 +48,7 @@ class ClaimRequestData(BaseModel):
     damage_image_mime_type: str | None = None
     damage_image_bytes: bytes | None = Field(default=None, exclude=True)
     supporting_documents: list[SupportingDocumentData] = Field(default_factory=list)
+    security_flags: list[str] = Field(default_factory=list)
 
     @property
     def supporting_document_names(self) -> list[str]:
@@ -55,7 +63,7 @@ class ImageAssessment(BaseModel):
 
 
 class ImageAuthenticity(BaseModel):
-    risk_level: Literal["low", "medium", "high", "requires_human_review"] = "low"
+    risk_level: RiskLevel = RiskLevel.LOW
     risk_score: float = 0.0
     signals: list[str] = Field(default_factory=list)
 
@@ -73,6 +81,7 @@ class ClaimAnalysisResult(BaseModel):
     evidence: list[EvidenceItem] = Field(default_factory=list)
     reasoning_summary: str
     recommendation: str
+    security_flags: list[str] = Field(default_factory=list)
     agent_trace: list[AgentResponse] = Field(default_factory=list)
 
 
