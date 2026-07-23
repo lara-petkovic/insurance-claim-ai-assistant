@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="2080" height="1600" viewBox="0 100 2080 1600" role="img" aria-labelledby="description">
+<svg xmlns="http://www.w3.org/2000/svg" width="1900" height="2900" viewBox="0 0 1900 2900" role="img" aria-labelledby="description">
   <desc id="description">UML дијаграм Pydantic модела за систем анализе захтева за осигурање.</desc>
   <defs>
     <marker id="diamond" markerWidth="18" markerHeight="14" refX="5" refY="7" orient="auto" markerUnits="strokeWidth">
@@ -12,248 +12,248 @@
       .head-input, .head-output, .head-agent, .head-value { fill: #0e3c75; }
       .enum-box { fill: #e9f5f3; stroke: #2a7f75; stroke-width: 2; rx: 8; }
       .enum-head { fill: #2a7f75; }
-      .class-name { font-family: Consolas, "Courier New", monospace; font-size: 25px; font-weight: 700; fill: #ffffff; }
-      .field { font-family: Consolas, "Courier New", monospace; font-size: 18px; fill: #243b53; }
-      .enum-field { font-family: Consolas, "Courier New", monospace; font-size: 16px; fill: #174c47; }
-      .field-note { font-family: "Segoe UI", Arial, sans-serif; font-size: 13px; fill: #627d98; }
+      .class-name { font-family: "Courier New", Courier, monospace; font-size: 35px; font-weight: 700; fill: #ffffff; }
+      .field { font-family: "Courier New", Courier, monospace; font-size: 30px; fill: #243b53; }
+      .enum-field { font-family: "Courier New", Courier, monospace; font-size: 28px; fill: #174c47; }
+      .field-note { font-family: "Courier New", Courier, monospace; font-size: 25px; fill: #627d98; }
       .divider { stroke: #0e3c75; stroke-width: 1.4; }
       .relation { fill: none; stroke: #000000; stroke-width: 2.1; marker-start: url(#diamond); marker-end: url(#arrow); }
-      .cardinality { font-family: Consolas, "Courier New", monospace; font-size: 20px; font-weight: 700; fill: #243b53; paint-order: stroke; stroke: #ffffff; stroke-width: 5; }
+      .cardinality { font-family: "Courier New", Courier, monospace; font-size: 30px; font-weight: 700; fill: #243b53; paint-order: stroke; stroke: #ffffff; stroke-width: 5; }
     </style>
   </defs>
 
-  <rect width="2080" height="1700" fill="#ffffff"/>
+  <rect width="1900" height="2900" fill="#ffffff"/>
 
   <!-- ClaimRequestData -->
-  <g transform="translate(70 145)">
-    <rect class="box" width="560" height="450"/>
-    <path class="head-input" d="M12 0 H548 Q560 0 560 12 V70 H0 V12 Q0 0 12 0 Z"/>
-    <text x="280" y="44" text-anchor="middle" class="class-name">ClaimRequestData</text>
-    <line x1="0" y1="70" x2="560" y2="70" class="divider"/>
-    <text x="22" y="100" class="field">+ insurance_type: str = "home"</text>
-    <text x="22" y="128" class="field">+ claim_description: str</text>
-    <text x="22" y="156" class="field">+ incident_date: str | None</text>
-    <text x="22" y="184" class="field">+ policy_text: str</text>
-    <text x="22" y="212" class="field">+ policy_filename: str | None</text>
-    <text x="22" y="240" class="field">+ policy_extraction_warnings: list[str]</text>
-    <text x="22" y="268" class="field">+ supporting_documents: list[SupportingDocumentData]</text>
-    <text x="22" y="296" class="field">+ damage_image_filename: str | None</text>
-    <text x="22" y="324" class="field">+ damage_image_size: int | None</text>
-    <text x="22" y="352" class="field">+ damage_image_mime_type: str | None</text>
-    <text x="22" y="380" class="field">+ damage_image_bytes: bytes | None</text>
-    <text x="22" y="408" class="field">+ security_flags: list[str]</text>
+  <g transform="translate(50 50)">
+    <rect class="box" width="1000" height="560"/>
+    <path class="head-input" d="M12 0 H988 Q1000 0 1000 12 V70 H0 V12 Q0 0 12 0 Z"/>
+    <text x="500" y="44" text-anchor="middle" class="class-name">ClaimRequestData</text>
+    <line x1="0" y1="70" x2="1000" y2="70" class="divider"/>
+    <text x="22" y="105" class="field">+ insurance_type: str = "home"</text>
+    <text x="22" y="142" class="field">+ claim_description: str</text>
+    <text x="22" y="179" class="field">+ incident_date: str | None</text>
+    <text x="22" y="216" class="field">+ policy_text: str</text>
+    <text x="22" y="253" class="field">+ policy_filename: str | None</text>
+    <text x="22" y="290" class="field">+ policy_extraction_warnings: list[str]</text>
+    <text x="22" y="327" class="field">+ supporting_documents: list[SupportingDocumentData]</text>
+    <text x="22" y="364" class="field">+ damage_image_filename: str | None</text>
+    <text x="22" y="401" class="field">+ damage_image_size: int | None</text>
+    <text x="22" y="438" class="field">+ damage_image_mime_type: str | None</text>
+    <text x="22" y="475" class="field">+ damage_image_bytes: bytes | None</text>
+    <text x="22" y="512" class="field">+ security_flags: list[str]</text>
   </g>
 
   <!-- SupportingDocumentData -->
-  <g transform="translate(690 165)">
-    <rect class="box" width="410" height="245"/>
-    <path class="head-value" d="M12 0 H398 Q410 0 410 12 V70 H0 V12 Q0 0 12 0 Z"/>
-    <text x="205" y="44" text-anchor="middle" class="class-name">SupportingDocumentData</text>
-    <line x1="0" y1="70" x2="410" y2="70" class="divider"/>
-    <text x="20" y="103" class="field">+ filename: str</text>
-    <text x="20" y="133" class="field">+ document_type: str</text>
-    <text x="20" y="163" class="field">+ text: str</text>
-    <text x="20" y="193" class="field">+ extraction_warnings: list[str]</text>
-    <text x="20" y="223" class="field">+ text_length: int</text>
+  <g transform="translate(1180 135)">
+    <rect class="box" width="650" height="285"/>
+    <path class="head-value" d="M12 0 H638 Q650 0 650 12 V70 H0 V12 Q0 0 12 0 Z"/>
+    <text x="325" y="44" text-anchor="middle" class="class-name">SupportingDocumentData</text>
+    <line x1="0" y1="70" x2="650" y2="70" class="divider"/>
+    <text x="20" y="105" class="field">+ filename: str</text>
+    <text x="20" y="142" class="field">+ document_type: str</text>
+    <text x="20" y="179" class="field">+ text: str</text>
+    <text x="20" y="216" class="field">+ extraction_warnings: list[str]</text>
+    <text x="20" y="253" class="field">+ text_length: int</text>
   </g>
 
   <!-- DocumentExtractionResult -->
-  <g transform="translate(1260 165)">
-    <rect class="box" width="460" height="215"/>
-    <path class="head-output" d="M12 0 H448 Q460 0 460 12 V70 H0 V12 Q0 0 12 0 Z"/>
-    <text x="230" y="44" text-anchor="middle" class="class-name">DocumentExtractionResult</text>
-    <line x1="0" y1="70" x2="460" y2="70" class="divider"/>
+  <g transform="translate(1180 470)">
+    <rect class="box" width="650" height="250"/>
+    <path class="head-output" d="M12 0 H638 Q650 0 650 12 V70 H0 V12 Q0 0 12 0 Z"/>
+    <text x="325" y="44" text-anchor="middle" class="class-name">DocumentExtractionResult</text>
+    <line x1="0" y1="70" x2="650" y2="70" class="divider"/>
     <text x="22" y="105" class="field">+ filename: str</text>
-    <text x="22" y="135" class="field">+ document_type: str</text>
-    <text x="22" y="165" class="field">+ text: str</text>
-    <text x="22" y="195" class="field">+ warnings: list[str]</text>
+    <text x="22" y="142" class="field">+ document_type: str</text>
+    <text x="22" y="179" class="field">+ text: str</text>
+    <text x="22" y="216" class="field">+ warnings: list[str]</text>
   </g>
 
   <!-- ClaimAnalysisResult -->
-  <g transform="translate(70 690)">
-    <rect class="box" width="560" height="500"/>
-    <path class="head-output" d="M12 0 H548 Q560 0 560 12 V70 H0 V12 Q0 0 12 0 Z"/>
-    <text x="280" y="44" text-anchor="middle" class="class-name">ClaimAnalysisResult</text>
-    <line x1="0" y1="70" x2="560" y2="70" class="divider"/>
-    <text x="22" y="100" class="field">+ claim_status: ClaimStatus</text>
-    <text x="22" y="128" class="field">+ insurance_type: str</text>
-    <text x="22" y="156" class="field">+ claim_type: str</text>
-    <text x="22" y="184" class="field">+ coverage_assessment: CoverageAssessment</text>
-    <text x="22" y="212" class="field">+ matched_policy_concepts: list[dict[str, Any]]</text>
-    <text x="22" y="240" class="field">+ potential_exclusions: list[dict[str, Any]]</text>
-    <text x="22" y="268" class="field">+ missing_documents: list[str]</text>
-    <text x="22" y="296" class="field">+ image_assessment: ImageAssessment</text>
-    <text x="22" y="324" class="field">+ image_authenticity: ImageAuthenticity</text>
-    <text x="22" y="352" class="field">+ evidence: list[EvidenceItem]</text>
-    <text x="22" y="380" class="field">+ reasoning_summary: str</text>
-    <text x="22" y="408" class="field">+ recommendation: str</text>
-    <text x="22" y="436" class="field">+ security_flags: list[str]</text>
-    <text x="22" y="464" class="field">+ agent_trace: list[AgentResponse]</text>
+  <g transform="translate(50 760)">
+    <rect class="box" width="900" height="625"/>
+    <path class="head-output" d="M12 0 H888 Q900 0 900 12 V70 H0 V12 Q0 0 12 0 Z"/>
+    <text x="450" y="44" text-anchor="middle" class="class-name">ClaimAnalysisResult</text>
+    <line x1="0" y1="70" x2="900" y2="70" class="divider"/>
+    <text x="22" y="105" class="field">+ claim_status: ClaimStatus</text>
+    <text x="22" y="142" class="field">+ insurance_type: str</text>
+    <text x="22" y="179" class="field">+ claim_type: str</text>
+    <text x="22" y="216" class="field">+ coverage_assessment: CoverageAssessment</text>
+    <text x="22" y="253" class="field">+ matched_policy_concepts: list[dict[str, Any]]</text>
+    <text x="22" y="290" class="field">+ potential_exclusions: list[dict[str, Any]]</text>
+    <text x="22" y="327" class="field">+ missing_documents: list[str]</text>
+    <text x="22" y="364" class="field">+ image_assessment: ImageAssessment</text>
+    <text x="22" y="401" class="field">+ image_authenticity: ImageAuthenticity</text>
+    <text x="22" y="438" class="field">+ evidence: list[EvidenceItem]</text>
+    <text x="22" y="475" class="field">+ reasoning_summary: str</text>
+    <text x="22" y="512" class="field">+ recommendation: str</text>
+    <text x="22" y="549" class="field">+ security_flags: list[str]</text>
+    <text x="22" y="586" class="field">+ agent_trace: list[AgentResponse]</text>
   </g>
 
   <!-- Enumerations -->
-  <g transform="translate(70 1300)">
-    <rect class="enum-box" width="280" height="190"/>
-    <path class="enum-head" d="M8 0 H272 Q280 0 280 8 V60 H0 V8 Q0 0 8 0 Z"/>
-    <text x="140" y="40" text-anchor="middle" class="class-name">ClaimStatus</text>
-    <line x1="0" y1="60" x2="280" y2="60" stroke="#2a7f75" stroke-width="1.4"/>
-    <text x="18" y="88" class="enum-field">LIKELY_COVERED</text>
-    <text x="18" y="114" class="enum-field">LIKELY_NOT_COVERED</text>
-    <text x="18" y="140" class="enum-field">PARTIALLY_COVERED</text>
-    <text x="18" y="166" class="enum-field">REQUIRES_HUMAN_REVIEW</text>
+  <g transform="translate(50 2140)">
+    <rect class="enum-box" width="500" height="230"/>
+    <path class="enum-head" d="M8 0 H492 Q500 0 500 8 V60 H0 V8 Q0 0 8 0 Z"/>
+    <text x="250" y="40" text-anchor="middle" class="class-name">ClaimStatus</text>
+    <line x1="0" y1="60" x2="500" y2="60" stroke="#2a7f75" stroke-width="1.4"/>
+    <text x="18" y="94" class="enum-field">LIKELY_COVERED</text>
+    <text x="18" y="128" class="enum-field">LIKELY_NOT_COVERED</text>
+    <text x="18" y="162" class="enum-field">PARTIALLY_COVERED</text>
+    <text x="18" y="196" class="enum-field">REQUIRES_HUMAN_REVIEW</text>
   </g>
 
-  <g transform="translate(390 1300)">
-    <rect class="enum-box" width="280" height="190"/>
-    <path class="enum-head" d="M8 0 H272 Q280 0 280 8 V60 H0 V8 Q0 0 8 0 Z"/>
-    <text x="140" y="40" text-anchor="middle" class="class-name">CoverageAssessment</text>
-    <line x1="0" y1="60" x2="280" y2="60" stroke="#2a7f75" stroke-width="1.4"/>
-    <text x="18" y="88" class="enum-field">COVERED</text>
-    <text x="18" y="114" class="enum-field">NOT_COVERED</text>
-    <text x="18" y="140" class="enum-field">POSSIBLY_COVERED</text>
-    <text x="18" y="166" class="enum-field">UNCLEAR</text>
+  <g transform="translate(600 2140)">
+    <rect class="enum-box" width="500" height="230"/>
+    <path class="enum-head" d="M8 0 H492 Q500 0 500 8 V60 H0 V8 Q0 0 8 0 Z"/>
+    <text x="250" y="40" text-anchor="middle" class="class-name">CoverageAssessment</text>
+    <line x1="0" y1="60" x2="500" y2="60" stroke="#2a7f75" stroke-width="1.4"/>
+    <text x="18" y="94" class="enum-field">COVERED</text>
+    <text x="18" y="128" class="enum-field">NOT_COVERED</text>
+    <text x="18" y="162" class="enum-field">POSSIBLY_COVERED</text>
+    <text x="18" y="196" class="enum-field">UNCLEAR</text>
   </g>
 
-  <g transform="translate(710 1300)">
-    <rect class="enum-box" width="280" height="190"/>
-    <path class="enum-head" d="M8 0 H272 Q280 0 280 8 V60 H0 V8 Q0 0 8 0 Z"/>
-    <text x="140" y="40" text-anchor="middle" class="class-name">AgentStatus</text>
-    <line x1="0" y1="60" x2="280" y2="60" stroke="#2a7f75" stroke-width="1.4"/>
-    <text x="18" y="88" class="enum-field">COMPLETED</text>
-    <text x="18" y="114" class="enum-field">WARNING</text>
-    <text x="18" y="140" class="enum-field">FAILED</text>
-    <text x="18" y="166" class="enum-field">SKIPPED</text>
+  <g transform="translate(1150 2140)">
+    <rect class="enum-box" width="500" height="230"/>
+    <path class="enum-head" d="M8 0 H492 Q500 0 500 8 V60 H0 V8 Q0 0 8 0 Z"/>
+    <text x="250" y="40" text-anchor="middle" class="class-name">AgentStatus</text>
+    <line x1="0" y1="60" x2="500" y2="60" stroke="#2a7f75" stroke-width="1.4"/>
+    <text x="18" y="94" class="enum-field">COMPLETED</text>
+    <text x="18" y="128" class="enum-field">WARNING</text>
+    <text x="18" y="162" class="enum-field">FAILED</text>
+    <text x="18" y="196" class="enum-field">SKIPPED</text>
   </g>
 
-  <g transform="translate(1030 1300)">
-    <rect class="enum-box" width="280" height="215"/>
-    <path class="enum-head" d="M8 0 H272 Q280 0 280 8 V60 H0 V8 Q0 0 8 0 Z"/>
-    <text x="140" y="40" text-anchor="middle" class="class-name">AgentType</text>
-    <line x1="0" y1="60" x2="280" y2="60" stroke="#2a7f75" stroke-width="1.4"/>
-    <text x="18" y="88" class="enum-field">ORCHESTRATOR</text>
-    <text x="18" y="114" class="enum-field">TECHNICAL</text>
-    <text x="18" y="140" class="enum-field">FUNCTIONAL</text>
-    <text x="18" y="166" class="enum-field">VALIDATOR</text>
-    <text x="18" y="192" class="enum-field">SYNTHESIS</text>
+  <g transform="translate(50 2450)">
+    <rect class="enum-box" width="500" height="270"/>
+    <path class="enum-head" d="M8 0 H492 Q500 0 500 8 V60 H0 V8 Q0 0 8 0 Z"/>
+    <text x="250" y="40" text-anchor="middle" class="class-name">AgentType</text>
+    <line x1="0" y1="60" x2="500" y2="60" stroke="#2a7f75" stroke-width="1.4"/>
+    <text x="18" y="94" class="enum-field">ORCHESTRATOR</text>
+    <text x="18" y="128" class="enum-field">TECHNICAL</text>
+    <text x="18" y="162" class="enum-field">FUNCTIONAL</text>
+    <text x="18" y="196" class="enum-field">VALIDATOR</text>
+    <text x="18" y="230" class="enum-field">SYNTHESIS</text>
   </g>
 
-  <g transform="translate(1350 1300)">
-    <rect class="enum-box" width="280" height="265"/>
-    <path class="enum-head" d="M8 0 H272 Q280 0 280 8 V60 H0 V8 Q0 0 8 0 Z"/>
-    <text x="140" y="40" text-anchor="middle" class="class-name">MessageType</text>
-    <line x1="0" y1="60" x2="280" y2="60" stroke="#2a7f75" stroke-width="1.4"/>
-    <text x="18" y="88" class="enum-field">HANDOFF</text>
-    <text x="18" y="114" class="enum-field">REQUEST</text>
-    <text x="18" y="140" class="enum-field">RESPONSE</text>
-    <text x="18" y="166" class="enum-field">GUIDANCE</text>
-    <text x="18" y="192" class="enum-field">FEEDBACK</text>
-    <text x="18" y="218" class="enum-field">VALIDATION</text>
-    <text x="18" y="244" class="enum-field">SUMMARY</text>
+  <g transform="translate(600 2450)">
+    <rect class="enum-box" width="500" height="330"/>
+    <path class="enum-head" d="M8 0 H492 Q500 0 500 8 V60 H0 V8 Q0 0 8 0 Z"/>
+    <text x="250" y="40" text-anchor="middle" class="class-name">MessageType</text>
+    <line x1="0" y1="60" x2="500" y2="60" stroke="#2a7f75" stroke-width="1.4"/>
+    <text x="18" y="94" class="enum-field">HANDOFF</text>
+    <text x="18" y="128" class="enum-field">REQUEST</text>
+    <text x="18" y="162" class="enum-field">RESPONSE</text>
+    <text x="18" y="196" class="enum-field">GUIDANCE</text>
+    <text x="18" y="230" class="enum-field">FEEDBACK</text>
+    <text x="18" y="264" class="enum-field">VALIDATION</text>
+    <text x="18" y="298" class="enum-field">SUMMARY</text>
   </g>
 
-  <g transform="translate(1670 1300)">
-    <rect class="enum-box" width="280" height="190"/>
-    <path class="enum-head" d="M8 0 H272 Q280 0 280 8 V60 H0 V8 Q0 0 8 0 Z"/>
-    <text x="140" y="40" text-anchor="middle" class="class-name">RiskLevel</text>
-    <line x1="0" y1="60" x2="280" y2="60" stroke="#2a7f75" stroke-width="1.4"/>
-    <text x="18" y="88" class="enum-field">LOW</text>
-    <text x="18" y="114" class="enum-field">MEDIUM</text>
-    <text x="18" y="140" class="enum-field">HIGH</text>
-    <text x="18" y="166" class="enum-field">REQUIRES_HUMAN_REVIEW</text>
+  <g transform="translate(1150 2450)">
+    <rect class="enum-box" width="500" height="230"/>
+    <path class="enum-head" d="M8 0 H492 Q500 0 500 8 V60 H0 V8 Q0 0 8 0 Z"/>
+    <text x="250" y="40" text-anchor="middle" class="class-name">RiskLevel</text>
+    <line x1="0" y1="60" x2="500" y2="60" stroke="#2a7f75" stroke-width="1.4"/>
+    <text x="18" y="94" class="enum-field">LOW</text>
+    <text x="18" y="128" class="enum-field">MEDIUM</text>
+    <text x="18" y="162" class="enum-field">HIGH</text>
+    <text x="18" y="196" class="enum-field">REQUIRES_HUMAN_REVIEW</text>
   </g>
 
   <!-- ImageAssessment -->
-  <g transform="translate(745 600)">
-    <rect class="box" width="370" height="190"/>
-    <path class="head-value" d="M12 0 H358 Q370 0 370 12 V65 H0 V12 Q0 0 12 0 Z"/>
-    <text x="185" y="42" text-anchor="middle" class="class-name">ImageAssessment</text>
-    <line x1="0" y1="65" x2="370" y2="65" class="divider"/>
-    <text x="20" y="100" class="field">+ detected_damage: str</text>
-    <text x="20" y="132" class="field">+ confidence: float</text>
-    <text x="20" y="164" class="field">+ notes: list[str]</text>
+  <g transform="translate(1180 780)">
+    <rect class="box" width="600" height="225"/>
+    <path class="head-value" d="M12 0 H588 Q600 0 600 12 V65 H0 V12 Q0 0 12 0 Z"/>
+    <text x="300" y="42" text-anchor="middle" class="class-name">ImageAssessment</text>
+    <line x1="0" y1="65" x2="600" y2="65" class="divider"/>
+    <text x="20" y="105" class="field">+ detected_damage: str</text>
+    <text x="20" y="145" class="field">+ confidence: float</text>
+    <text x="20" y="185" class="field">+ notes: list[str]</text>
   </g>
 
   <!-- ImageAuthenticity -->
-  <g transform="translate(745 855)">
-    <rect class="box" width="370" height="190"/>
-    <path class="head-value" d="M12 0 H358 Q370 0 370 12 V65 H0 V12 Q0 0 12 0 Z"/>
-    <text x="185" y="42" text-anchor="middle" class="class-name">ImageAuthenticity</text>
-    <line x1="0" y1="65" x2="370" y2="65" class="divider"/>
-    <text x="20" y="100" class="field">+ risk_level: RiskLevel</text>
-    <text x="20" y="132" class="field">+ risk_score: float</text>
-    <text x="20" y="164" class="field">+ signals: list[str]</text>
+  <g transform="translate(1180 1080)">
+    <rect class="box" width="600" height="225"/>
+    <path class="head-value" d="M12 0 H588 Q600 0 600 12 V65 H0 V12 Q0 0 12 0 Z"/>
+    <text x="300" y="42" text-anchor="middle" class="class-name">ImageAuthenticity</text>
+    <line x1="0" y1="65" x2="600" y2="65" class="divider"/>
+    <text x="20" y="105" class="field">+ risk_level: RiskLevel</text>
+    <text x="20" y="145" class="field">+ risk_score: float</text>
+    <text x="20" y="185" class="field">+ signals: list[str]</text>
   </g>
 
   <!-- AgentResponse -->
-  <g transform="translate(1240 545)">
-    <rect class="box" width="490" height="360"/>
-    <path class="head-agent" d="M12 0 H478 Q490 0 490 12 V70 H0 V12 Q0 0 12 0 Z"/>
-    <text x="245" y="44" text-anchor="middle" class="class-name">AgentResponse</text>
-    <line x1="0" y1="70" x2="490" y2="70" class="divider"/>
-    <text x="22" y="102" class="field">+ agent_name: str</text>
-    <text x="22" y="130" class="field">+ agent_type: AgentType</text>
-    <text x="22" y="158" class="field">+ status: AgentStatus</text>
-    <text x="22" y="186" class="field">+ findings: dict[str, Any]</text>
-    <text x="22" y="214" class="field">+ evidence: list[EvidenceItem]</text>
-    <text x="22" y="242" class="field">+ confidence: float</text>
-    <text x="22" y="270" class="field">+ warnings: list[str]</text>
-    <text x="22" y="298" class="field">+ requires_human_review: bool</text>
-    <text x="22" y="326" class="field">+ messages: list[AgentMessage]</text>
+  <g transform="translate(50 1480)">
+    <rect class="box" width="720" height="440"/>
+    <path class="head-agent" d="M12 0 H708 Q720 0 720 12 V70 H0 V12 Q0 0 12 0 Z"/>
+    <text x="360" y="44" text-anchor="middle" class="class-name">AgentResponse</text>
+    <line x1="0" y1="70" x2="720" y2="70" class="divider"/>
+    <text x="22" y="105" class="field">+ agent_name: str</text>
+    <text x="22" y="142" class="field">+ agent_type: AgentType</text>
+    <text x="22" y="179" class="field">+ status: AgentStatus</text>
+    <text x="22" y="216" class="field">+ findings: dict[str, Any]</text>
+    <text x="22" y="253" class="field">+ evidence: list[EvidenceItem]</text>
+    <text x="22" y="290" class="field">+ confidence: float</text>
+    <text x="22" y="327" class="field">+ warnings: list[str]</text>
+    <text x="22" y="364" class="field">+ requires_human_review: bool</text>
+    <text x="22" y="401" class="field">+ messages: list[AgentMessage]</text>
   </g>
 
   <!-- EvidenceItem -->
-  <g transform="translate(1220 950)">
-    <rect class="box" width="360" height="235"/>
-    <path class="head-value" d="M12 0 H348 Q360 0 360 12 V65 H0 V12 Q0 0 12 0 Z"/>
-    <text x="180" y="42" text-anchor="middle" class="class-name">EvidenceItem</text>
-    <line x1="0" y1="65" x2="360" y2="65" class="divider"/>
-    <text x="20" y="98" class="field">+ source: str</text>
-    <text x="20" y="128" class="field">+ text: str</text>
-    <text x="20" y="158" class="field">+ section: str | None</text>
-    <text x="20" y="188" class="field">+ page: int | None</text>
-    <text x="20" y="218" class="field">+ score: float | None</text>
+  <g transform="translate(1180 1450)">
+    <rect class="box" width="600" height="285"/>
+    <path class="head-value" d="M12 0 H588 Q600 0 600 12 V65 H0 V12 Q0 0 12 0 Z"/>
+    <text x="300" y="42" text-anchor="middle" class="class-name">EvidenceItem</text>
+    <line x1="0" y1="65" x2="600" y2="65" class="divider"/>
+    <text x="20" y="100" class="field">+ source: str</text>
+    <text x="20" y="138" class="field">+ text: str</text>
+    <text x="20" y="176" class="field">+ section: str | None</text>
+    <text x="20" y="214" class="field">+ page: int | None</text>
+    <text x="20" y="252" class="field">+ score: float | None</text>
   </g>
 
   <!-- AgentMessage -->
-  <g transform="translate(1600 935)">
-    <rect class="box" width="380" height="250"/>
-    <path class="head-value" d="M12 0 H368 Q380 0 380 12 V65 H0 V12 Q0 0 12 0 Z"/>
-    <text x="190" y="42" text-anchor="middle" class="class-name">AgentMessage</text>
-    <line x1="0" y1="65" x2="380" y2="65" class="divider"/>
-    <text x="20" y="96" class="field">+ from_agent: str</text>
-    <text x="20" y="126" class="field">+ to_agent: str | None</text>
-    <text x="20" y="156" class="field">+ message_type: MessageType</text>
-    <text x="20" y="186" class="field">+ content: str</text>
-    <text x="20" y="216" class="field">+ metadata: dict[str, Any]</text>
+  <g transform="translate(1180 1795)">
+    <rect class="box" width="650" height="290"/>
+    <path class="head-value" d="M12 0 H638 Q650 0 650 12 V65 H0 V12 Q0 0 12 0 Z"/>
+    <text x="325" y="42" text-anchor="middle" class="class-name">AgentMessage</text>
+    <line x1="0" y1="65" x2="650" y2="65" class="divider"/>
+    <text x="20" y="100" class="field">+ from_agent: str</text>
+    <text x="20" y="138" class="field">+ to_agent: str | None</text>
+    <text x="20" y="176" class="field">+ message_type: MessageType</text>
+    <text x="20" y="214" class="field">+ content: str</text>
+    <text x="20" y="252" class="field">+ metadata: dict[str, Any]</text>
   </g>
 
   <!-- Relations -->
-  <path d="M630 290 H690" class="relation"/>
-  <text x="638" y="274" class="cardinality">1</text>
-  <text x="662" y="274" class="cardinality">0..*</text>
+  <path d="M1050 270 H1180" class="relation"/>
+  <text x="1070" y="248" class="cardinality">1</text>
+  <text x="1120" y="248" class="cardinality">0..*</text>
 
-  <path d="M630 790 H680 V690 H745" class="relation"/>
-  <text x="646" y="765" class="cardinality">1</text>
-  <text x="717" y="698" class="cardinality">1</text>
+  <path d="M950 880 H1110 V890 H1180" class="relation"/>
+  <text x="965" y="862" class="cardinality">1</text>
+  <text x="1140" y="868" class="cardinality">1</text>
 
-  <path d="M630 945 H745" class="relation"/>
-  <text x="650" y="935" class="cardinality">1</text>
-  <text x="715" y="935" class="cardinality">1</text>
+  <path d="M950 1190 H1180" class="relation"/>
+  <text x="970" y="1172" class="cardinality">1</text>
+  <text x="1145" y="1168" class="cardinality">1</text>
 
-  <path d="M630 1090 H1220" class="relation"/>
-  <text x="660" y="1110" class="cardinality">1</text>
-  <text x="1177" y="1080" class="cardinality">0..*</text>
+  <path d="M950 1260 H1110 V1550 H1180" class="relation"/>
+  <text x="965" y="1242" class="cardinality">1</text>
+  <text x="1115" y="1528" class="cardinality">0..*</text>
 
-  <path d="M500 690 H670 V580 H1240" class="relation"/>
-  <text x="510" y="678" class="cardinality">1</text>
-  <text x="1200" y="568" class="cardinality">0..*</text>
+  <path d="M500 1385 V1480" class="relation"/>
+  <text x="515" y="1420" class="cardinality">1</text>
+  <text x="515" y="1465" class="cardinality">0..*</text>
 
-  <path d="M1480 905 V925 H1400 V950" class="relation"/>
-  <text x="1490" y="924" class="cardinality">1</text>
-  <text x="1418" y="942" class="cardinality">0..*</text>
+  <path d="M770 1600 H1180" class="relation"/>
+  <text x="790" y="1582" class="cardinality">1</text>
+  <text x="1115" y="1578" class="cardinality">0..*</text>
 
-  <path d="M1640 905 V920 H1690 V935" class="relation"/>
-  <text x="1650" y="920" class="cardinality">1</text>
-  <text x="1700" y="930" class="cardinality">0..*</text>
+  <path d="M770 1780 H1080 V1940 H1180" class="relation"/>
+  <text x="790" y="1762" class="cardinality">1</text>
+  <text x="1115" y="1918" class="cardinality">0..*</text>
 
 </svg>
