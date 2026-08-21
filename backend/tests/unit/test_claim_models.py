@@ -42,6 +42,9 @@ def test_claim_enums_serialize_as_api_strings():
     serialized = result.model_dump(mode="json")
     assert serialized["claim_status"] == "requires_human_review"
     assert serialized["coverage_assessment"] == "unclear"
+    assert serialized["claim_facts"] == []
+    assert serialized["policy_clauses"] == []
+    assert serialized["assessment_propositions"] == []
 
 
 @pytest.mark.parametrize("insurance_type", list(InsuranceType))

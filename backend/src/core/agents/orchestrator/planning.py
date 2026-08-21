@@ -5,12 +5,16 @@ from typing import Any
 from core.agents.base import AgentContext, BaseAgent
 from core.agents.constants import (
     CLAIM_THEME_CONFIG,
-    PLANNING_SIGNALS_JSON_SCHEMA,
     UNKNOWN_THEME,
     UNKNOWN_THEME_RATIONALE,
 )
 from core.agents.technical_agents.shared import specialized_functional_agent_name
 from core.models.agent import AgentResponse
+from core.models.analysis import (
+    DynamicPlanningFindings,
+    PlanningSignalsFindings,
+    PlanningSignalsModelOutput,
+)
 from models.model_client import get_model_client
 from utils.app_logger import get_logger, log_event
 
@@ -95,13 +99,13 @@ class DynamicPlanningAgent(BaseAgent):
             model_error=planning_signals["model_error"],
         )
         return self.respond(
-            findings={
-                "planned_agents": planned_agents,
-                "skipped_agents": skipped_agents,
-                "rationale": rationale,
-                "planning_mode": "hybrid_model_signals_with_rule_fallback",
-                "planning_signals": planning_signals,
-            },
+            findings=DynamicPlanningFindings(
+                planned_agents=planned_agents,
+                skipped_agents=skipped_agents,
+                rationale=rationale,
+                planning_mode="hybrid_model_signals_with_rule_fallback",
+                planning_signals=planning_signals,
+            ),
             confidence=0.94,
             messages=[
                 self.message(
@@ -113,7 +117,7 @@ class DynamicPlanningAgent(BaseAgent):
             ],
         )
 
-    def _planning_signals(self, context: AgentContext) -> dict[str, Any]:
+    def _planning_signals(self, context: AgentContext) -> PlanningSignalsFindings:
         fallback = self._fallback_planning_signals(context.request.claim_description)
         model_client = get_model_client()
         log_event(
@@ -139,7 +143,7 @@ class DynamicPlanningAgent(BaseAgent):
             fallback=fallback,
             model=model_client.planning_model,
             schema_name="planning_signals",
-            json_schema=PLANNING_SIGNALS_JSON_SCHEMA,
+            response_model=PlanningSignalsModelOutput,
             schema_description="Planning signals used to explain deterministic insurance agent selection.",
         )
         data = model_result.data
@@ -155,14 +159,14 @@ class DynamicPlanningAgent(BaseAgent):
             model_name=model_client.planning_model,
             model_error=model_result.error,
         )
-        return {
-            "claim_theme": theme,
-            "evidence_focus": evidence_focus,
-            "rationale": rationale,
-            "model_used": model_result.used_model,
-            "model_name": model_client.planning_model,
-            "model_error": model_result.error,
-        }
+        return PlanningSignalsFindings(
+            claim_theme=theme,
+            evidence_focus=evidence_focus,
+            rationale=rationale,
+            model_used=model_result.used_model,
+            model_name=model_client.planning_model,
+            model_error=model_result.error,
+        )
 
     def _fallback_planning_signals(self, claim_description: str) -> dict[str, Any]:
         lower_claim = claim_description.lower()

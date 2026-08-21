@@ -41,7 +41,7 @@ class OutputValidatorAgent(BaseAgent):
         )
         model_injection_flags = [
             name for name, findings in context.memory.items()
-            if isinstance(findings, dict) and findings.get("suspected_prompt_injection") is True
+            if findings.get("suspected_prompt_injection") is True
         ]
         citation_evidence = [
             item

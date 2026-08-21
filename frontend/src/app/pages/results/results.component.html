@@ -44,7 +44,7 @@
       </div>
       <div class="hero-gauge" [style.--score]="confidenceScore()">
         <strong>{{ confidenceScore() }}%</strong>
-        <span>Confidence</span>
+        <span>{{ confidenceLabel() }}</span>
       </div>
     </header>
 
@@ -84,7 +84,7 @@
 
           <div class="rationale-bars">
             <div>
-              <span>Coverage Confidence</span>
+              <span>{{ confidenceLabel() }}</span>
               <strong [style.width.%]="confidenceScore()"></strong>
             </div>
             <div>
@@ -99,11 +99,42 @@
             <h3>Evidence Citations</h3>
             <span>{{ result.evidence.length }} total</span>
           </div>
-          <div class="citation" *ngFor="let item of topEvidence()">
-            <strong>{{ evidenceSourceLabel(item.source) }}</strong>
-            <p>{{ item.text }}</p>
-          </div>
+          <app-evidence-reference *ngFor="let item of topEvidence()" [evidence]="item" />
           <p *ngIf="!result.evidence.length">No citations returned.</p>
+        </article>
+
+        <article class="report-card facts-card">
+          <div class="card-title-row">
+            <h3>Extracted Claim Facts</h3>
+            <span>{{ claimFacts().length }} facts</span>
+          </div>
+          <div class="fact-row" *ngFor="let fact of claimFacts()">
+            <div>
+              <small>{{ statusLabel(fact.fact_type) }}</small>
+              <strong>{{ factValue(fact) }}</strong>
+            </div>
+            <div class="fact-meta">
+              <span>{{ statusLabel(fact.extraction_method) }}</span>
+              <span>{{ fact.confidence | percent:'1.0-0' }}</span>
+              <span>{{ statusLabel(fact.verification_status) }}</span>
+            </div>
+          </div>
+          <p *ngIf="!claimFacts().length">No typed claim facts were returned.</p>
+        </article>
+
+        <article class="report-card clauses-card">
+          <div class="card-title-row">
+            <h3>Policy Clause Provenance</h3>
+            <span>{{ result.policy_clauses.length }} clauses</span>
+          </div>
+          <div class="clause-block" *ngFor="let clause of topPolicyClauses()">
+            <div class="clause-heading">
+              <strong>{{ statusLabel(clause.concept) }}</strong>
+              <span [attr.data-polarity]="clause.polarity">{{ clause.clause_type }} / {{ clause.polarity }}</span>
+            </div>
+            <app-evidence-reference [evidence]="clause" />
+          </div>
+          <p *ngIf="!result.policy_clauses.length">No typed policy clauses were returned.</p>
         </article>
       </div>
 
@@ -113,11 +144,24 @@
           <ul class="match-list" *ngIf="topPolicyMatches().length; else noConcepts">
             <li *ngFor="let concept of topPolicyMatches()">
               <span></span>
-              <strong>{{ formatConcept(concept) }}</strong>
-              <em>Match</em>
+              <div>
+                <strong>{{ formatConcept(concept) }}</strong>
+                <small>{{ provenanceLabel(concept) }}</small>
+              </div>
+              <em>{{ clauseEffect(concept) }}</em>
             </li>
           </ul>
           <ng-template #noConcepts><p>No direct policy concept match was returned.</p></ng-template>
+        </article>
+
+        <article class="report-card compact proposition-card" *ngIf="primaryProposition() as proposition">
+          <h3>Assessment Proposition</h3>
+          <p>{{ proposition.statement }}</p>
+          <div class="proposition-meta">
+            <span>{{ statusLabel(proposition.status) }}</span>
+            <span>{{ proposition.confidence | percent:'1.0-0' }} confidence</span>
+            <span>{{ proposition.evidence.length }} evidence reference(s)</span>
+          </div>
         </article>
 
         <article class="report-card checklist-card">

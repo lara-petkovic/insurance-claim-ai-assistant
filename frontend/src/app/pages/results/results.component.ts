@@ -1,12 +1,22 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output, SimpleChanges } from '@angular/core';
 import { AgentTraceComponent } from '../../components/agent-trace/agent-trace.component';
-import { AgentResponse, ClaimAnalysisResult, EvidenceItem } from '../../models/claim.models';
+import { EvidenceReferenceComponent } from '../../components/evidence-reference/evidence-reference.component';
+import {
+  AgentResponse,
+  AssessmentProposition,
+  ClaimAnalysisResult,
+  ClaimFact,
+  EvidenceItem,
+  PolicyClause,
+  PolicyMatch,
+  PotentialExclusion
+} from '../../models/claim.models';
 
 @Component({
   selector: 'app-results',
   standalone: true,
-  imports: [CommonModule, AgentTraceComponent],
+  imports: [CommonModule, AgentTraceComponent, EvidenceReferenceComponent],
   templateUrl: './results.component.html',
   styleUrl: './results.component.css'
 })
@@ -33,17 +43,29 @@ export class ResultsComponent {
     this.clearRevealTimer();
   }
 
-  formatConcept(value: Record<string, unknown>): string {
-    return String(value['concept'] || value['name'] || JSON.stringify(value));
+  formatConcept(value: PolicyMatch | PotentialExclusion): string {
+    return value.concept;
   }
 
   confidenceScore(): number {
+    const proposition = this.primaryProposition();
+    if (proposition) {
+      return Math.round(proposition.confidence * 100);
+    }
     const trace = this.result?.agent_trace?.length ? this.result.agent_trace : this.liveTrace;
     if (!trace.length) {
       return 0;
     }
     const total = trace.reduce((sum, agent) => sum + (agent.confidence || 0), 0);
     return Math.round((total / trace.length) * 100);
+  }
+
+  confidenceLabel(): string {
+    return this.primaryProposition() ? 'Assessment confidence' : 'Average agent confidence';
+  }
+
+  primaryProposition(): AssessmentProposition | null {
+    return this.result?.assessment_propositions.at(-1) || null;
   }
 
   allAgentResponsesDisplayed(): boolean {
@@ -119,8 +141,29 @@ export class ResultsComponent {
     return [...exclusions, ...missing].slice(0, 5);
   }
 
-  topPolicyMatches(): Array<Record<string, unknown>> {
+  topPolicyMatches(): PolicyMatch[] {
     return this.result?.matched_policy_concepts.slice(0, 4) || [];
+  }
+
+  topPolicyClauses(): PolicyClause[] {
+    return this.result?.policy_clauses.slice(0, 4) || [];
+  }
+
+  claimFacts(): ClaimFact[] {
+    return this.result?.claim_facts || [];
+  }
+
+  factValue(fact: ClaimFact): string {
+    return fact.value === null ? 'Not provided' : String(fact.value);
+  }
+
+  provenanceLabel(value: PolicyMatch): string {
+    const parts = [value.source_filename, value.page ? `p. ${value.page}` : null, value.section_heading];
+    return parts.filter(Boolean).join(' / ') || 'Source location unavailable';
+  }
+
+  clauseEffect(value: PolicyMatch): string {
+    return this.statusLabel(value.polarity || value.clause_type || 'match');
   }
 
   topEvidence(): EvidenceItem[] {
@@ -129,12 +172,6 @@ export class ResultsComponent {
 
   statusLabel(status: string): string {
     return status.replaceAll('_', ' ');
-  }
-
-  evidenceSourceLabel(source: string): string {
-    return source === 'policy' ? 'Policy' : source.startsWith('supporting:')
-      ? `Supporting document: ${source.slice('supporting:'.length)}`
-      : source;
   }
 
   private queueNewAgentResponses(): void {

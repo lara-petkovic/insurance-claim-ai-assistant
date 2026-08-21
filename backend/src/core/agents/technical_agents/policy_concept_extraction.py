@@ -5,6 +5,13 @@ from core.agents.technical_agents.policy_polarity import clause_polarity, policy
 from core.agents.technical_agents.shared import _merge_dict_lists_by_key
 from core.claim_validation import extract_policy_period, policy_domain_metadata
 from core.models.agent import AgentResponse
+from core.models.analysis import (
+    ClauseType,
+    PolicyDocument,
+    PolicyExtractionFindings,
+    PolicyExtractionModelOutput,
+)
+from core.provenance import policy_clause
 from models.model_client import get_model_client
 from security.input_security import UNTRUSTED_INPUT_SYSTEM_RULE, untrusted_block
 
@@ -54,11 +61,7 @@ class PolicyConceptExtractionAgent(BaseAgent):
             for item in coverage_clauses
             if item["polarity"] == "covered"
         ]
-        exclusions = [
-            {"concept": concept, "matched_terms": [term for term in terms if term in lower]}
-            for concept, terms in self.EXCLUSION_PATTERNS.items()
-            if any(term in lower for term in terms)
-        ]
+        exclusions = self._exclusion_clauses(policy_text)
 
         required_documents = ["claim description", "damage photos"]
         if "repair estimate" in lower or "invoice" in lower:
@@ -102,8 +105,11 @@ class PolicyConceptExtractionAgent(BaseAgent):
                 f"POLICY TEXT:\n{untrusted_block('policy_text', policy_text, max_chars=12000)}"
             ),
             fallback=fallback,
+            schema_name="policy_concept_extraction",
+            response_model=PolicyExtractionModelOutput,
+            schema_description="Normalized policy concepts with exact supporting policy text.",
         )
-        findings: dict[str, Any] = {
+        findings_data: dict[str, Any] = {
             **fallback,
             **model_result.data,
             # Domain and dates are request/policy facts and must remain deterministic.
@@ -116,15 +122,15 @@ class PolicyConceptExtractionAgent(BaseAgent):
             model_result.data.get("covered_events"), policy_text, required_polarity="covered"
         )
         verified_model_exclusions = self._verified_items(model_result.data.get("exclusions"), policy_text)
-        findings["covered_events"] = _merge_dict_lists_by_key(
+        findings_data["covered_events"] = _merge_dict_lists_by_key(
             covered_events,
             verified_model_covered,
         )
-        findings["exclusions"] = _merge_dict_lists_by_key(
+        findings_data["exclusions"] = _merge_dict_lists_by_key(
             exclusions,
             verified_model_exclusions,
         )
-        findings["coverage_clauses"] = self._merge_coverage_clauses(
+        raw_clauses = self._merge_coverage_clauses(
             coverage_clauses,
             [
                 {
@@ -135,6 +141,25 @@ class PolicyConceptExtractionAgent(BaseAgent):
                 for item in verified_model_covered
             ],
         )
+        source_document = context.request.policy_document or PolicyDocument(
+            filename=context.request.policy_filename or "policy",
+            text=policy_text,
+        )
+        findings_data["coverage_clauses"] = [
+            policy_clause(source_document, item) for item in raw_clauses
+        ]
+        # Exclusion concepts with exact model evidence are also represented as typed clauses.
+        typed_exclusions = [
+            policy_clause(
+                source_document,
+                {**item, "polarity": "excluded"},
+                clause_type=ClauseType.EXCLUSION,
+            )
+            for item in findings_data["exclusions"]
+            if str(item.get("evidence_text", "")).strip()
+        ]
+        findings_data["coverage_clauses"].extend(typed_exclusions)
+        findings = PolicyExtractionFindings.model_validate(findings_data)
         return self.respond(
             findings=findings,
             confidence=0.78 if covered_events else 0.45,
@@ -216,4 +241,24 @@ class PolicyConceptExtractionAgent(BaseAgent):
                             "direct_match": any(term in lower_clause for term in terms[:2]),
                         }
                     )
+        return extracted
+
+    @classmethod
+    def _exclusion_clauses(cls, policy_text: str) -> list[dict[str, Any]]:
+        extracted = []
+        clauses = policy_clauses(policy_text)
+        for concept, terms in cls.EXCLUSION_PATTERNS.items():
+            for evidence_text in clauses:
+                lower_clause = evidence_text.lower()
+                matched_terms = [term for term in terms if term in lower_clause]
+                if matched_terms and clause_polarity(evidence_text) == "excluded":
+                    extracted.append(
+                        {
+                            "concept": concept,
+                            "matched_terms": matched_terms,
+                            "evidence_text": evidence_text,
+                            "polarity": "excluded",
+                        }
+                    )
+                    break
         return extracted

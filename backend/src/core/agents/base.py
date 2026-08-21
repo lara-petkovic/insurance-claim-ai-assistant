@@ -1,32 +1,13 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 from typing import Any
 
 from core.models.agent import AgentMessage, AgentResponse, AgentStatus, AgentType, MessageType
-from core.models.claim import ClaimRequestData
+from core.models.analysis import AgentFindings
+from core.models.run_state import ClaimAnalysisRunState
 
 
-@dataclass
-class AgentContext:
-    """Carries the request, shared memory, responses, and messages through an agent run."""
-
-    request: ClaimRequestData
-    responses: list[AgentResponse] = field(default_factory=list)
-    memory: dict[str, Any] = field(default_factory=dict)
-    messages: list[AgentMessage] = field(default_factory=list)
-
-    def add(self, response: AgentResponse) -> AgentResponse:
-        self.responses.append(response)
-        self.memory[response.agent_name] = response.findings
-        self.messages.extend(response.messages)
-        return response
-
-    def replace(self, response: AgentResponse) -> AgentResponse:
-        self.responses.append(response)
-        self.memory[response.agent_name] = response.findings
-        self.messages.extend(response.messages)
-        return response
+AgentContext = ClaimAnalysisRunState
 
 
 class BaseAgent:
@@ -57,7 +38,7 @@ class BaseAgent:
     def respond(
         self,
         *,
-        findings: dict[str, Any] | None = None,
+        findings: AgentFindings | dict[str, Any] | None = None,
         evidence: list | None = None,
         confidence: float = 0.0,
         warnings: list[str] | None = None,

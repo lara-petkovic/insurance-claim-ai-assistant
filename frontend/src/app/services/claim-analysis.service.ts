@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { AgentStreamEvent } from '../models/claim.models';
+import { AgentStreamEvent, parseAgentStreamEvent } from '../models/claim.models';
 
 @Injectable({ providedIn: 'root' })
 export class ClaimAnalysisService {
@@ -40,13 +40,13 @@ export class ClaimAnalysisService {
               if (!trimmed) {
                 continue;
               }
-              subscriber.next(JSON.parse(trimmed) as AgentStreamEvent);
+              subscriber.next(parseAgentStreamEvent(JSON.parse(trimmed)));
             }
           }
 
           const remaining = buffer.trim();
           if (remaining) {
-            subscriber.next(JSON.parse(remaining) as AgentStreamEvent);
+            subscriber.next(parseAgentStreamEvent(JSON.parse(remaining)));
           }
           subscriber.complete();
         })

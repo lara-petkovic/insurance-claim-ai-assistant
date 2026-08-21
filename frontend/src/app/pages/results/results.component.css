@@ -718,6 +718,107 @@ dd {
   padding: 4px 8px;
 }
 
+.fact-row {
+  align-items: start;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding: 15px 0;
+}
+
+.fact-row:first-of-type {
+  border-top: 0;
+}
+
+.fact-row small,
+.match-list small {
+  color: var(--muted);
+  display: block;
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+
+.fact-row strong {
+  color: #edf3fa;
+  display: block;
+  font-size: 13px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.fact-meta,
+.proposition-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.fact-meta span,
+.proposition-meta span,
+.clause-heading span {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  color: #c8d1dd;
+  font-size: 9px;
+  font-weight: 850;
+  padding: 4px 7px;
+  text-transform: uppercase;
+}
+
+.clause-block + .clause-block {
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  margin-top: 22px;
+  padding-top: 22px;
+}
+
+.clause-heading {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.clause-heading strong {
+  color: #f0f4fa;
+  font-size: 14px;
+  text-transform: capitalize;
+}
+
+.clause-heading span[data-polarity="covered"] {
+  border-color: rgba(25, 216, 203, 0.3);
+  color: var(--accent);
+}
+
+.clause-heading span[data-polarity="excluded"] {
+  border-color: rgba(255, 181, 169, 0.3);
+  color: #ffb5a9;
+}
+
+.match-list small {
+  font-weight: 700;
+  letter-spacing: 0;
+  margin: 4px 0 0;
+  text-transform: none;
+}
+
+.proposition-card p {
+  color: #e0e6ee;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.proposition-meta {
+  justify-content: flex-start;
+  margin-top: 14px;
+}
+
 .card-title-row {
   align-items: center;
   display: flex;
@@ -778,6 +879,14 @@ dd {
 
   .report-summary {
     grid-template-columns: 1fr;
+  }
+
+  .fact-row {
+    grid-template-columns: 1fr;
+  }
+
+  .fact-meta {
+    justify-content: flex-start;
   }
 }
 

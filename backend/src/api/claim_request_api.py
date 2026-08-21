@@ -62,12 +62,17 @@ async def extract_document(file: Annotated[UploadFile, File(...)]) -> DocumentEx
     validate_upload_suffix(file.filename or "", ALLOWED_SUPPORTING_SUFFIXES)
     content = await read_bounded_upload(file, MAX_SUPPORTING_FILE_BYTES)
     filename = file.filename or "uploaded_file"
-    text, warnings = await extract_upload_text(filename, content)
+    extraction = await extract_upload_text(filename, content)
+    text, warnings = extraction
+    document = getattr(extraction, "document", None)
     return DocumentExtractionResult(
         filename=filename,
         document_type=infer_document_type(filename),
         text=text,
         warnings=warnings,
+        document_id=getattr(document, "document_id", None),
+        pages=getattr(document, "pages", []),
+        extraction_method=getattr(document, "extraction_method", None),
     )
 
 

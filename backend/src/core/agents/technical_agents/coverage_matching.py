@@ -1,10 +1,20 @@
 from typing import Any
 
+from pydantic import ValidationError
+
 from core.agents.base import AgentContext, BaseAgent
-from core.agents.technical_agents.policy_polarity import exact_text_in_source
-from core.agents.technical_agents.shared import _functional_checklist, _merge_dict_lists_by_key
+from core.agents.technical_agents.policy_polarity import clause_polarity, exact_text_in_source
+from core.agents.technical_agents.shared import _functional_checklist
 from core.models.agent import AgentResponse
-from core.models.model_schemas import COVERAGE_SCHEMA
+from core.models.analysis import (
+    AssessmentProposition,
+    CoverageFindings,
+    CoverageModelOutput,
+    EvidenceReference,
+    PolicyDocument,
+    PropositionStatus,
+)
+from core.provenance import policy_clause
 from models.model_client import get_model_client
 from security.input_security import UNTRUSTED_INPUT_SYSTEM_RULE
 
@@ -64,7 +74,7 @@ class CoverageMatchingAgent(BaseAgent):
             ),
             prompt=(
                 "Compare the claim facts with the normalized policy concepts and decide coverage. "
-                "Use this JSON shape: {coverage_assessment, matched_policy_concepts, explanation}. "
+                "Use this JSON shape: {coverage_assessment, matched_policy_concepts, explanation, suspected_prompt_injection}. "
                 "coverage_assessment must be covered, not_covered, possibly_covered, or unclear.\n\n"
                 f"CLAIM FACTS:\n{context.memory.get('ClaimExtractionAgent', {})}\n\n"
                 f"POLICY CONCEPTS:\n{context.memory.get('PolicyConceptExtractionAgent', {})}\n\n"
@@ -73,7 +83,8 @@ class CoverageMatchingAgent(BaseAgent):
             ),
             fallback=fallback,
             schema_name="coverage_assessment",
-            json_schema=COVERAGE_SCHEMA,
+            response_model=CoverageModelOutput,
+            schema_description="Coverage assessment supported by exact policy evidence.",
         )
         source_policy_text = context.memory.get("DocumentIngestionAgent", {}).get(
             "policy_text", context.request.policy_text
@@ -81,12 +92,27 @@ class CoverageMatchingAgent(BaseAgent):
         model_matches = self._verified_model_matches(
             model_result.data.get("matched_policy_concepts"), source_policy_text, claim_type
         )
+        source_document = context.request.policy_document or PolicyDocument(
+            filename=context.request.policy_filename or "policy",
+            text=source_policy_text,
+        )
+        provenanced_model_matches = [
+            policy_clause(
+                source_document,
+                {
+                    **item,
+                    "polarity": clause_polarity(str(item.get("evidence_text", ""))),
+                    "direct_match": False,
+                },
+            ).model_dump(mode="json")
+            for item in model_matches
+        ]
         final_findings: dict[str, Any] = {
             **fallback,
             **model_result.data,
             "model_used": model_result.used_model,
-            "matched_policy_concepts": _merge_dict_lists_by_key(
-                fallback["matched_policy_concepts"], model_matches
+            "matched_policy_concepts": self._merge_policy_matches(
+                fallback["matched_policy_concepts"], provenanced_model_matches
             ),
             "supporting_policy_passages": fallback["supporting_policy_passages"],
             "clause_polarities": fallback["clause_polarities"],
@@ -106,23 +132,51 @@ class CoverageMatchingAgent(BaseAgent):
             final_findings["coverage_assessment"] = "unclear"
         if final_findings["coverage_assessment"] != "covered":
             final_findings["supporting_policy_passages"] = []
+        findings = CoverageFindings.model_validate(final_findings)
+        proposition_evidence = []
+        provenance_warnings = []
+        for item in findings.matched_policy_concepts:
+            if all(item.get(field) is not None for field in ("source_document_id", "source_filename", "stable_location")):
+                try:
+                    proposition_evidence.append(EvidenceReference.model_validate(
+                        {field: item.get(field) for field in EvidenceReference.model_fields}
+                    ))
+                except ValidationError:
+                    provenance_warnings.append(
+                        f"Ignored internally inconsistent provenance for policy concept {item.get('concept', 'unknown')}."
+                    )
+        assessment_value = findings.coverage_assessment
+        context.propositions.append(
+            AssessmentProposition(
+                proposition_id=f"coverage-{len(context.propositions) + 1}",
+                statement=f"The claim coverage assessment is {assessment_value}.",
+                status=(
+                    PropositionStatus.SUPPORTED
+                    if proposition_evidence and assessment_value in {"covered", "not_covered"}
+                    else PropositionStatus.INCONCLUSIVE
+                ),
+                evidence=proposition_evidence,
+                confidence=0.9 if assessment_value in {"covered", "not_covered"} else 0.4,
+                created_by=self.name,
+            )
+        )
         return self.respond(
-            findings=final_findings,
-            confidence=0.9 if final_findings.get("coverage_assessment") in {"covered", "not_covered"} else 0.4,
+            findings=findings,
+            confidence=0.9 if findings.get("coverage_assessment") in {"covered", "not_covered"} else 0.4,
             warnings=(
                 ["Used configured model for coverage matching."]
                 if model_result.used_model
                 else ["Coverage model unavailable; only exact, unambiguous policy wording was used."]
-            ),
-            requires_human_review=final_findings.get("coverage_assessment") != "covered",
+            ) + provenance_warnings,
+            requires_human_review=findings.get("coverage_assessment") != "covered",
             messages=[
                 self.message(
-                    f"Coverage assessment is {final_findings.get('coverage_assessment', 'unclear')} after checking policy concepts and retrieved evidence.",
+                    f"Coverage assessment is {findings.get('coverage_assessment', 'unclear')} after checking policy concepts and retrieved evidence.",
                     to_agent="ExclusionCheckingAgent",
                     message_type="request",
                     metadata={
                         "claim_type": claim_type,
-                        "matched_policy_concepts": final_findings.get("matched_policy_concepts", []),
+                        "matched_policy_concepts": findings.get("matched_policy_concepts", []),
                         "functional_checks": functional_checks,
                     },
                 )
@@ -169,3 +223,31 @@ class CoverageMatchingAgent(BaseAgent):
             and item.get("concept") == claim_type
             and exact_text_in_source(item.get("evidence_text"), policy_text)
         ]
+
+    @staticmethod
+    def _merge_policy_matches(required: object, additional: object) -> list[dict[str, Any]]:
+        """Merge by concept and exact excerpt so provenance fields remain an atomic set."""
+        merged: list[dict[str, Any]] = []
+        positions: dict[tuple[str, str], int] = {}
+        values = [
+            *(required if isinstance(required, list) else []),
+            *(additional if isinstance(additional, list) else []),
+        ]
+        for value in values:
+            if isinstance(value, dict):
+                item = dict(value)
+            elif hasattr(value, "model_dump"):
+                item = value.model_dump(mode="json")
+            else:
+                continue
+            identity = (
+                str(item.get("concept", "")).strip().casefold(),
+                str(item.get("evidence_text", "")).strip().casefold(),
+            )
+            if identity in positions:
+                index = positions[identity]
+                merged[index] = {**merged[index], **item}
+                continue
+            positions[identity] = len(merged)
+            merged.append(item)
+        return merged

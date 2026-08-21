@@ -24,6 +24,7 @@ class DocumentIngestionAgent(BaseAgent):
         findings = {
             "policy_filename": request.policy_filename,
             "policy_text": policy_text,
+            "policy_document": request.policy_document,
             "policy_text_length": len(policy_text),
             "policy_extraction_warnings": warnings,
             "supporting_documents": supporting_documents,

@@ -1,0 +1,50 @@
+.evidence-reference {
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(102, 214, 255, 0.15);
+  border-left: 3px solid var(--secondary);
+  margin-top: 16px;
+  padding: 16px 18px;
+}
+
+.evidence-reference header,
+.evidence-reference footer {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.evidence-reference header strong {
+  color: #b9efff;
+  font-size: 12px;
+  margin-right: 3px;
+  overflow-wrap: anywhere;
+}
+
+.evidence-reference header span,
+.evidence-reference footer span {
+  background: rgba(255, 255, 255, 0.055);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  color: #cbd4df;
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: 0.04em;
+  padding: 3px 6px;
+  text-transform: uppercase;
+}
+
+.evidence-reference footer .verified {
+  background: rgba(25, 216, 203, 0.1);
+  border-color: rgba(25, 216, 203, 0.25);
+  color: var(--accent);
+}
+
+.evidence-reference blockquote {
+  color: #d7dce5;
+  font-size: 13px;
+  line-height: 1.55;
+  margin: 12px 0;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}

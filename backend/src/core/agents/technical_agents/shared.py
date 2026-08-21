@@ -22,6 +22,8 @@ def _as_dict_list(value: object, *, default_key: str = "text") -> list[dict]:
     for item in _as_list(value):
         if isinstance(item, dict):
             normalized.append(item)
+        elif hasattr(item, "model_dump"):
+            normalized.append(item.model_dump(mode="json"))
         else:
             normalized.append({default_key: str(item)})
     return normalized

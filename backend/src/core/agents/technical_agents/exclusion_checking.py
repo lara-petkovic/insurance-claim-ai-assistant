@@ -1,7 +1,7 @@
 from core.agents.base import AgentContext, BaseAgent
 from core.agents.technical_agents.shared import _contains, _functional_checklist, _merge_dict_lists_by_key
 from core.models.agent import AgentResponse
-from core.models.model_schemas import EXCLUSION_SCHEMA
+from core.models.analysis import ExclusionFindings, ExclusionModelOutput
 from models.model_client import get_model_client
 from security.input_security import UNTRUSTED_INPUT_SYSTEM_RULE, untrusted_block
 
@@ -44,7 +44,7 @@ class ExclusionCheckingAgent(BaseAgent):
             ),
             prompt=(
                 "Check whether policy exclusions may apply to this claim. "
-                "Use this JSON shape: {potential_exclusions}. "
+                "Use this JSON shape: {potential_exclusions, suspected_prompt_injection}. "
                 "potential_exclusions must be an array of objects with concept, severity, reason, and evidence_text if available.\n\n"
                 f"CLAIM DESCRIPTION:\n{untrusted_block('claim_description', context.request.claim_description, max_chars=8000)}\n\n"
                 f"CLAIM FACTS:\n{context.memory.get('ClaimExtractionAgent', {})}\n\n"
@@ -55,7 +55,8 @@ class ExclusionCheckingAgent(BaseAgent):
             ),
             fallback=fallback,
             schema_name="exclusion_assessment",
-            json_schema=EXCLUSION_SCHEMA,
+            response_model=ExclusionModelOutput,
+            schema_description="Potential policy exclusions with evidence and severity.",
         )
         final_findings = {**fallback, **model_result.data, "model_used": model_result.used_model,
                           "potential_exclusions": _merge_dict_lists_by_key(
@@ -69,9 +70,10 @@ class ExclusionCheckingAgent(BaseAgent):
                 exclusion["severity"] = "medium"
                 exclusion["requires_corroboration"] = True
         found = final_findings.get("potential_exclusions", found)
+        findings = ExclusionFindings.model_validate(final_findings)
 
         return self.respond(
-            findings=final_findings,
+            findings=findings,
             confidence=0.72,
             warnings=(
                 ["Used configured model for exclusion checking."]

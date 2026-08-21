@@ -110,6 +110,7 @@ class OrchestratorAgent(BaseAgent):
         _log_agent_activity(self.planner.name, "Started.", step="planning")
         plan_response = context.add(self.planner.run(context))
         planned_agents = self._agents_from_plan(plan_response)
+        context.set_plan([agent.name for agent in planned_agents])
         _log_agent_messages(plan_response)
         _log_agent_completed(plan_response, planned_agents=len(planned_agents))
         _log_agent_activity(
@@ -149,6 +150,7 @@ class OrchestratorAgent(BaseAgent):
         _log_agent_activity(self.planner.name, "Started.", step="planning")
         plan_response = context.add(self.planner.run(context))
         planned_agents = self._agents_from_plan(plan_response)
+        context.set_plan([agent.name for agent in planned_agents])
         total = len(planned_agents)
         _log_agent_messages(plan_response)
         _log_agent_completed(plan_response, planned_agents=total)
@@ -347,6 +349,11 @@ class OrchestratorAgent(BaseAgent):
             image_assessment=image_assessment,
             image_authenticity=image_authenticity,
             evidence=citations,
+            claim_facts=claim.get("facts", []),
+            policy_clauses=context.memory.get("PolicyConceptExtractionAgent", {}).get(
+                "coverage_clauses", []
+            ),
+            assessment_propositions=context.propositions,
             reasoning_summary=reasoning_summary,
             recommendation=recommendation,
             security_flags=request.security_flags,
@@ -407,6 +414,8 @@ class OrchestratorAgent(BaseAgent):
         for item in cls._as_any_list(value):
             if isinstance(item, dict):
                 normalized.append(item)
+            elif hasattr(item, "model_dump"):
+                normalized.append(item.model_dump(mode="json"))
             else:
                 normalized.append({default_key: str(item)})
         return normalized

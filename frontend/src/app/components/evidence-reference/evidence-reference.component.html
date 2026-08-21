@@ -1,0 +1,17 @@
+<article class="evidence-reference">
+  <header>
+    <strong>{{ sourceLabel() }}</strong>
+    <span *ngIf="evidence.page">Page {{ evidence.page }}</span>
+    <span *ngIf="section() as heading">{{ heading }}</span>
+  </header>
+
+  <blockquote>{{ quote() }}</blockquote>
+
+  <footer>
+    <span *ngIf="verificationLabel() as verification" class="verified">{{ verification }}</span>
+    <span *ngIf="extractionLabel() as extraction">{{ extraction }}</span>
+    <span *ngIf="confidenceScore() as confidence">{{ confidence }}% confidence</span>
+    <span *ngIf="relevanceScore() as relevance">{{ relevance }}% relevance</span>
+    <span *ngIf="offsetLabel() as offsets">{{ offsets }}</span>
+  </footer>
+</article>

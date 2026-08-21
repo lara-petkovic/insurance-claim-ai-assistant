@@ -15,15 +15,26 @@ class RetrievalAgent(BaseAgent):
         query = f"{claim_type} covered not covered exclusions required documents {context.request.claim_description}"
         attempts = []
         documents = context.request.supporting_documents
+        policy_document = context.request.policy_document
 
         def search(search_query: str):
-            policy = retrieve_passages(policy_text, search_query, source="policy", top_k=5)
+            policy = retrieve_passages(
+                policy_text,
+                search_query,
+                source="policy",
+                top_k=5,
+                document=policy_document,
+            )
             supporting = [
                 item
                 for document in documents
                 if document.text.strip()
                 for item in retrieve_passages(
-                    document.text, search_query, source=f"supporting:{document.filename}", top_k=3
+                    document.text,
+                    search_query,
+                    source=f"supporting:{document.filename}",
+                    top_k=3,
+                    document=document,
                 )
             ]
             supporting.sort(key=lambda item: item.score or 0, reverse=True)

@@ -7,6 +7,7 @@ from pathlib import Path
 
 from fastapi import HTTPException, UploadFile
 
+from core.models.analysis import DocumentPage, PolicyDocument, SourceDocument
 from core.models.claim import ClaimRequestData, InsuranceType, SupportingDocumentData
 from data.text_extraction import extract_upload_text, infer_document_type
 from security.input_security import (
@@ -41,7 +42,7 @@ async def build_claim_request(
 ) -> ClaimRequestData:
     _validate_form_limits(claim_description, supporting_documents)
     security_flags = [f"claim_description:{flag}" for flag in detect_prompt_injection(claim_description)]
-    policy_text, policy_filename, policy_warnings = await _process_policy(
+    policy_text, policy_filename, policy_warnings, policy_document = await _process_policy(
         policy_file, security_flags
     )
     image_data = await _process_damage_image(damage_image)
@@ -54,6 +55,7 @@ async def build_claim_request(
         policy_text=policy_text,
         policy_filename=policy_filename,
         policy_extraction_warnings=policy_warnings,
+        policy_document=policy_document,
         damage_image_filename=image_data.filename,
         damage_image_size=image_data.size,
         damage_image_mime_type=image_data.mime_type,
@@ -94,21 +96,31 @@ def _validate_form_limits(
 async def _process_policy(
     policy_file: UploadFile | None,
     security_flags: list[str],
-) -> tuple[str, str | None, list[str]]:
+) -> tuple[str, str | None, list[str], PolicyDocument]:
     if policy_file is None:
         raise _missing_policy_error()
 
     filename = policy_file.filename or "policy.pdf"
     validate_upload_suffix(filename, ALLOWED_POLICY_SUFFIXES)
     content = await read_bounded_upload(policy_file, MAX_POLICY_BYTES)
-    policy_text, warnings = await extract_upload_text(filename, content)
+    extraction = await extract_upload_text(filename, content)
+    policy_text, warnings = extraction
     policy_text = policy_text[:MAX_EXTRACTED_TEXT_CHARS]
     security_flags.extend(
         f"policy:{flag}" for flag in detect_prompt_injection(policy_text)
     )
     if not policy_text.strip():
         raise _missing_policy_error()
-    return policy_text, policy_file.filename, warnings
+    extracted_document = getattr(extraction, "document", None)
+    policy_document = PolicyDocument(
+        document_id=getattr(extracted_document, "document_id", ""),
+        filename=filename,
+        text=policy_text,
+        pages=_bounded_pages(extracted_document, policy_text),
+        extraction_method=getattr(extracted_document, "extraction_method", "text_extraction"),
+        extraction_warnings=warnings,
+    )
+    return policy_text, policy_file.filename, warnings, policy_document
 
 
 async def _process_damage_image(damage_image: UploadFile | None) -> _ImageData:
@@ -134,7 +146,7 @@ async def _process_supporting_documents(
         filename = document.filename or "supporting_document"
         validate_upload_suffix(filename, ALLOWED_SUPPORTING_SUFFIXES)
         content = await read_bounded_upload(document, MAX_SUPPORTING_FILE_BYTES)
-        text, warnings = await _extract_supporting_text(filename, content)
+        text, warnings, extracted_document = await _extract_supporting_text(filename, content)
         text = text[:MAX_EXTRACTED_TEXT_CHARS]
         security_flags.extend(
             f"supporting_document:{flag}" for flag in detect_prompt_injection(text)
@@ -143,9 +155,12 @@ async def _process_supporting_documents(
             warnings.append("Supporting document extraction returned no usable text.")
         results.append(
             SupportingDocumentData(
+                document_id=getattr(extracted_document, "document_id", ""),
                 filename=filename,
                 document_type=infer_document_type(filename),
                 text=text,
+                pages=_bounded_pages(extracted_document, text),
+                extraction_method=getattr(extracted_document, "extraction_method", "text_extraction"),
                 extraction_warnings=warnings,
                 text_length=len(text),
             )
@@ -156,11 +171,14 @@ async def _process_supporting_documents(
 async def _extract_supporting_text(
     filename: str,
     content: bytes,
-) -> tuple[str, list[str]]:
+) -> tuple[str, list[str], SourceDocument | None]:
     try:
-        return await extract_upload_text(filename, content)
+        extraction = await extract_upload_text(filename, content)
+        text, warnings = extraction
+        document = getattr(extraction, "document", None)
+        return text, warnings, document if isinstance(document, SourceDocument) else None
     except Exception as exc:
-        return "", [f"Supporting document extraction failed: {exc}"]
+        return "", [f"Supporting document extraction failed: {exc}"], None
 
 
 def _missing_policy_error() -> HTTPException:
@@ -171,3 +189,25 @@ def _missing_policy_error() -> HTTPException:
             "be extracted by text or vision fallback."
         ),
     )
+
+
+def _bounded_pages(document: SourceDocument | None, bounded_text: str) -> list[DocumentPage]:
+    """Crop page spans when the security text limit truncates an extracted document."""
+    if document is None:
+        return []
+    pages = []
+    for page in document.pages:
+        if page.char_start >= len(bounded_text):
+            continue
+        char_end = min(page.char_end, len(bounded_text))
+        page_text = bounded_text[page.char_start:char_end]
+        pages.append(
+            DocumentPage(
+                page_number=page.page_number,
+                text=page_text,
+                char_start=page.char_start,
+                char_end=char_end,
+                extraction_method=page.extraction_method,
+            )
+        )
+    return pages

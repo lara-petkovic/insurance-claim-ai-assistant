@@ -3,6 +3,7 @@ from pathlib import Path
 from core.agents.base import AgentContext, BaseAgent
 from core.agents.technical_agents.shared import _as_list, _contains
 from core.models.agent import AgentResponse
+from core.models.analysis import ImageIntegrityFindings, ImageIntegrityModelOutput
 from core.models.claim import ImageAuthenticity, RiskLevel
 from models.model_client import get_model_client
 
@@ -59,15 +60,19 @@ class ImageAuthenticityAgent(BaseAgent):
             image_bytes=context.request.damage_image_bytes,
             image_mime_type=context.request.damage_image_mime_type,
             fallback=findings,
+            schema_name="image_integrity_assessment",
+            response_model=ImageIntegrityModelOutput,
+            schema_description="Image integrity risk classification with a bounded risk score.",
         )
-        findings = {**findings, **model_result.data, "model_used": model_result.used_model}
-        findings["signals"] = [str(signal) for signal in _as_list(findings.get("signals"))]
+        findings_data = {**findings, **model_result.data, "model_used": model_result.used_model}
+        findings_data["signals"] = [str(signal) for signal in _as_list(findings_data.get("signals"))]
         try:
-            risk = RiskLevel(str(findings.get("risk_level", risk)))
+            risk = RiskLevel(str(findings_data.get("risk_level", risk)))
         except ValueError:
             risk = RiskLevel.REQUIRES_HUMAN_REVIEW
-            findings["risk_level"] = risk.value
-            findings["signals"].append("invalid_model_risk_level")
+            findings_data["risk_level"] = risk.value
+            findings_data["signals"].append("invalid_model_risk_level")
+        findings = ImageIntegrityFindings.model_validate(findings_data)
         return self.respond(
             findings=findings,
             confidence=0.6,

@@ -53,6 +53,10 @@ def test_orchestrator_returns_human_review_for_incomplete_water_claim(monkeypatc
     assert any(message.to_agent for agent in result.agent_trace for message in agent.messages)
     assert any(agent.agent_name == "DocumentQualityAgent" for agent in result.agent_trace)
     assert any(agent.agent_name == "QueryRewriteAgent" for agent in result.agent_trace)
+    assert any(fact.fact_type == "claim_type" for fact in result.claim_facts)
+    assert any(clause.concept == "water_damage" for clause in result.policy_clauses)
+    assert result.assessment_propositions
+    assert result.assessment_propositions[-1].created_by == "CoverageMatchingAgent"
 
 
 def test_orchestrator_flags_gradual_damage_exclusion(monkeypatch):

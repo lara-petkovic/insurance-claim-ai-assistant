@@ -1,9 +1,10 @@
 import re
-from typing import Any
 
 from core.agents.base import AgentContext, BaseAgent
 from core.agents.technical_agents.shared import _contains, specialized_functional_agent_name
 from core.models.agent import AgentResponse
+from core.models.analysis import ClaimExtractionFindings, ClaimExtractionModelOutput, ExtractionMethod
+from core.provenance import claim_fact
 from models.model_client import get_model_client
 from security.input_security import UNTRUSTED_INPUT_SYSTEM_RULE, untrusted_block
 
@@ -73,10 +74,30 @@ class ClaimExtractionAgent(BaseAgent):
                 f"CLAIM DESCRIPTION:\n{untrusted_block('claim_description', description, max_chars=8000)}"
             ),
             fallback=fallback,
+            schema_name="claim_fact_extraction",
+            response_model=ClaimExtractionModelOutput,
+            schema_description="Structured facts extracted from the claimant's description.",
         )
-        findings: dict[str, Any] = {**fallback, **model_result.data, "model_used": model_result.used_model}
+        findings_data = {**fallback, **model_result.data, "model_used": model_result.used_model}
+        findings_data["user_provided_evidence"] = fallback["user_provided_evidence"]
         if context.request.incident_date is not None:
-            findings["incident_date"] = context.request.incident_date
+            findings_data["incident_date"] = context.request.incident_date
+        extraction_method = ExtractionMethod.MODEL if model_result.used_model else ExtractionMethod.RULE
+        fact_confidence = 0.82 if findings_data.get("claim_type") != "unknown" else 0.35
+        findings_data["facts"] = [
+            claim_fact(
+                fact_type=fact_type,
+                value=findings_data.get(fact_type),
+                claim_description=description,
+                extraction_method=extraction_method,
+                confidence=fact_confidence,
+            )
+            for fact_type in (
+                "claim_type", "incident_date", "incident_location", "damage_or_loss_type",
+                "claimed_cause", "claimed_amount",
+            )
+        ]
+        findings = ClaimExtractionFindings.model_validate(findings_data)
         claim_type = str(findings.get("claim_type", claim_type))
         return self.respond(
             findings=findings,

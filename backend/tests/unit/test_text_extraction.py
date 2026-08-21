@@ -52,3 +52,30 @@ def test_pdf_fallback_preserves_short_pypdf_text_when_model_unavailable(monkeypa
     assert text == "Short policy text."
     assert any("only 18 characters" in warning for warning in warnings)
     assert "Model client is unavailable." in warnings
+
+
+def test_pdf_extraction_preserves_page_boundaries_and_offsets(monkeypatch):
+    class FakePage:
+        def __init__(self, text):
+            self.text = text
+
+        def extract_text(self):
+            return self.text
+
+    first = ("PAGE ONE\n" + ("coverage wording " * 20)).strip()
+    second = ("PAGE TWO\n" + ("exclusion wording " * 20)).strip()
+
+    class FakePdfReader:
+        def __init__(self, _):
+            self.pages = [FakePage(first), FakePage(second)]
+
+    monkeypatch.setattr("pypdf.PdfReader", FakePdfReader)
+
+    document = asyncio.run(text_extraction.extract_upload_document("policy.pdf", b"%PDF fake"))
+
+    assert document.text == f"{first}\n\n{second}"
+    assert [page.page_number for page in document.pages] == [1, 2]
+    assert document.pages[0].char_start == 0
+    assert document.pages[0].char_end == len(first)
+    assert document.pages[1].char_start == len(first) + 2
+    assert document.text[document.pages[1].char_start : document.pages[1].char_end] == second

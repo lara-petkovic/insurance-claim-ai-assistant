@@ -1,6 +1,7 @@
 from core.agents.base import AgentContext, BaseAgent
 from core.agents.technical_agents.shared import _as_list
 from core.models.agent import AgentResponse
+from core.models.analysis import VisualEvidenceFindings, VisualEvidenceModelOutput
 from core.models.claim import ImageAssessment
 from models.model_client import get_model_client
 
@@ -57,9 +58,13 @@ class VisualEvidenceAgent(BaseAgent):
             image_bytes=context.request.damage_image_bytes,
             image_mime_type=context.request.damage_image_mime_type,
             fallback=findings,
+            schema_name="visual_evidence_assessment",
+            response_model=VisualEvidenceModelOutput,
+            schema_description="Visible damage classification with calibrated confidence.",
         )
-        findings = {**findings, **model_result.data, "model_used": model_result.used_model}
-        findings["notes"] = [str(note) for note in _as_list(findings.get("notes"))]
+        findings_data = {**findings, **model_result.data, "model_used": model_result.used_model}
+        findings_data["notes"] = [str(note) for note in _as_list(findings_data.get("notes"))]
+        findings = VisualEvidenceFindings.model_validate(findings_data)
         detected = str(findings.get("detected_damage", detected))
         confidence = float(findings.get("confidence", confidence) or 0)
         return self.respond(

@@ -2,6 +2,7 @@ from types import SimpleNamespace
 
 import pytest
 from pydantic import BaseModel
+from pydantic import Field
 
 from models.model_client import ModelCallError, ModelClient
 
@@ -9,6 +10,11 @@ from models.model_client import ModelCallError, ModelClient
 class StructuredDecision(BaseModel):
     decision: str
     score: float
+
+
+class BoundedDecision(BaseModel):
+    decision: str
+    score: float = Field(ge=0.0, le=1.0)
 
 
 class FakeResponses:
@@ -124,4 +130,16 @@ def test_model_json_failure_is_always_fatal():
             system="Return JSON.",
             prompt="Claim facts.",
             fallback={"decision": "fallback"},
+        )
+
+
+def test_malformed_structured_model_output_fails_validation():
+    client = make_client('{"decision": "covered", "score": 1.5}')
+
+    with pytest.raises(ModelCallError, match="validation error"):
+        client.json_response(
+            system="Return a bounded decision.",
+            prompt="Claim facts.",
+            fallback={"decision": "fallback", "score": 0.0},
+            response_model=BoundedDecision,
         )

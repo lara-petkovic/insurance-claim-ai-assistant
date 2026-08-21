@@ -3,7 +3,9 @@ from core.agents.orchestrator import OrchestratorAgent
 from core.agents.technical_agents.coverage_matching import CoverageMatchingAgent
 from core.agents.technical_agents.output_validator import OutputValidatorAgent
 from core.models.agent import AgentResponse, EvidenceItem
+from core.models.analysis import PolicyDocument
 from core.models.claim import ClaimRequestData
+from core.provenance import policy_clause
 from models.model_client import ModelClient, ModelResult
 
 
@@ -124,6 +126,66 @@ def test_rule_match_does_not_override_contradictory_model_result(monkeypatch):
     response = CoverageMatchingAgent().run(context)
 
     assert response.findings["coverage_assessment"] == "not_covered"
+
+
+def test_model_match_cannot_detach_evidence_text_from_provenance(monkeypatch):
+    class FakeModelClient:
+        def json_response(self, **kwargs):
+            return ModelResult(
+                data={
+                    "coverage_assessment": "covered",
+                    "matched_policy_concepts": [
+                        {
+                            "concept": "theft",
+                            "evidence_text": second_clause,
+                        }
+                    ],
+                    "explanation": "Both exact clauses support theft coverage.",
+                },
+                used_model=True,
+            )
+
+    first_clause = "Theft is covered under this policy."
+    second_clause = "This policy covers theft of personal belongings."
+    policy_text = f"{first_clause} {second_clause}"
+    document = PolicyDocument(filename="policy.txt", text=policy_text)
+    deterministic_clause = policy_clause(
+        document,
+        {
+            "concept": "theft",
+            "evidence_text": first_clause,
+            "polarity": "covered",
+            "direct_match": True,
+        },
+    )
+    retrieval = AgentResponse(
+        agent_name="RetrievalAgent",
+        evidence=[EvidenceItem(source="policy", text=policy_text)],
+    )
+    context = AgentContext(
+        request=ClaimRequestData(
+            claim_description="My bicycle was stolen.",
+            policy_document=document,
+        ),
+        responses=[retrieval],
+        memory={
+            "ClaimExtractionAgent": {"claim_type": "theft"},
+            "PolicyConceptExtractionAgent": {"coverage_clauses": [deterministic_clause]},
+        },
+    )
+    monkeypatch.setattr(
+        "core.agents.technical_agents.coverage_matching.get_model_client",
+        lambda: FakeModelClient(),
+    )
+
+    response = CoverageMatchingAgent().run(context)
+
+    matches = response.findings["matched_policy_concepts"]
+    assert {item["evidence_text"] for item in matches} == {first_clause, second_clause}
+    for item in matches:
+        assert policy_text[item["char_start"] : item["char_end"]] == item["evidence_text"]
+    assert len(context.propositions) == 1
+    assert len(context.propositions[0].evidence) == 2
 
 
 def test_irrelevant_policy_citation_does_not_validate_covered_result():
