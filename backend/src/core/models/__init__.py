@@ -5,6 +5,7 @@ from core.models.claim import (
     ClaimStatus,
     CoverageAssessment,
     DocumentExtractionResult,
+    InsuranceType,
     RiskLevel,
     SupportingDocumentData,
 )
@@ -17,6 +18,7 @@ __all__ = [
     "ClaimStatus",
     "CoverageAssessment",
     "DocumentExtractionResult",
+    "InsuranceType",
     "MessageType",
     "RiskLevel",
     "SupportingDocumentData",

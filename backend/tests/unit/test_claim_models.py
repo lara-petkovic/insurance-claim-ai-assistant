@@ -1,7 +1,15 @@
 import pytest
 from pydantic import ValidationError
 
-from core.models.claim import ClaimAnalysisResult, ClaimStatus, CoverageAssessment, ImageAuthenticity, RiskLevel
+from core.models.claim import (
+    ClaimAnalysisResult,
+    ClaimRequestData,
+    ClaimStatus,
+    CoverageAssessment,
+    ImageAuthenticity,
+    InsuranceType,
+    RiskLevel,
+)
 
 
 def test_risk_level_serializes_as_api_string():
@@ -34,3 +42,14 @@ def test_claim_enums_serialize_as_api_strings():
     serialized = result.model_dump(mode="json")
     assert serialized["claim_status"] == "requires_human_review"
     assert serialized["coverage_assessment"] == "unclear"
+
+
+@pytest.mark.parametrize("insurance_type", list(InsuranceType))
+def test_insurance_type_accepts_and_serializes_supported_domains(insurance_type):
+    request = ClaimRequestData(
+        insurance_type=insurance_type.value,
+        claim_description="A covered incident occurred.",
+    )
+
+    assert request.insurance_type is insurance_type
+    assert request.model_dump(mode="json")["insurance_type"] == insurance_type.value

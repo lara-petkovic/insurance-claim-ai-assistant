@@ -7,6 +7,13 @@ from pydantic import BaseModel, Field
 
 from core.models.agent import AgentResponse, EvidenceItem
 
+
+class InsuranceType(StrEnum):
+    HOME = "home"
+    AUTO = "auto"
+    TRAVEL = "travel"
+
+
 class ClaimStatus(StrEnum):
     LIKELY_COVERED = "likely_covered"
     LIKELY_NOT_COVERED = "likely_not_covered"
@@ -37,7 +44,7 @@ class SupportingDocumentData(BaseModel):
 
 
 class ClaimRequestData(BaseModel):
-    insurance_type: str = "home"
+    insurance_type: InsuranceType = InsuranceType.HOME
     claim_description: str
     incident_date: str | None = None
     policy_text: str = ""
@@ -70,7 +77,7 @@ class ImageAuthenticity(BaseModel):
 
 class ClaimAnalysisResult(BaseModel):
     claim_status: ClaimStatus
-    insurance_type: str
+    insurance_type: InsuranceType
     claim_type: str
     coverage_assessment: CoverageAssessment
     matched_policy_concepts: list[dict[str, Any]] = Field(default_factory=list)

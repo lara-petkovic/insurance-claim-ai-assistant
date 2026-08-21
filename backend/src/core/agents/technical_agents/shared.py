@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from core.agents.base import AgentContext
+from core.models.claim import InsuranceType
 
 
 def _contains(text: str, *terms: str) -> bool:
@@ -49,11 +50,13 @@ def _merge_dict_lists_by_key(
     return merged
 
 
-def specialized_functional_agent_name(insurance_type: str) -> str:
+def specialized_functional_agent_name(insurance_type: InsuranceType | str) -> str:
+    validated_type = InsuranceType(insurance_type)
     return {
-        "auto": "AutoInsuranceFunctionalAgent",
-        "travel": "TravelInsuranceFunctionalAgent",
-    }.get(insurance_type.lower(), "HomeInsuranceFunctionalAgent")
+        InsuranceType.HOME: "HomeInsuranceFunctionalAgent",
+        InsuranceType.AUTO: "AutoInsuranceFunctionalAgent",
+        InsuranceType.TRAVEL: "TravelInsuranceFunctionalAgent",
+    }[validated_type]
 
 
 def _functional_checklist(context: AgentContext) -> list:

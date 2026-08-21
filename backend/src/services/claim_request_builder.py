@@ -7,7 +7,7 @@ from pathlib import Path
 
 from fastapi import HTTPException, UploadFile
 
-from core.models.claim import ClaimRequestData, SupportingDocumentData
+from core.models.claim import ClaimRequestData, InsuranceType, SupportingDocumentData
 from data.text_extraction import extract_upload_text, infer_document_type
 from security.input_security import (
     ALLOWED_IMAGE_MIME_TYPES,
@@ -32,7 +32,7 @@ class _ImageData:
 
 
 async def build_claim_request(
-    insurance_type: str,
+    insurance_type: InsuranceType | str,
     claim_description: str,
     incident_date: str | None,
     policy_file: UploadFile | None,

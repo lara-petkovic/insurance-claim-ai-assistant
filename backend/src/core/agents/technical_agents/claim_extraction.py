@@ -65,7 +65,7 @@ class ClaimExtractionAgent(BaseAgent):
                 "{claim_type, incident_date, incident_location, damage_or_loss_type, "
                 "claimed_cause, claimed_amount, user_provided_evidence}. "
                 "claim_type should be one of water_damage, storm_damage, theft, fire_damage, "
-                "broken_glass, vehicle_damage, medical, baggage_loss, unknown.\n\n"
+                "broken_glass, vehicle_damage, medical, baggage_loss, trip_cancellation, unknown.\n\n"
                 f"INCIDENT DATE FIELD: {context.request.incident_date}\n"
                 f"SUPPORTING DOCUMENTS: "
                 f"{[{'filename': item.filename, 'document_type': item.document_type} for item in context.request.supporting_documents]}\n"
@@ -75,6 +75,8 @@ class ClaimExtractionAgent(BaseAgent):
             fallback=fallback,
         )
         findings: dict[str, Any] = {**fallback, **model_result.data, "model_used": model_result.used_model}
+        if context.request.incident_date is not None:
+            findings["incident_date"] = context.request.incident_date
         claim_type = str(findings.get("claim_type", claim_type))
         return self.respond(
             findings=findings,

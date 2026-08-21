@@ -1,9 +1,9 @@
-import re
 from typing import Any
 
 from core.agents.base import AgentContext, BaseAgent
 from core.agents.technical_agents.policy_polarity import clause_polarity, policy_clauses
 from core.agents.technical_agents.shared import _merge_dict_lists_by_key
+from core.claim_validation import extract_policy_period, policy_domain_metadata
 from core.models.agent import AgentResponse
 from models.model_client import get_model_client
 from security.input_security import UNTRUSTED_INPUT_SYSTEM_RULE, untrusted_block
@@ -68,15 +68,13 @@ class PolicyConceptExtractionAgent(BaseAgent):
         if "weather" in lower:
             required_documents.append("weather evidence for storm claims")
 
-        policy_period = None
-        date_match = re.search(r"(\d{2}/\d{2}/\d{4}|\d{4}-\d{2}-\d{2}).{0,80}(\d{2}/\d{2}/\d{4}|\d{4}-\d{2}-\d{2})", policy_text)
-        if date_match:
-            policy_period = {"start": date_match.group(1), "end": date_match.group(2)}
+        domain_metadata = policy_domain_metadata(context.request.insurance_type, policy_text)
+        policy_period = extract_policy_period(policy_text)
 
         findings = {
-            "policy_type": "home_insurance",
+            "policy_type": domain_metadata["policy_type"],
             "policy_period": policy_period,
-            "insured_subject": {"type": "home_or_personal_property", "source": "policy"},
+            "insured_subject": domain_metadata["insured_subject"],
             "covered_events": covered_events,
             "coverage_clauses": coverage_clauses,
             "exclusions": exclusions,
@@ -100,11 +98,20 @@ class PolicyConceptExtractionAgent(BaseAgent):
                 "{policy_type, policy_period, insured_subject, covered_events, exclusions, limits, "
                 "deductible_or_excess, required_claim_documents, special_conditions}. "
                 "covered_events and exclusions must be arrays of objects with at least concept and evidence_text.\n\n"
+                f"SELECTED INSURANCE DOMAIN: {context.request.insurance_type.value}\n"
                 f"POLICY TEXT:\n{untrusted_block('policy_text', policy_text, max_chars=12000)}"
             ),
             fallback=fallback,
         )
-        findings: dict[str, Any] = {**fallback, **model_result.data, "model_used": model_result.used_model}
+        findings: dict[str, Any] = {
+            **fallback,
+            **model_result.data,
+            # Domain and dates are request/policy facts and must remain deterministic.
+            "policy_type": fallback["policy_type"],
+            "policy_period": fallback["policy_period"],
+            "insured_subject": fallback["insured_subject"],
+            "model_used": model_result.used_model,
+        }
         verified_model_covered = self._verified_items(
             model_result.data.get("covered_events"), policy_text, required_polarity="covered"
         )

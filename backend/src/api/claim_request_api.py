@@ -16,7 +16,7 @@ from services.claim_request_builder import (
     validate_upload_suffix,
 )
 from core.agents import OrchestratorAgent
-from core.models.claim import ClaimAnalysisResult, ClaimRequestData, DocumentExtractionResult
+from core.models.claim import ClaimAnalysisResult, ClaimRequestData, DocumentExtractionResult, InsuranceType
 from data.text_extraction import extract_upload_text, infer_document_type
 from security.input_security import ALLOWED_SUPPORTING_SUFFIXES, MAX_SUPPORTING_FILE_BYTES
 from utils.app_logger import get_logger
@@ -31,7 +31,7 @@ def get_orchestrator() -> OrchestratorAgent:
 
 
 async def get_claim_request(
-    insurance_type: Annotated[str, Form()] = "home",
+    insurance_type: Annotated[InsuranceType, Form()] = InsuranceType.HOME,
     claim_description: Annotated[str, Form()] = "",
     incident_date: Annotated[str | None, Form()] = None,
     policy_file: Annotated[UploadFile | None, File()] = None,

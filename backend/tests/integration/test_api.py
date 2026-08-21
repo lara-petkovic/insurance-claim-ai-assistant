@@ -22,6 +22,19 @@ def test_health_endpoint():
     assert response.json() == {"status": "ok"}
 
 
+def test_claim_endpoint_rejects_unsupported_insurance_type():
+    response = TestClient(app).post(
+        "/api/claims/analyze",
+        data={
+            "insurance_type": "pet",
+            "claim_description": "A covered incident occurred.",
+        },
+        files={"policy_file": ("policy.txt", b"Covered incident.", "text/plain")},
+    )
+
+    assert response.status_code == 422
+
+
 def test_stream_endpoint_accepts_frontend_form_contract():
     captured = {}
 
