@@ -1,0 +1,172 @@
+[
+  {
+    "id": "home-water-sudden",
+    "title": "Sudden bathroom pipe burst",
+    "policy": "01_home_essential.txt",
+    "insurance_type": "home",
+    "incident_date": "2026-03-12",
+    "description": "A pipe suddenly burst in the upstairs bathroom and water damaged the ceiling and wooden floor below.",
+    "image": "water-damaged-ceiling.png",
+    "supporting_documents": ["water-plumber-report.txt", "water-repair-estimate.txt"],
+    "expected_behavior": "Positive water clause, but missing plumber report and estimate should keep the claim in human review."
+  },
+  {
+    "id": "home-water-gradual",
+    "title": "Long-term leaking pipe",
+    "policy": "01_home_essential.txt",
+    "insurance_type": "home",
+    "incident_date": "2026-04-08",
+    "description": "A slow leak behind the bathroom wall continued for several months and caused rot and mould.",
+    "expected_behavior": "Gradual leakage and rot exclusions should produce likely not covered or human review."
+  },
+  {
+    "id": "home-theft-excluded",
+    "title": "Theft excluded by essential policy",
+    "policy": "01_home_essential.txt",
+    "insurance_type": "home",
+    "incident_date": "2026-05-02",
+    "description": "Someone broke into my home and stole my laptop and camera.",
+    "expected_behavior": "Exact not-covered wording must never become covered."
+  },
+  {
+    "id": "home-fire-positive",
+    "title": "Kitchen fire damage",
+    "policy": "01_home_essential.txt",
+    "insurance_type": "home",
+    "incident_date": "2026-02-18",
+    "description": "A pan caught fire in the kitchen and smoke damaged the cabinets and painted walls.",
+    "expected_behavior": "Fire has an exact positive clause; missing evidence can still require review."
+  },
+  {
+    "id": "home-theft-positive",
+    "title": "Forced-entry home theft",
+    "policy": "02_home_plus.txt",
+    "insurance_type": "home",
+    "incident_date": "2026-06-14",
+    "description": "A burglar forced the rear door of my house and stole a television and jewellery.",
+    "supporting_documents": ["theft-police-report.txt", "theft-proof-of-ownership.txt"],
+    "expected_behavior": "Theft is positively covered, with police report and ownership evidence still required."
+  },
+  {
+    "id": "home-bike-theft",
+    "title": "Bicycle stolen from locked home",
+    "policy": "02_home_plus.txt",
+    "insurance_type": "home",
+    "incident_date": "2026-06-20",
+    "description": "A burglar forced open the locked basement of my house and stole my bicycle.",
+    "expected_behavior": "Theft has exact positive wording; police report and proof of ownership remain required."
+  },
+  {
+    "id": "home-storm-roof",
+    "title": "Storm-damaged roof",
+    "policy": "02_home_plus.txt",
+    "insurance_type": "home",
+    "incident_date": "2026-07-04",
+    "description": "A severe wind storm removed roof tiles and rain entered the attic during the same night.",
+    "image": "storm-damaged-roof.png",
+    "expected_behavior": "Storm has positive wording; photos, weather evidence, and estimate remain relevant."
+  },
+  {
+    "id": "home-glass",
+    "title": "Accidental fixed-window breakage",
+    "policy": "02_home_plus.txt",
+    "insurance_type": "home",
+    "incident_date": "2026-07-09",
+    "description": "During cleaning, a step stool slipped and accidentally shattered the fixed living-room window glass.",
+    "expected_behavior": "Fixed glass has an exact positive clause."
+  },
+  {
+    "id": "auto-collision",
+    "title": "Rear bumper collision",
+    "policy": "03_auto_comprehensive.txt",
+    "insurance_type": "auto",
+    "incident_date": "2026-03-30",
+    "description": "Another car hit my vehicle at low speed and cracked the rear bumper and tail light.",
+    "image": "car-rear-bumper-damage.png",
+    "supporting_documents": ["auto-repair-estimate.txt"],
+    "expected_behavior": "Collision is positively covered, subject to the evidence checklist."
+  },
+  {
+    "id": "auto-theft",
+    "title": "Vehicle stolen from driveway",
+    "policy": "03_auto_comprehensive.txt",
+    "insurance_type": "auto",
+    "incident_date": "2026-04-11",
+    "description": "My locked car was stolen from the driveway overnight and I reported it to the police.",
+    "expected_behavior": "Vehicle theft is positively covered, with keys and ownership evidence still required."
+  },
+  {
+    "id": "auto-hail",
+    "title": "Hail dents",
+    "policy": "03_auto_comprehensive.txt",
+    "insurance_type": "auto",
+    "incident_date": "2026-05-24",
+    "description": "A hailstorm left dozens of dents across the roof and bonnet of my parked car.",
+    "expected_behavior": "This stresses cross-domain classification because hail can map to storm or vehicle damage; uncertainty should not be auto-approved."
+  },
+  {
+    "id": "travel-medical",
+    "title": "Sudden illness abroad",
+    "policy": "04_travel_secure.txt",
+    "insurance_type": "travel",
+    "incident_date": "2026-08-02",
+    "description": "I developed a sudden high fever while abroad and needed emergency hospital treatment.",
+    "expected_behavior": "Emergency medical treatment has positive wording; medical report and receipts are required."
+  },
+  {
+    "id": "travel-preexisting",
+    "title": "Pre-existing medical condition",
+    "policy": "04_travel_secure.txt",
+    "insurance_type": "travel",
+    "incident_date": "2026-08-03",
+    "description": "I needed treatment abroad for a medical condition diagnosed several months before the trip.",
+    "expected_behavior": "Pre-existing-condition wording should produce exclusion risk or human review."
+  },
+  {
+    "id": "travel-baggage",
+    "title": "Airline lost checked baggage",
+    "policy": "04_travel_secure.txt",
+    "insurance_type": "travel",
+    "incident_date": "2026-08-05",
+    "description": "The airline lost my checked suitcase and issued a baggage irregularity report.",
+    "image": "damaged-travel-suitcase.png",
+    "supporting_documents": ["baggage-carrier-report.txt", "baggage-proof-of-ownership.txt"],
+    "expected_behavior": "Carrier baggage loss is positively covered, subject to the required documents."
+  },
+  {
+    "id": "travel-cancellation",
+    "title": "Conditional trip cancellation",
+    "policy": "04_travel_secure.txt",
+    "insurance_type": "travel",
+    "incident_date": "2026-09-01",
+    "description": "I cancelled my holiday before departure because my travelling companion suffered an unexpected family bereavement.",
+    "expected_behavior": "Conditional cancellation wording plus explicit non-covered reasons should fail closed to not covered or human review."
+  },
+  {
+    "id": "conflict-theft",
+    "title": "Directly conflicting theft clauses",
+    "policy": "05_conflicting_endorsement.txt",
+    "insurance_type": "home",
+    "incident_date": "2026-06-01",
+    "description": "Someone broke into the insured house and stole a computer.",
+    "expected_behavior": "Contradictory positive and negative clauses must produce unclear and human review."
+  },
+  {
+    "id": "conflict-storm",
+    "title": "Conditional storm wording",
+    "policy": "05_conflicting_endorsement.txt",
+    "insurance_type": "home",
+    "incident_date": "2026-07-15",
+    "description": "Strong wind damaged the roof and rain entered the attic.",
+    "expected_behavior": "May-be-covered wording should remain conditional and require review."
+  },
+  {
+    "id": "conflict-water-ambiguous",
+    "title": "Ambiguous water reference",
+    "policy": "05_conflicting_endorsement.txt",
+    "insurance_type": "home",
+    "incident_date": "2026-07-16",
+    "description": "A washing-machine hose leaked suddenly and damaged the kitchen floor.",
+    "expected_behavior": "A topic reference without operative coverage wording must fail closed to unclear."
+  }
+]

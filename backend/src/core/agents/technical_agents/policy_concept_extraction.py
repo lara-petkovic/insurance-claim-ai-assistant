@@ -2,6 +2,7 @@ import re
 from typing import Any
 
 from core.agents.base import AgentContext, BaseAgent
+from core.agents.technical_agents.policy_polarity import clause_polarity, policy_clauses
 from core.agents.technical_agents.shared import _merge_dict_lists_by_key
 from core.models.agent import AgentResponse
 from models.model_client import get_model_client
@@ -41,10 +42,17 @@ class PolicyConceptExtractionAgent(BaseAgent):
         policy_text = context.memory.get("DocumentIngestionAgent", {}).get("policy_text", "")
         lower = policy_text.lower()
 
+        coverage_clauses = self._coverage_clauses(policy_text)
         covered_events = [
-            {"concept": concept, "matched_terms": [term for term in terms if term in lower]}
-            for concept, terms in self.COVERAGE_PATTERNS.items()
-            if any(term in lower for term in terms)
+            {
+                "concept": item["concept"],
+                "matched_terms": item["matched_terms"],
+                "evidence_text": item["evidence_text"],
+                "polarity": item["polarity"],
+                "direct_match": item["direct_match"],
+            }
+            for item in coverage_clauses
+            if item["polarity"] == "covered"
         ]
         exclusions = [
             {"concept": concept, "matched_terms": [term for term in terms if term in lower]}
@@ -70,6 +78,7 @@ class PolicyConceptExtractionAgent(BaseAgent):
             "policy_period": policy_period,
             "insured_subject": {"type": "home_or_personal_property", "source": "policy"},
             "covered_events": covered_events,
+            "coverage_clauses": coverage_clauses,
             "exclusions": exclusions,
             "limits": [],
             "deductible_or_excess": "excess mentioned in policy wording" if "excess" in lower else None,
@@ -96,7 +105,9 @@ class PolicyConceptExtractionAgent(BaseAgent):
             fallback=fallback,
         )
         findings: dict[str, Any] = {**fallback, **model_result.data, "model_used": model_result.used_model}
-        verified_model_covered = self._verified_items(model_result.data.get("covered_events"), policy_text)
+        verified_model_covered = self._verified_items(
+            model_result.data.get("covered_events"), policy_text, required_polarity="covered"
+        )
         verified_model_exclusions = self._verified_items(model_result.data.get("exclusions"), policy_text)
         findings["covered_events"] = _merge_dict_lists_by_key(
             covered_events,
@@ -105,6 +116,17 @@ class PolicyConceptExtractionAgent(BaseAgent):
         findings["exclusions"] = _merge_dict_lists_by_key(
             exclusions,
             verified_model_exclusions,
+        )
+        findings["coverage_clauses"] = self._merge_coverage_clauses(
+            coverage_clauses,
+            [
+                {
+                    **item,
+                    "polarity": clause_polarity(str(item["evidence_text"])),
+                    "matched_terms": [],
+                }
+                for item in verified_model_covered
+            ],
         )
         return self.respond(
             findings=findings,
@@ -135,7 +157,12 @@ class PolicyConceptExtractionAgent(BaseAgent):
         )
 
     @staticmethod
-    def _verified_items(value: object, policy_text: str) -> list[dict[str, Any]]:
+    def _verified_items(
+        value: object,
+        policy_text: str,
+        *,
+        required_polarity: str | None = None,
+    ) -> list[dict[str, Any]]:
         """Model-only policy concepts are accepted only with evidence present in the source."""
         if not isinstance(value, list):
             return []
@@ -144,6 +171,42 @@ class PolicyConceptExtractionAgent(BaseAgent):
             if not isinstance(item, dict):
                 continue
             evidence = str(item.get("evidence_text", "")).strip()
-            if evidence and evidence.casefold() in policy_text.casefold():
+            polarity_matches = required_polarity is None or clause_polarity(evidence) == required_polarity
+            if evidence and evidence.casefold() in policy_text.casefold() and polarity_matches:
                 verified.append(item)
         return verified
+
+    @staticmethod
+    def _merge_coverage_clauses(required: list[dict[str, Any]], additional: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        merged = []
+        seen: set[tuple[str, str, str]] = set()
+        for item in [*required, *additional]:
+            identity = (
+                str(item.get("concept", "")).casefold(),
+                str(item.get("polarity", "unclear")).casefold(),
+                str(item.get("evidence_text", "")).strip().casefold(),
+            )
+            if identity not in seen:
+                seen.add(identity)
+                merged.append(item)
+        return merged
+
+    @classmethod
+    def _coverage_clauses(cls, policy_text: str) -> list[dict[str, Any]]:
+        extracted = []
+        for evidence_text in policy_clauses(policy_text):
+            lower_clause = evidence_text.lower()
+            polarity = clause_polarity(evidence_text)
+            for concept, terms in cls.COVERAGE_PATTERNS.items():
+                matched_terms = [term for term in terms if term in lower_clause]
+                if matched_terms:
+                    extracted.append(
+                        {
+                            "concept": concept,
+                            "matched_terms": matched_terms,
+                            "evidence_text": evidence_text,
+                            "polarity": polarity,
+                            "direct_match": any(term in lower_clause for term in terms[:2]),
+                        }
+                    )
+        return extracted

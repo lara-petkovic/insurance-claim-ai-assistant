@@ -298,6 +298,13 @@ class OrchestratorAgent(BaseAgent):
                 citations = response.evidence
 
         coverage_assessment = self._coverage_assessment(coverage.get("coverage_assessment", "unclear"))
+        validator_feedback = context.memory.get("OutputValidatorAgent", {}).get("feedback", [])
+        if coverage_assessment == "covered" and any(
+            "no relevant supporting policy citation" in str(item.get("issue", "")).lower()
+            for item in validator_feedback
+            if isinstance(item, dict)
+        ):
+            coverage_assessment = CoverageAssessment.UNCLEAR
         requires_review = bool(request.security_flags) or any(response.requires_human_review for response in context.responses)
 
         claim_status: ClaimStatus
@@ -305,9 +312,9 @@ class OrchestratorAgent(BaseAgent):
             claim_status = ClaimStatus.REQUIRES_HUMAN_REVIEW
         elif exclusions and any(item.get("severity") == "high" for item in exclusions):
             claim_status = ClaimStatus.LIKELY_NOT_COVERED
-        elif coverage_assessment == "covered" and not missing_docs and not exclusions and image_authenticity.risk_level in {RiskLevel.LOW, RiskLevel.MEDIUM}:
+        elif coverage_assessment == "covered" and not requires_review and not missing_docs and not exclusions and image_authenticity.risk_level in {RiskLevel.LOW, RiskLevel.MEDIUM}:
             claim_status = ClaimStatus.LIKELY_COVERED
-        elif coverage_assessment == "covered" and (missing_docs or exclusions or consistency):
+        elif coverage_assessment == "covered" and (requires_review or missing_docs or exclusions or consistency):
             claim_status = ClaimStatus.REQUIRES_HUMAN_REVIEW
         elif coverage_assessment == "possibly_covered":
             claim_status = ClaimStatus.REQUIRES_HUMAN_REVIEW

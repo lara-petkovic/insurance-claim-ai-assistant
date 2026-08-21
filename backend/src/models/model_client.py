@@ -31,7 +31,6 @@ class ModelClient:
 
     def __init__(self) -> None:
         settings = get_settings()
-        self.require_models = settings.openai_require_models
         self.api_key = settings.openai_api_key
         self.text_model = settings.openai_text_model
         self.planning_model = settings.openai_planning_model
@@ -51,7 +50,6 @@ class ModelClient:
                     text_model=self.text_model,
                     planning_model=self.planning_model,
                     vision_model=self.vision_model,
-                    require_models=self.require_models,
                 )
             except Exception as exc:
                 self.init_error = str(exc)
@@ -248,9 +246,8 @@ class ModelClient:
             return self._fallback_or_raise(fallback, f"{call_label} call failed: {exc}")
 
     def _fallback_or_raise(self, fallback: dict[str, Any], error: str) -> ModelResult:
-        if self.require_models:
-            raise ModelCallError(error)
-        return ModelResult(data=fallback, used_model=False, error=error)
+        del fallback
+        raise ModelCallError(error)
 
     def _structured_text_config(
         self,

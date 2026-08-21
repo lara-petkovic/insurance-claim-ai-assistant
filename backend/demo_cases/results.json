@@ -1,0 +1,570 @@
+[
+  {
+    "id": "home-water-sudden",
+    "title": "Sudden bathroom pipe burst",
+    "policy": "01_home_essential.txt",
+    "description": "A pipe suddenly burst in the upstairs bathroom and water damaged the ceiling and wooden floor below.",
+    "expected_behavior": "Positive water clause, but missing plumber report and estimate should keep the claim in human review.",
+    "image": "water-damaged-ceiling.png",
+    "supporting_documents": [
+      "water-plumber-report.txt",
+      "water-repair-estimate.txt"
+    ],
+    "claim_type": "water_damage",
+    "coverage_assessment": "covered",
+    "claim_status": "requires_human_review",
+    "potential_exclusions": [
+      "damage to the pipe or apparatus from which water escaped"
+    ],
+    "missing_documents": [],
+    "evidence": [
+      {
+        "source": "policy",
+        "text": "FICTIONAL TEST POLICY — HOME ESSENTIAL\nPolicy period: 2026-01-01 to 2026-12-31.\nCovered events: sudden escape of water from a fixed water installation and fire damage to the insured home.\nTheft is not covered under this policy.\nGradual leakage, repeated exposure, rot, wear and tear, and poor maintenance are excluded.\nDamage to the pipe or apparatus from which water escaped is excluded.\nWater claims require damage photos, a plumber report, and a repair estimate.\nFire claims require damage photos and a fire-service or incident report when available.\nAn excess of EUR 250 applies to each accepted claim.",
+        "section": null,
+        "page": null,
+        "score": 0.571
+      },
+      {
+        "source": "supporting:water-plumber-report.txt",
+        "text": "FICTIONAL TEST DOCUMENT — PLUMBER REPORT\nInspection found a sudden rupture in the fixed bathroom supply pipe.\nThe surrounding materials were wet, with no visible evidence of a long-term leak.\nTemporary isolation was completed.",
+        "section": null,
+        "page": null,
+        "score": 0.286
+      },
+      {
+        "source": "supporting:water-repair-estimate.txt",
+        "text": "FICTIONAL TEST DOCUMENT — REPAIR ESTIMATE\nEstimate for drying, damaged plaster replacement, ceiling repainting, and floor repair following the sudden water incident: EUR 2,450.",
+        "section": null,
+        "page": null,
+        "score": 0.286
+      }
+    ],
+    "reasoning_summary": "The claim was classified as water_damage. Policy concept matching returned covered. Potential exclusions were detected: damage to the pipe or apparatus from which water escaped. Image authenticity risk is low with score 0.18. This is a preliminary explainable opinion, not a final insurance decision. Final synthesis flagged: validator feedback, potential exclusions."
+  },
+  {
+    "id": "home-water-gradual",
+    "title": "Long-term leaking pipe",
+    "policy": "01_home_essential.txt",
+    "description": "A slow leak behind the bathroom wall continued for several months and caused rot and mould.",
+    "expected_behavior": "Gradual leakage and rot exclusions should produce likely not covered or human review.",
+    "image": null,
+    "supporting_documents": [],
+    "claim_type": "water_damage",
+    "coverage_assessment": "not_covered",
+    "claim_status": "likely_not_covered",
+    "potential_exclusions": [
+      "gradual_damage",
+      "rot",
+      "gradual leakage",
+      "repeated exposure",
+      "damage to the pipe or apparatus from which water escaped"
+    ],
+    "missing_documents": [
+      "damage photos",
+      "plumber report",
+      "repair estimate"
+    ],
+    "evidence": [
+      {
+        "source": "policy",
+        "text": "FICTIONAL TEST POLICY — HOME ESSENTIAL\nPolicy period: 2026-01-01 to 2026-12-31.\nCovered events: sudden escape of water from a fixed water installation and fire damage to the insured home.\nTheft is not covered under this policy.\nGradual leakage, repeated exposure, rot, wear and tear, and poor maintenance are excluded.\nDamage to the pipe or apparatus from which water escaped is excluded.\nWater claims require damage photos, a plumber report, and a repair estimate.\nFire claims require damage photos and a fire-service or incident report when available.\nAn excess of EUR 250 applies to each accepted claim.",
+        "section": null,
+        "page": null,
+        "score": 0.455
+      }
+    ],
+    "reasoning_summary": "The claim was classified as water_damage. Policy concept matching returned not_covered. Potential exclusions were detected: gradual_damage, rot, gradual leakage, repeated exposure, damage to the pipe or apparatus from which water escaped. The claim package is missing: damage photos, plumber report, repair estimate. Image authenticity risk is low with score 0.0. This is a preliminary explainable opinion, not a final insurance decision. Final synthesis flagged: validator feedback, potential exclusions, missing documents."
+  },
+  {
+    "id": "home-theft-excluded",
+    "title": "Theft excluded by essential policy",
+    "policy": "01_home_essential.txt",
+    "description": "Someone broke into my home and stole my laptop and camera.",
+    "expected_behavior": "Exact not-covered wording must never become covered.",
+    "image": null,
+    "supporting_documents": [],
+    "claim_type": "theft",
+    "coverage_assessment": "not_covered",
+    "claim_status": "likely_not_covered",
+    "potential_exclusions": [
+      "theft"
+    ],
+    "missing_documents": [
+      "police report",
+      "proof of ownership"
+    ],
+    "evidence": [
+      {
+        "source": "policy",
+        "text": "FICTIONAL TEST POLICY — HOME ESSENTIAL\nPolicy period: 2026-01-01 to 2026-12-31.\nCovered events: sudden escape of water from a fixed water installation and fire damage to the insured home.\nTheft is not covered under this policy.\nGradual leakage, repeated exposure, rot, wear and tear, and poor maintenance are excluded.\nDamage to the pipe or apparatus from which water escaped is excluded.\nWater claims require damage photos, a plumber report, and a repair estimate.\nFire claims require damage photos and a fire-service or incident report when available.\nAn excess of EUR 250 applies to each accepted claim.",
+        "section": null,
+        "page": null,
+        "score": 0.467
+      }
+    ],
+    "reasoning_summary": "The claim was classified as theft. Policy concept matching returned not_covered. Potential exclusions were detected: theft. The claim package is missing: police report, proof of ownership. Image authenticity risk is low with score 0.0. This is a preliminary explainable opinion, not a final insurance decision. Final synthesis flagged: validator feedback, potential exclusions, missing documents."
+  },
+  {
+    "id": "home-fire-positive",
+    "title": "Kitchen fire damage",
+    "policy": "01_home_essential.txt",
+    "description": "A pan caught fire in the kitchen and smoke damaged the cabinets and painted walls.",
+    "expected_behavior": "Fire has an exact positive clause; missing evidence can still require review.",
+    "image": null,
+    "supporting_documents": [],
+    "claim_type": "fire_damage",
+    "coverage_assessment": "possibly_covered",
+    "claim_status": "requires_human_review",
+    "potential_exclusions": [],
+    "missing_documents": [
+      "damage photos",
+      "incident report",
+      "repair estimate"
+    ],
+    "evidence": [
+      {
+        "source": "policy",
+        "text": "FICTIONAL TEST POLICY — HOME ESSENTIAL\nPolicy period: 2026-01-01 to 2026-12-31.\nCovered events: sudden escape of water from a fixed water installation and fire damage to the insured home.\nTheft is not covered under this policy.\nGradual leakage, repeated exposure, rot, wear and tear, and poor maintenance are excluded.\nDamage to the pipe or apparatus from which water escaped is excluded.\nWater claims require damage photos, a plumber report, and a repair estimate.\nFire claims require damage photos and a fire-service or incident report when available.\nAn excess of EUR 250 applies to each accepted claim.",
+        "section": null,
+        "page": null,
+        "score": 0.579
+      }
+    ],
+    "reasoning_summary": "The claim was classified as fire_damage. Policy concept matching returned possibly_covered. The claim package is missing: damage photos, incident report, repair estimate. Image authenticity risk is low with score 0.0. This is a preliminary explainable opinion, not a final insurance decision. Final synthesis flagged: validator feedback, missing documents."
+  },
+  {
+    "id": "home-theft-positive",
+    "title": "Forced-entry home theft",
+    "policy": "02_home_plus.txt",
+    "description": "A burglar forced the rear door of my house and stole a television and jewellery.",
+    "expected_behavior": "Theft is positively covered, with police report and ownership evidence still required.",
+    "image": null,
+    "supporting_documents": [
+      "theft-police-report.txt",
+      "theft-proof-of-ownership.txt"
+    ],
+    "claim_type": "theft",
+    "coverage_assessment": "covered",
+    "claim_status": "likely_covered",
+    "potential_exclusions": [],
+    "missing_documents": [],
+    "evidence": [
+      {
+        "source": "policy",
+        "text": "FICTIONAL TEST POLICY — HOME PLUS\nPolicy period: 2026-01-01 to 2026-12-31.\nCovered events: theft from the insured home, storm damage, flood damage, and accidental breakage of fixed glass.\nDeliberate damage by an insured person is not covered.\nDamage arising from wear and tear or poor maintenance is excluded.\nTheft claims require a police report and proof of ownership.\nStorm claims require damage photos, weather evidence, and a repair estimate.\nGlass claims require damage photos and a replacement estimate.\nAn excess of EUR 150 applies.",
+        "section": null,
+        "page": null,
+        "score": 0.526
+      },
+      {
+        "source": "supporting:theft-police-report.txt",
+        "text": "FICTIONAL TEST DOCUMENT — POLICE REPORT\nThe insured reported forced entry to the residence and theft of listed personal property.\nThis file is only a synthetic demonstration document.",
+        "section": null,
+        "page": null,
+        "score": 0.316
+      },
+      {
+        "source": "supporting:theft-proof-of-ownership.txt",
+        "text": "FICTIONAL TEST DOCUMENT — PROOF OF OWNERSHIP\nPurchase record and serial-number list for the television and jewellery described in the demonstration claim.",
+        "section": null,
+        "page": null,
+        "score": 0.316
+      }
+    ],
+    "reasoning_summary": "The claim was classified as theft. Policy concept matching returned covered. Image authenticity risk is low with score 0.0. This is a preliminary explainable opinion, not a final insurance decision."
+  },
+  {
+    "id": "home-bike-theft",
+    "title": "Bicycle stolen from locked home",
+    "policy": "02_home_plus.txt",
+    "description": "A burglar forced open the locked basement of my house and stole my bicycle.",
+    "expected_behavior": "Theft has exact positive wording; police report and proof of ownership remain required.",
+    "image": null,
+    "supporting_documents": [],
+    "claim_type": "theft",
+    "coverage_assessment": "possibly_covered",
+    "claim_status": "requires_human_review",
+    "potential_exclusions": [],
+    "missing_documents": [
+      "police report",
+      "proof of ownership"
+    ],
+    "evidence": [
+      {
+        "source": "policy",
+        "text": "FICTIONAL TEST POLICY — HOME PLUS\nPolicy period: 2026-01-01 to 2026-12-31.\nCovered events: theft from the insured home, storm damage, flood damage, and accidental breakage of fixed glass.\nDeliberate damage by an insured person is not covered.\nDamage arising from wear and tear or poor maintenance is excluded.\nTheft claims require a police report and proof of ownership.\nStorm claims require damage photos, weather evidence, and a repair estimate.\nGlass claims require damage photos and a replacement estimate.\nAn excess of EUR 150 applies.",
+        "section": null,
+        "page": null,
+        "score": 0.421
+      }
+    ],
+    "reasoning_summary": "The claim was classified as theft. Policy concept matching returned possibly_covered. The claim package is missing: police report, proof of ownership. Image authenticity risk is low with score 0.0. This is a preliminary explainable opinion, not a final insurance decision. Final synthesis flagged: validator feedback, missing documents."
+  },
+  {
+    "id": "home-storm-roof",
+    "title": "Storm-damaged roof",
+    "policy": "02_home_plus.txt",
+    "description": "A severe wind storm removed roof tiles and rain entered the attic during the same night.",
+    "expected_behavior": "Storm has positive wording; photos, weather evidence, and estimate remain relevant.",
+    "image": "storm-damaged-roof.png",
+    "supporting_documents": [],
+    "claim_type": "storm_damage",
+    "coverage_assessment": "possibly_covered",
+    "claim_status": "requires_human_review",
+    "potential_exclusions": [
+      "damage arising from wear and tear",
+      "damage arising from poor maintenance"
+    ],
+    "missing_documents": [
+      "weather report",
+      "repair estimate"
+    ],
+    "evidence": [
+      {
+        "source": "policy",
+        "text": "FICTIONAL TEST POLICY — HOME PLUS\nPolicy period: 2026-01-01 to 2026-12-31.\nCovered events: theft from the insured home, storm damage, flood damage, and accidental breakage of fixed glass.\nDeliberate damage by an insured person is not covered.\nDamage arising from wear and tear or poor maintenance is excluded.\nTheft claims require a police report and proof of ownership.\nStorm claims require damage photos, weather evidence, and a repair estimate.\nGlass claims require damage photos and a replacement estimate.\nAn excess of EUR 150 applies.",
+        "section": null,
+        "page": null,
+        "score": 0.429
+      }
+    ],
+    "reasoning_summary": "The claim was classified as storm_damage. Policy concept matching returned possibly_covered. Potential exclusions were detected: damage arising from wear and tear, damage arising from poor maintenance. The claim package is missing: weather report, repair estimate. Image authenticity risk is low with score 0.18. This is a preliminary explainable opinion, not a final insurance decision. Final synthesis flagged: validator feedback, potential exclusions, missing documents."
+  },
+  {
+    "id": "home-glass",
+    "title": "Accidental fixed-window breakage",
+    "policy": "02_home_plus.txt",
+    "description": "During cleaning, a step stool slipped and accidentally shattered the fixed living-room window glass.",
+    "expected_behavior": "Fixed glass has an exact positive clause.",
+    "image": null,
+    "supporting_documents": [],
+    "claim_type": "broken_glass",
+    "coverage_assessment": "possibly_covered",
+    "claim_status": "requires_human_review",
+    "potential_exclusions": [],
+    "missing_documents": [
+      "damage photos",
+      "repair estimate"
+    ],
+    "evidence": [
+      {
+        "source": "policy",
+        "text": "FICTIONAL TEST POLICY — HOME PLUS\nPolicy period: 2026-01-01 to 2026-12-31.\nCovered events: theft from the insured home, storm damage, flood damage, and accidental breakage of fixed glass.\nDeliberate damage by an insured person is not covered.\nDamage arising from wear and tear or poor maintenance is excluded.\nTheft claims require a police report and proof of ownership.\nStorm claims require damage photos, weather evidence, and a repair estimate.\nGlass claims require damage photos and a replacement estimate.\nAn excess of EUR 150 applies.",
+        "section": null,
+        "page": null,
+        "score": 0.429
+      }
+    ],
+    "reasoning_summary": "The claim was classified as broken_glass. Policy concept matching returned possibly_covered. The claim package is missing: damage photos, repair estimate. Image authenticity risk is low with score 0.0. This is a preliminary explainable opinion, not a final insurance decision. Final synthesis flagged: validator feedback, missing documents."
+  },
+  {
+    "id": "auto-collision",
+    "title": "Rear bumper collision",
+    "policy": "03_auto_comprehensive.txt",
+    "description": "Another car hit my vehicle at low speed and cracked the rear bumper and tail light.",
+    "expected_behavior": "Collision is positively covered, subject to the evidence checklist.",
+    "image": "car-rear-bumper-damage.png",
+    "supporting_documents": [
+      "auto-repair-estimate.txt"
+    ],
+    "claim_type": "vehicle_damage",
+    "coverage_assessment": "possibly_covered",
+    "claim_status": "requires_human_review",
+    "potential_exclusions": [],
+    "missing_documents": [],
+    "evidence": [
+      {
+        "source": "policy",
+        "text": "FICTIONAL TEST POLICY — AUTO COMPREHENSIVE\nPolicy period: 2026-01-01 to 2026-12-31.\nInsured vehicle: private passenger car.\nCovered events: collision, accidental vehicle damage, vehicle theft, fire, and damage caused by hail.\nMechanical breakdown is not covered.\nWear and tear, tyre deterioration, racing, deliberate damage, and driving without a valid licence are excluded.\nCollision claims require damage photos, driver details, and a repair estimate.\nVehicle theft claims require the police report, all available keys, and proof of ownership.\nAn excess of EUR 400 applies.",
+        "section": null,
+        "page": null,
+        "score": 0.476
+      },
+      {
+        "source": "supporting:auto-repair-estimate.txt",
+        "text": "FICTIONAL TEST DOCUMENT — VEHICLE REPAIR ESTIMATE\nEstimate to replace and refinish the rear bumper and replace the damaged tail-light assembly after a low-speed collision: EUR 1,180.",
+        "section": null,
+        "page": null,
+        "score": 0.476
+      }
+    ],
+    "reasoning_summary": "The claim was classified as vehicle_damage. Policy concept matching returned possibly_covered. Image authenticity risk is low with score 0.12. This is a preliminary explainable opinion, not a final insurance decision."
+  },
+  {
+    "id": "auto-theft",
+    "title": "Vehicle stolen from driveway",
+    "policy": "03_auto_comprehensive.txt",
+    "description": "My locked car was stolen from the driveway overnight and I reported it to the police.",
+    "expected_behavior": "Vehicle theft is positively covered, with keys and ownership evidence still required.",
+    "image": null,
+    "supporting_documents": [],
+    "claim_type": "theft",
+    "coverage_assessment": "possibly_covered",
+    "claim_status": "requires_human_review",
+    "potential_exclusions": [
+      "theft claim documentation requirements"
+    ],
+    "missing_documents": [
+      "police report",
+      "proof of ownership"
+    ],
+    "evidence": [
+      {
+        "source": "policy",
+        "text": "FICTIONAL TEST POLICY — AUTO COMPREHENSIVE\nPolicy period: 2026-01-01 to 2026-12-31.\nInsured vehicle: private passenger car.\nCovered events: collision, accidental vehicle damage, vehicle theft, fire, and damage caused by hail.\nMechanical breakdown is not covered.\nWear and tear, tyre deterioration, racing, deliberate damage, and driving without a valid licence are excluded.\nCollision claims require damage photos, driver details, and a repair estimate.\nVehicle theft claims require the police report, all available keys, and proof of ownership.\nAn excess of EUR 400 applies.",
+        "section": null,
+        "page": null,
+        "score": 0.429
+      }
+    ],
+    "reasoning_summary": "The claim was classified as theft. Policy concept matching returned possibly_covered. Potential exclusions were detected: theft claim documentation requirements. The claim package is missing: police report, proof of ownership. Image authenticity risk is low with score 0.0. This is a preliminary explainable opinion, not a final insurance decision. Final synthesis flagged: validator feedback, potential exclusions, missing documents."
+  },
+  {
+    "id": "auto-hail",
+    "title": "Hail dents",
+    "policy": "03_auto_comprehensive.txt",
+    "description": "A hailstorm left dozens of dents across the roof and bonnet of my parked car.",
+    "expected_behavior": "This stresses cross-domain classification because hail can map to storm or vehicle damage; uncertainty should not be auto-approved.",
+    "image": null,
+    "supporting_documents": [],
+    "claim_type": "storm_damage",
+    "coverage_assessment": "unclear",
+    "claim_status": "requires_human_review",
+    "potential_exclusions": [],
+    "missing_documents": [
+      "damage photos",
+      "weather report",
+      "repair estimate"
+    ],
+    "evidence": [
+      {
+        "source": "policy",
+        "text": "FICTIONAL TEST POLICY — AUTO COMPREHENSIVE\nPolicy period: 2026-01-01 to 2026-12-31.\nInsured vehicle: private passenger car.\nCovered events: collision, accidental vehicle damage, vehicle theft, fire, and damage caused by hail.\nMechanical breakdown is not covered.\nWear and tear, tyre deterioration, racing, deliberate damage, and driving without a valid licence are excluded.\nCollision claims require damage photos, driver details, and a repair estimate.\nVehicle theft claims require the police report, all available keys, and proof of ownership.\nAn excess of EUR 400 applies.",
+        "section": null,
+        "page": null,
+        "score": 0.476
+      }
+    ],
+    "reasoning_summary": "The claim was classified as storm_damage. Policy concept matching returned unclear. The claim package is missing: damage photos, weather report, repair estimate. Image authenticity risk is low with score 0.0. This is a preliminary explainable opinion, not a final insurance decision. Final synthesis flagged: validator feedback, missing documents."
+  },
+  {
+    "id": "travel-medical",
+    "title": "Sudden illness abroad",
+    "policy": "04_travel_secure.txt",
+    "description": "I developed a sudden high fever while abroad and needed emergency hospital treatment.",
+    "expected_behavior": "Emergency medical treatment has positive wording; medical report and receipts are required.",
+    "image": null,
+    "supporting_documents": [],
+    "claim_type": "medical",
+    "coverage_assessment": "possibly_covered",
+    "claim_status": "requires_human_review",
+    "potential_exclusions": [
+      "Pre-existing or previously diagnosed medical conditions unless expressly accepted in writing"
+    ],
+    "missing_documents": [
+      "medical report",
+      "medical receipts"
+    ],
+    "evidence": [
+      {
+        "source": "policy",
+        "text": "FICTIONAL TEST POLICY — TRAVEL SECURE\nPolicy period: 2026-01-01 to 2026-12-31.\nCovered events: emergency medical treatment for a sudden illness or accident abroad and baggage lost by a common carrier.\nTrip cancellation is covered only if a listed covered reason occurs before departure and documentary evidence is supplied.\nPre-existing or previously diagnosed medical conditions are not covered unless expressly accepted in writing.\nProperty left unattended or left in an unlocked vehicle is excluded.\nChange of mind, inability to obtain a visa, and known events are not covered cancellation reasons.\nMedical claims require a medical report and itemised receipts.\nBaggage claims require the carrier ",
+        "section": null,
+        "page": null,
+        "score": 0.526
+      }
+    ],
+    "reasoning_summary": "The claim was classified as medical. Policy concept matching returned possibly_covered. Potential exclusions were detected: Pre-existing or previously diagnosed medical conditions unless expressly accepted in writing. The claim package is missing: medical report, medical receipts. Image authenticity risk is low with score 0.0. This is a preliminary explainable opinion, not a final insurance decision. Final synthesis flagged: validator feedback, potential exclusions, missing documents."
+  },
+  {
+    "id": "travel-preexisting",
+    "title": "Pre-existing medical condition",
+    "policy": "04_travel_secure.txt",
+    "description": "I needed treatment abroad for a medical condition diagnosed several months before the trip.",
+    "expected_behavior": "Pre-existing-condition wording should produce exclusion risk or human review.",
+    "image": null,
+    "supporting_documents": [],
+    "claim_type": "medical",
+    "coverage_assessment": "not_covered",
+    "claim_status": "likely_not_covered",
+    "potential_exclusions": [
+      "Pre-existing or previously diagnosed medical conditions, unless expressly accepted in writing"
+    ],
+    "missing_documents": [
+      "medical report",
+      "medical receipts"
+    ],
+    "evidence": [
+      {
+        "source": "policy",
+        "text": "FICTIONAL TEST POLICY — TRAVEL SECURE\nPolicy period: 2026-01-01 to 2026-12-31.\nCovered events: emergency medical treatment for a sudden illness or accident abroad and baggage lost by a common carrier.\nTrip cancellation is covered only if a listed covered reason occurs before departure and documentary evidence is supplied.\nPre-existing or previously diagnosed medical conditions are not covered unless expressly accepted in writing.\nProperty left unattended or left in an unlocked vehicle is excluded.\nChange of mind, inability to obtain a visa, and known events are not covered cancellation reasons.\nMedical claims require a medical report and itemised receipts.\nBaggage claims require the carrier ",
+        "section": null,
+        "page": null,
+        "score": 0.684
+      }
+    ],
+    "reasoning_summary": "The claim was classified as medical. Policy concept matching returned not_covered. Potential exclusions were detected: Pre-existing or previously diagnosed medical conditions, unless expressly accepted in writing. The claim package is missing: medical report, medical receipts. Image authenticity risk is low with score 0.0. This is a preliminary explainable opinion, not a final insurance decision. Final synthesis flagged: validator feedback, potential exclusions, missing documents."
+  },
+  {
+    "id": "travel-baggage",
+    "title": "Airline lost checked baggage",
+    "policy": "04_travel_secure.txt",
+    "description": "The airline lost my checked suitcase and issued a baggage irregularity report.",
+    "expected_behavior": "Carrier baggage loss is positively covered, subject to the required documents.",
+    "image": "damaged-travel-suitcase.png",
+    "supporting_documents": [
+      "baggage-carrier-report.txt",
+      "baggage-proof-of-ownership.txt"
+    ],
+    "claim_type": "baggage_loss",
+    "coverage_assessment": "possibly_covered",
+    "claim_status": "requires_human_review",
+    "potential_exclusions": [],
+    "missing_documents": [],
+    "evidence": [
+      {
+        "source": "policy",
+        "text": "FICTIONAL TEST POLICY — TRAVEL SECURE\nPolicy period: 2026-01-01 to 2026-12-31.\nCovered events: emergency medical treatment for a sudden illness or accident abroad and baggage lost by a common carrier.\nTrip cancellation is covered only if a listed covered reason occurs before departure and documentary evidence is supplied.\nPre-existing or previously diagnosed medical conditions are not covered unless expressly accepted in writing.\nProperty left unattended or left in an unlocked vehicle is excluded.\nChange of mind, inability to obtain a visa, and known events are not covered cancellation reasons.\nMedical claims require a medical report and itemised receipts.\nBaggage claims require the carrier ",
+        "section": null,
+        "page": null,
+        "score": 0.556
+      },
+      {
+        "source": "supporting:baggage-carrier-report.txt",
+        "text": "FICTIONAL TEST DOCUMENT — CARRIER REPORT\nThe carrier recorded the checked suitcase as missing at arrival and opened a baggage irregularity report for the passenger.",
+        "section": null,
+        "page": null,
+        "score": 0.444
+      },
+      {
+        "source": "supporting:baggage-proof-of-ownership.txt",
+        "text": "FICTIONAL TEST DOCUMENT — PROOF OF OWNERSHIP\nPurchase record for the checked suitcase and an inventory of the demonstration claimant's personal belongings.",
+        "section": null,
+        "page": null,
+        "score": 0.222
+      }
+    ],
+    "reasoning_summary": "The claim was classified as baggage_loss. Policy concept matching returned possibly_covered. Image authenticity risk is low with score 0.16. This is a preliminary explainable opinion, not a final insurance decision."
+  },
+  {
+    "id": "travel-cancellation",
+    "title": "Conditional trip cancellation",
+    "policy": "04_travel_secure.txt",
+    "description": "I cancelled my holiday before departure because my travelling companion suffered an unexpected family bereavement.",
+    "expected_behavior": "Conditional cancellation wording plus explicit non-covered reasons should fail closed to not covered or human review.",
+    "image": null,
+    "supporting_documents": [],
+    "claim_type": "unknown",
+    "coverage_assessment": "possibly_covered",
+    "claim_status": "requires_human_review",
+    "potential_exclusions": [
+      "trip cancellation not shown to be a listed covered reason"
+    ],
+    "missing_documents": [
+      "supporting evidence"
+    ],
+    "evidence": [
+      {
+        "source": "policy",
+        "text": "FICTIONAL TEST POLICY — TRAVEL SECURE\nPolicy period: 2026-01-01 to 2026-12-31.\nCovered events: emergency medical treatment for a sudden illness or accident abroad and baggage lost by a common carrier.\nTrip cancellation is covered only if a listed covered reason occurs before departure and documentary evidence is supplied.\nPre-existing or previously diagnosed medical conditions are not covered unless expressly accepted in writing.\nProperty left unattended or left in an unlocked vehicle is excluded.\nChange of mind, inability to obtain a visa, and known events are not covered cancellation reasons.\nMedical claims require a medical report and itemised receipts.\nBaggage claims require the carrier ",
+        "section": null,
+        "page": null,
+        "score": 0.3
+      }
+    ],
+    "reasoning_summary": "The claim was classified as unknown. Policy concept matching returned possibly_covered. Potential exclusions were detected: trip cancellation not shown to be a listed covered reason. The claim package is missing: supporting evidence. Image authenticity risk is low with score 0.0. This is a preliminary explainable opinion, not a final insurance decision. Final synthesis flagged: validator feedback, potential exclusions, missing documents."
+  },
+  {
+    "id": "conflict-theft",
+    "title": "Directly conflicting theft clauses",
+    "policy": "05_conflicting_endorsement.txt",
+    "description": "Someone broke into the insured house and stole a computer.",
+    "expected_behavior": "Contradictory positive and negative clauses must produce unclear and human review.",
+    "image": null,
+    "supporting_documents": [],
+    "claim_type": "theft",
+    "coverage_assessment": "unclear",
+    "claim_status": "requires_human_review",
+    "potential_exclusions": [
+      "theft"
+    ],
+    "missing_documents": [
+      "police report",
+      "proof of ownership"
+    ],
+    "evidence": [
+      {
+        "source": "policy",
+        "text": "FICTIONAL TEST POLICY — CONFLICTING ENDORSEMENT EXERCISE\nPolicy period: 2026-01-01 to 2026-12-31.\nTheft is covered under the main policy wording.\nTheft is not covered under Endorsement T-17.\nStorm damage may be covered if the roof was in a good state of repair before the incident.\nThis document contains information about water damage coverage, but the applicable schedule is missing.\nThis wording is intentionally contradictory and incomplete.\nAny affected claim must be referred to a human adjuster before a coverage decision is made.",
+        "section": null,
+        "page": null,
+        "score": 0.438
+      }
+    ],
+    "reasoning_summary": "The claim was classified as theft. Policy concept matching returned unclear. Potential exclusions were detected: theft. The claim package is missing: police report, proof of ownership. Image authenticity risk is low with score 0.0. This is a preliminary explainable opinion, not a final insurance decision. Final synthesis flagged: validator feedback, potential exclusions, missing documents."
+  },
+  {
+    "id": "conflict-storm",
+    "title": "Conditional storm wording",
+    "policy": "05_conflicting_endorsement.txt",
+    "description": "Strong wind damaged the roof and rain entered the attic.",
+    "expected_behavior": "May-be-covered wording should remain conditional and require review.",
+    "image": null,
+    "supporting_documents": [],
+    "claim_type": "storm_damage",
+    "coverage_assessment": "possibly_covered",
+    "claim_status": "requires_human_review",
+    "potential_exclusions": [
+      "wear_and_tear / pre-existing poor roof condition",
+      "water damage coverage limitation or missing schedule"
+    ],
+    "missing_documents": [
+      "damage photos",
+      "weather report",
+      "repair estimate"
+    ],
+    "evidence": [
+      {
+        "source": "policy",
+        "text": "FICTIONAL TEST POLICY — CONFLICTING ENDORSEMENT EXERCISE\nPolicy period: 2026-01-01 to 2026-12-31.\nTheft is covered under the main policy wording.\nTheft is not covered under Endorsement T-17.\nStorm damage may be covered if the roof was in a good state of repair before the incident.\nThis document contains information about water damage coverage, but the applicable schedule is missing.\nThis wording is intentionally contradictory and incomplete.\nAny affected claim must be referred to a human adjuster before a coverage decision is made.",
+        "section": null,
+        "page": null,
+        "score": 0.562
+      }
+    ],
+    "reasoning_summary": "The claim was classified as storm_damage. Policy concept matching returned possibly_covered. Potential exclusions were detected: wear_and_tear / pre-existing poor roof condition, water damage coverage limitation or missing schedule. The claim package is missing: damage photos, weather report, repair estimate. Image authenticity risk is low with score 0.0. This is a preliminary explainable opinion, not a final insurance decision. Final synthesis flagged: validator feedback, potential exclusions, missing documents."
+  },
+  {
+    "id": "conflict-water-ambiguous",
+    "title": "Ambiguous water reference",
+    "policy": "05_conflicting_endorsement.txt",
+    "description": "A washing-machine hose leaked suddenly and damaged the kitchen floor.",
+    "expected_behavior": "A topic reference without operative coverage wording must fail closed to unclear.",
+    "image": null,
+    "supporting_documents": [],
+    "claim_type": "water_damage",
+    "coverage_assessment": "unclear",
+    "claim_status": "requires_human_review",
+    "potential_exclusions": [
+      "gradual_leakage_or_rot",
+      "pipe_or_apparatus_itself",
+      "water_damage_coverage_terms_uncertain"
+    ],
+    "missing_documents": [
+      "damage photos",
+      "plumber report",
+      "repair estimate"
+    ],
+    "evidence": [
+      {
+        "source": "policy",
+        "text": "FICTIONAL TEST POLICY — CONFLICTING ENDORSEMENT EXERCISE\nPolicy period: 2026-01-01 to 2026-12-31.\nTheft is covered under the main policy wording.\nTheft is not covered under Endorsement T-17.\nStorm damage may be covered if the roof was in a good state of repair before the incident.\nThis document contains information about water damage coverage, but the applicable schedule is missing.\nThis wording is intentionally contradictory and incomplete.\nAny affected claim must be referred to a human adjuster before a coverage decision is made.",
+        "section": null,
+        "page": null,
+        "score": 0.444
+      }
+    ],
+    "reasoning_summary": "The claim was classified as water_damage. Policy concept matching returned unclear. Potential exclusions were detected: gradual_leakage_or_rot, pipe_or_apparatus_itself, water_damage_coverage_terms_uncertain. The claim package is missing: damage photos, plumber report, repair estimate. Image authenticity risk is low with score 0.0. This is a preliminary explainable opinion, not a final insurance decision. Final synthesis flagged: validator feedback, potential exclusions, missing documents."
+  }
+]

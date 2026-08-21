@@ -22,7 +22,6 @@ class Settings:
     openai_text_model: str
     openai_planning_model: str
     openai_vision_model: str
-    openai_require_models: bool
     log_level: str
     log_file: str
     log_to_console: bool
@@ -115,9 +114,6 @@ def get_settings() -> Settings:
         if isinstance(configured_vision_model, str) and configured_vision_model.strip()
         else text_model
     )
-    require_models = model.get("require_models", True)
-    if not isinstance(require_models, bool):
-        raise ConfigurationError("Configuration value 'model.require_models' must be true or false.")
     log_to_console = logging_config.get("to_console", True)
     if not isinstance(log_to_console, bool):
         raise ConfigurationError("Configuration value 'logging.to_console' must be true or false.")
@@ -130,7 +126,6 @@ def get_settings() -> Settings:
         openai_text_model=text_model,
         openai_planning_model=planning_model,
         openai_vision_model=vision_model,
-        openai_require_models=_environment_bool("OPENAI_REQUIRE_MODELS", require_models),
         log_level=log_level.upper(),
         log_file=os.getenv("PROJECT_LOG_FILE") or _config_string(logging_config, "file", "logs/claim-checker.log"),
         log_to_console=_environment_bool("PROJECT_LOG_TO_CONSOLE", log_to_console),

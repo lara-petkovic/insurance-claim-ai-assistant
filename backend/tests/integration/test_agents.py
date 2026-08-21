@@ -5,7 +5,7 @@ from core.agents.orchestrator.planning import DynamicPlanningAgent
 from core.agents.technical_agents.missing_documents import MissingDocumentsAgent
 from core.agents.technical_agents.retrieval_agent import RetrievalAgent
 from core.models.claim import ClaimRequestData, SupportingDocumentData
-from models.model_client import ModelResult, get_model_client
+from models.model_client import ModelClient, ModelResult, get_model_client
 
 TEST_POLICY_TEXT = """
 Household policy wording.
@@ -19,12 +19,16 @@ damage. Theft requires police report and proof of ownership.
 
 
 def disable_model_calls(monkeypatch):
-    monkeypatch.setenv("OPENAI_REQUIRE_MODELS", "false")
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     monkeypatch.delenv("OPENAI_API_KEY_FILE", raising=False)
     monkeypatch.delenv("OPENAI_PLANNING_MODEL", raising=False)
     get_settings.cache_clear()
     get_model_client.cache_clear()
+    monkeypatch.setattr(
+        ModelClient,
+        "_fallback_or_raise",
+        lambda self, fallback, error: ModelResult(data=fallback, used_model=False, error=error),
+    )
 
 
 def test_orchestrator_returns_human_review_for_incomplete_water_claim(monkeypatch):

@@ -1,6 +1,6 @@
 from core.agents.base import AgentContext, BaseAgent
 from core.models.agent import AgentResponse
-from models.model_client import get_model_client
+from core.agents.technical_agents.policy_polarity import exact_text_in_source
 
 
 class OutputValidatorAgent(BaseAgent):
@@ -10,7 +10,6 @@ class OutputValidatorAgent(BaseAgent):
     agent_type = "validator"
 
     def run(self, context: AgentContext) -> AgentResponse:
-        model_client = get_model_client()
         required = [
             "ClaimExtractionAgent",
             "PolicyConceptExtractionAgent",
@@ -34,7 +33,6 @@ class OutputValidatorAgent(BaseAgent):
         ]
         feedback = []
         coverage = context.memory.get("CoverageMatchingAgent", {})
-        citations = context.memory.get("CitationAgent", {})
         exclusions = context.memory.get("ExclusionCheckingAgent", {}).get("potential_exclusions", [])
         missing_docs = context.memory.get("MissingDocumentsAgent", {}).get("missing_documents", [])
         consistency = context.memory.get("ConsistencyVerificationAgent", {}).get("consistency_issues", [])
@@ -45,12 +43,25 @@ class OutputValidatorAgent(BaseAgent):
             name for name, findings in context.memory.items()
             if isinstance(findings, dict) and findings.get("suspected_prompt_injection") is True
         ]
-        if coverage.get("coverage_assessment") == "covered" and not citations.get("citation_count"):
+        citation_evidence = [
+            item
+            for response in context.responses
+            if response.agent_name == "CitationAgent"
+            for item in response.evidence
+            if item.source == "policy"
+        ]
+        supporting_passages = coverage.get("supporting_policy_passages", [])
+        has_supporting_citation = any(
+            exact_text_in_source(passage, item.text) or exact_text_in_source(item.text, str(passage))
+            for passage in supporting_passages
+            for item in citation_evidence
+        )
+        if coverage.get("coverage_assessment") == "covered" and not has_supporting_citation:
             feedback.append(
                 {
                     "target_agent": "CoverageMatchingAgent",
-                    "issue": "Coverage was marked covered but no citation is available.",
-                    "suggested_action": "Re-run retrieval or downgrade to human review until supporting evidence is found.",
+                    "issue": "Coverage was marked covered but no relevant supporting policy citation is available.",
+                    "suggested_action": "Re-run retrieval or downgrade to human review until the exact supporting passage is found.",
                 }
             )
         if exclusions:
@@ -96,15 +107,15 @@ class OutputValidatorAgent(BaseAgent):
         warnings = []
         if missing:
             warnings.append(f"Missing agent outputs: {', '.join(missing)}")
-        if model_client.require_models and non_model_agents:
+        if non_model_agents:
             warnings.append(f"These model-backed agents did not use a model: {', '.join(non_model_agents)}")
         if feedback:
             warnings.append("Validator feedback requires final synthesis to preserve human-review context.")
         return self.respond(
             findings={
-                "schema_ready": not missing and not (model_client.require_models and non_model_agents),
+                "schema_ready": not missing and not non_model_agents,
                 "missing_agent_outputs": missing,
-                "model_required": model_client.require_models,
+                "model_required": True,
                 "non_model_agents": non_model_agents,
                 "feedback": feedback,
                 "security_flags": context.request.security_flags,
@@ -112,7 +123,7 @@ class OutputValidatorAgent(BaseAgent):
             },
             confidence=1.0 if not missing and not non_model_agents else 0.2,
             warnings=warnings,
-            requires_human_review=bool(missing or feedback or (model_client.require_models and non_model_agents)),
+            requires_human_review=bool(missing or feedback or non_model_agents),
             messages=[
                 self.message(
                     f"Output validation completed with {len(feedback)} feedback item(s).",

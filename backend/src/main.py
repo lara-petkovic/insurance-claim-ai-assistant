@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from api.routes_api import router as api_router
+from api.claim_request_api import router as api_router
 from models.model_client import ModelCallError
 from security.api_protection import ApiProtector
 

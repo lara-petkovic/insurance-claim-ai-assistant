@@ -1,9 +1,18 @@
 import json
+from types import SimpleNamespace
 
+import pytest
 from fastapi.testclient import TestClient
 
+from api import claim_request_api
 from main import app
-from api import routes_api
+from services import claim_request_builder
+
+
+@pytest.fixture(autouse=True)
+def clear_dependency_overrides():
+    yield
+    app.dependency_overrides.clear()
 
 
 def test_health_endpoint():
@@ -13,7 +22,7 @@ def test_health_endpoint():
     assert response.json() == {"status": "ok"}
 
 
-def test_stream_endpoint_accepts_frontend_form_contract(monkeypatch):
+def test_stream_endpoint_accepts_frontend_form_contract():
     captured = {}
 
     def fake_stream(request):
@@ -21,7 +30,9 @@ def test_stream_endpoint_accepts_frontend_form_contract(monkeypatch):
         yield {"event": "analysis_started", "total_agents": 1}
         yield {"event": "analysis_completed", "result": {"claim_status": "requires_human_review"}}
 
-    monkeypatch.setattr(routes_api.orchestrator, "stream", fake_stream)
+    app.dependency_overrides[claim_request_api.get_orchestrator] = lambda: SimpleNamespace(
+        stream=fake_stream
+    )
 
     response = TestClient(app).post(
         "/api/claims/analyze-stream",
@@ -72,8 +83,10 @@ def test_supporting_documents_are_extracted_independently_and_warnings_are_prese
             coverage_assessment="unclear", reasoning_summary="Review required.", recommendation="Review."
         )
 
-    monkeypatch.setattr(routes_api, "extract_upload_text", fake_extract)
-    monkeypatch.setattr(routes_api.orchestrator, "analyze", fake_analyze)
+    monkeypatch.setattr(claim_request_builder, "extract_upload_text", fake_extract)
+    app.dependency_overrides[claim_request_api.get_orchestrator] = lambda: SimpleNamespace(
+        analyze=fake_analyze
+    )
     response = TestClient(app).post(
         "/api/claims/analyze",
         data={"claim_description": "Water damage"},
@@ -92,3 +105,43 @@ def test_supporting_documents_are_extracted_independently_and_warnings_are_prese
     assert documents[1].text == ""
     assert "unreadable upload" in documents[1].extraction_warnings[0]
     assert documents[2].text == "Receipt paid"
+
+
+def test_oversized_supporting_document_is_not_downgraded_to_warning(monkeypatch):
+    monkeypatch.setattr(claim_request_builder, "MAX_SUPPORTING_FILE_BYTES", 3)
+
+    response = TestClient(app).post(
+        "/api/claims/analyze",
+        data={"claim_description": "Water damage"},
+        files=[
+            ("policy_file", ("policy.txt", b"Water damage is covered", "text/plain")),
+            ("supporting_documents", ("receipt.txt", b"four", "text/plain")),
+        ],
+    )
+
+    assert response.status_code == 413
+    assert response.json() == {"detail": "Uploaded file exceeds the 0 MB limit."}
+
+
+def test_stream_failure_does_not_expose_internal_error():
+    def fake_stream(_):
+        raise RuntimeError("secret provider detail")
+        yield
+
+    app.dependency_overrides[claim_request_api.get_orchestrator] = lambda: SimpleNamespace(
+        stream=fake_stream
+    )
+
+    response = TestClient(app).post(
+        "/api/claims/analyze-stream",
+        data={"claim_description": "Water damage"},
+        files={"policy_file": ("policy.txt", b"Water damage is covered", "text/plain")},
+    )
+
+    assert response.status_code == 200
+    event = json.loads(response.text)
+    assert event == {
+        "event": "analysis_failed",
+        "error": "Claim analysis failed. Please retry or request human review.",
+    }
+    assert "secret provider detail" not in response.text

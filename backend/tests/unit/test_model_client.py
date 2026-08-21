@@ -26,9 +26,8 @@ class FakeOpenAI:
         self.responses = FakeResponses(output_text)
 
 
-def make_client(output_text: str, *, require_models: bool = False) -> ModelClient:
+def make_client(output_text: str) -> ModelClient:
     client = ModelClient.__new__(ModelClient)
-    client.require_models = require_models
     client.api_key = "test-key"
     client.text_model = "text-test-model"
     client.planning_model = "planning-test-model"
@@ -59,18 +58,15 @@ def test_json_response_uses_structured_output_with_pydantic_model():
     assert "schema" in request["text"]["format"]
 
 
-def test_json_response_falls_back_for_invalid_legacy_json_without_schema():
+def test_json_response_raises_for_invalid_legacy_json_without_schema():
     client = make_client("not JSON at all")
 
-    result = client.json_response(
-        system="Return JSON.",
-        prompt="Claim facts.",
-        fallback={"decision": "fallback"},
-    )
-
-    assert result.data == {"decision": "fallback"}
-    assert result.used_model is False
-    assert result.error == "OpenAI model returned invalid JSON."
+    with pytest.raises(ModelCallError, match="OpenAI model returned invalid JSON"):
+        client.json_response(
+            system="Return JSON.",
+            prompt="Claim facts.",
+            fallback={"decision": "fallback"},
+        )
     assert "text" not in client._client.responses.last_create_kwargs
 
 
@@ -120,8 +116,8 @@ def test_file_json_response_supports_pdf_input_and_structured_output():
     assert user_content[1]["file_data"].startswith("data:application/pdf;base64,")
 
 
-def test_require_models_raises_when_model_json_is_invalid():
-    client = make_client("not JSON", require_models=True)
+def test_model_json_failure_is_always_fatal():
+    client = make_client("not JSON")
 
     with pytest.raises(ModelCallError, match="OpenAI model returned invalid JSON"):
         client.json_response(

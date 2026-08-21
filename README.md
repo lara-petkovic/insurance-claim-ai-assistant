@@ -154,13 +154,22 @@ the API key through the process environment:
 $env:OPENAI_API_KEY='your_api_key_here'
 ```
 
+The default model routing uses `gpt-5.6-terra` for substantive text analysis,
+`gpt-5.6-luna` for planning classification, and `gpt-5.6-sol` for vision and
+file-based interpretation.
+
 `APP_ENV` selects the config file and defaults to `dev`. Docker uses `prod`.
 Use `APP_ENV=env` when you want `config/config.env.json`. `APP_CONFIG_FILE` can
 point to an exact custom config file. `OPENAI_TEXT_MODEL`,
-`OPENAI_VISION_MODEL`, and `OPENAI_REQUIRE_MODELS` can also override their
+`OPENAI_PLANNING_MODEL`, and `OPENAI_VISION_MODEL` can also override their
 matching JSON values.
 Containers receive the API key as a Docker secret rather than embedding it in
 the rendered Compose configuration.
+
+All analyses require successful model execution. If a configured model is
+unavailable or returns an invalid response, the analysis fails instead of
+silently switching to deterministic fallback. Controlled automated tests inject
+fake model results when they need to exercise a failure or safety path.
 
 Logging is configured in the same backend config files under `logging`.
 By default, backend application logs are written to
@@ -188,6 +197,16 @@ Open the API docs:
 ```text
 http://127.0.0.1:8000/docs
 ```
+
+## Demo Claim Dataset
+
+Fictional policies, claim descriptions, supporting documents, synthetic damage images, and a model-backed batch runner are available in `backend/demo_cases/`. Run all scenarios from the repository root after configuring `OPENAI_API_KEY`:
+
+```powershell
+& '.\backend\.venv\Scripts\python.exe' backend\demo_cases\run_demo_cases.py
+```
+
+The generated comparison report is written to `backend/demo_cases/results.md`.
 
 ## Run The Frontend
 
@@ -266,7 +285,6 @@ Backend tests:
 From the project root:
 
 ```powershell
-$env:OPENAI_REQUIRE_MODELS='false'
 $env:PYTHONPATH='src'
 cd backend
 .\.venv\Scripts\python.exe -m pytest tests -p no:cacheprovider

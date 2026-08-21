@@ -1,6 +1,7 @@
 from typing import Any
 
 from core.agents.base import AgentContext, BaseAgent
+from core.agents.technical_agents.policy_polarity import exact_text_in_source
 from core.agents.technical_agents.shared import _functional_checklist, _merge_dict_lists_by_key
 from core.models.agent import AgentResponse
 from core.models.model_schemas import COVERAGE_SCHEMA
@@ -15,24 +16,45 @@ class CoverageMatchingAgent(BaseAgent):
 
     def run(self, context: AgentContext) -> AgentResponse:
         claim_type = context.memory.get("ClaimExtractionAgent", {}).get("claim_type", "unknown")
-        covered_events = context.memory.get("PolicyConceptExtractionAgent", {}).get("covered_events", [])
+        policy_concepts = context.memory.get("PolicyConceptExtractionAgent", {})
+        coverage_clauses = policy_concepts.get("coverage_clauses", [])
         functional_checks = _functional_checklist(context)
-        matches = [event for event in covered_events if event.get("concept") == claim_type]
-        assessment = "covered" if matches else "unclear"
-        if claim_type == "storm_damage" and any(event.get("concept") == "storm_damage" for event in covered_events):
-            assessment = "possibly_covered"
-        if claim_type == "unknown":
-            assessment = "unclear"
-        fallback = {
-            "coverage_assessment": assessment,
-            "matched_policy_concepts": matches,
-            "functional_checks_considered": functional_checks,
-        }
+        relevant_clauses = [item for item in coverage_clauses if item.get("concept") == claim_type]
         retrieved_evidence = []
-        for response in context.responses:
+        for response in reversed(context.responses):
             if response.agent_name == "RetrievalAgent":
                 retrieved_evidence = [item.model_dump() for item in response.evidence if item.source == "policy"]
                 break
+        positive_clauses = [item for item in relevant_clauses if item.get("polarity") == "covered"]
+        excluded_clauses = [
+            item
+            for item in relevant_clauses
+            if item.get("polarity") == "excluded" and item.get("direct_match", True)
+        ]
+        conditional_clauses = [
+            item
+            for item in relevant_clauses
+            if item.get("polarity") == "conditional" and item.get("direct_match", True)
+        ]
+        supporting_clauses = [
+            item
+            for item in positive_clauses
+            if self._has_retrieved_support(item, retrieved_evidence)
+        ]
+        assessment = self._safe_rule_assessment(
+            claim_type=claim_type,
+            positive=positive_clauses,
+            excluded=excluded_clauses,
+            conditional=conditional_clauses,
+            has_exact_support=bool(supporting_clauses),
+        )
+        fallback = {
+            "coverage_assessment": assessment,
+            "matched_policy_concepts": supporting_clauses if assessment == "covered" else relevant_clauses,
+            "supporting_policy_passages": [item["evidence_text"] for item in supporting_clauses],
+            "clause_polarities": sorted({str(item.get("polarity", "unclear")) for item in relevant_clauses}),
+            "functional_checks_considered": functional_checks,
+        }
         model_client = get_model_client()
         model_result = model_client.json_response(
             system=(
@@ -53,22 +75,44 @@ class CoverageMatchingAgent(BaseAgent):
             schema_name="coverage_assessment",
             json_schema=COVERAGE_SCHEMA,
         )
-        final_findings: dict[str, Any] = {**fallback, **model_result.data, "model_used": model_result.used_model,
-                                          "matched_policy_concepts": _merge_dict_lists_by_key(
-                                              matches,
-                                              model_result.data.get("matched_policy_concepts"),
-                                          )}
-        if assessment == "covered":
-            final_findings["coverage_assessment"] = "covered"
-        elif assessment == "unclear" and claim_type == "unknown":
+        source_policy_text = context.memory.get("DocumentIngestionAgent", {}).get(
+            "policy_text", context.request.policy_text
+        )
+        model_matches = self._verified_model_matches(
+            model_result.data.get("matched_policy_concepts"), source_policy_text, claim_type
+        )
+        final_findings: dict[str, Any] = {
+            **fallback,
+            **model_result.data,
+            "model_used": model_result.used_model,
+            "matched_policy_concepts": _merge_dict_lists_by_key(
+                fallback["matched_policy_concepts"], model_matches
+            ),
+            "supporting_policy_passages": fallback["supporting_policy_passages"],
+            "clause_polarities": fallback["clause_polarities"],
+        }
+        model_assessment = str(model_result.data.get("coverage_assessment", "unclear"))
+        if excluded_clauses and not positive_clauses:
+            final_findings["coverage_assessment"] = "not_covered"
+        elif positive_clauses and excluded_clauses:
             final_findings["coverage_assessment"] = "unclear"
+        elif model_result.used_model and model_assessment in {
+            "covered", "not_covered", "possibly_covered", "unclear"
+        }:
+            final_findings["coverage_assessment"] = model_assessment
+        else:
+            final_findings["coverage_assessment"] = assessment
+        if final_findings["coverage_assessment"] == "covered" and assessment != "covered":
+            final_findings["coverage_assessment"] = "unclear"
+        if final_findings["coverage_assessment"] != "covered":
+            final_findings["supporting_policy_passages"] = []
         return self.respond(
             findings=final_findings,
-            confidence=0.82 if final_findings.get("matched_policy_concepts") else 0.4,
+            confidence=0.9 if final_findings.get("coverage_assessment") in {"covered", "not_covered"} else 0.4,
             warnings=(
                 ["Used configured model for coverage matching."]
                 if model_result.used_model
-                else ([] if matches else ["No direct policy concept match found for the claim type."])
+                else ["Coverage model unavailable; only exact, unambiguous policy wording was used."]
             ),
             requires_human_review=final_findings.get("coverage_assessment") != "covered",
             messages=[
@@ -84,3 +128,44 @@ class CoverageMatchingAgent(BaseAgent):
                 )
             ],
         )
+
+    @staticmethod
+    def _safe_rule_assessment(
+        *,
+        claim_type: str,
+        positive: list[dict[str, Any]],
+        excluded: list[dict[str, Any]],
+        conditional: list[dict[str, Any]],
+        has_exact_support: bool,
+    ) -> str:
+        if claim_type == "unknown" or (positive and excluded):
+            return "unclear"
+        if excluded:
+            return "not_covered"
+        if conditional:
+            return "possibly_covered"
+        if positive and has_exact_support:
+            return "covered"
+        return "unclear"
+
+    @staticmethod
+    def _has_retrieved_support(clause: dict[str, Any], evidence: list[dict[str, Any]]) -> bool:
+        passage = str(clause.get("evidence_text", "")).strip()
+        return bool(passage) and any(
+            item.get("source") == "policy"
+            and (exact_text_in_source(passage, str(item.get("text", "")))
+                 or exact_text_in_source(item.get("text"), passage))
+            for item in evidence
+        )
+
+    @staticmethod
+    def _verified_model_matches(value: object, policy_text: str, claim_type: str) -> list[dict[str, Any]]:
+        if not isinstance(value, list):
+            return []
+        return [
+            item
+            for item in value
+            if isinstance(item, dict)
+            and item.get("concept") == claim_type
+            and exact_text_in_source(item.get("evidence_text"), policy_text)
+        ]
