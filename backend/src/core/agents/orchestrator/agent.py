@@ -244,7 +244,12 @@ class OrchestratorAgent(BaseAgent):
                 continue
             issue = str(item.get("issue", "")).lower()
             target = str(item.get("target_agent", ""))
-            if "no citation" in issue or "no citation is available" in issue:
+            if (
+                "no citation" in issue
+                or "no citation is available" in issue
+                or "supporting policy citation" in issue
+                or "not grounded" in issue
+            ):
                 repair_targets.extend(["QueryRewriteAgent", "RetrievalAgent", "CoverageMatchingAgent", "CitationAgent"])
             elif target in {"CoverageMatchingAgent", "RetrievalAgent"}:
                 repair_targets.append(target)
@@ -299,7 +304,10 @@ class OrchestratorAgent(BaseAgent):
             if response.agent_name == "CitationAgent":
                 citations = response.evidence
 
-        coverage_assessment = self._coverage_assessment(coverage.get("coverage_assessment", "unclear"))
+        validated_coverage = context.memory.get("OutputValidatorAgent", {}).get(
+            "validated_coverage_assessment", coverage.get("coverage_assessment", "unclear")
+        )
+        coverage_assessment = self._coverage_assessment(validated_coverage)
         validator_feedback = context.memory.get("OutputValidatorAgent", {}).get("feedback", [])
         if coverage_assessment == "covered" and any(
             "no relevant supporting policy citation" in str(item.get("issue", "")).lower()
@@ -351,9 +359,16 @@ class OrchestratorAgent(BaseAgent):
             evidence=citations,
             claim_facts=claim.get("facts", []),
             policy_clauses=context.memory.get("PolicyConceptExtractionAgent", {}).get(
-                "coverage_clauses", []
+                "policy_clauses",
+                context.memory.get("PolicyConceptExtractionAgent", {}).get("coverage_clauses", []),
             ),
-            assessment_propositions=context.propositions,
+            assessment_propositions=sorted(
+                context.propositions,
+                key=lambda item: (
+                    item.created_by == "CoverageMatchingAgent",
+                    item.proposition_type == "coverage",
+                ),
+            ),
             reasoning_summary=reasoning_summary,
             recommendation=recommendation,
             security_flags=request.security_flags,

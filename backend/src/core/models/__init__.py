@@ -21,6 +21,8 @@ from core.models.analysis import (
     InvestigationTask,
     PolicyClause,
     PolicyDocument,
+    PropositionStatus,
+    PropositionType,
     SupportingDocument,
 )
 from core.models.run_state import ClaimAnalysisRunState
@@ -47,6 +49,8 @@ __all__ = [
     "InvestigationTask",
     "PolicyClause",
     "PolicyDocument",
+    "PropositionStatus",
+    "PropositionType",
     "RiskLevel",
     "SupportingDocumentData",
     "SupportingDocument",

@@ -65,7 +65,14 @@ export class ResultsComponent {
   }
 
   primaryProposition(): AssessmentProposition | null {
-    return this.result?.assessment_propositions.at(-1) || null;
+    return this.result?.assessment_propositions.find(
+      (item) => item.proposition_type === 'coverage'
+    ) || null;
+  }
+
+  primaryPropositionStatusLabel(): string {
+    const proposition = this.primaryProposition();
+    return proposition ? this.statusLabel(proposition.status) : 'No conclusion';
   }
 
   allAgentResponsesDisplayed(): boolean {
@@ -122,6 +129,128 @@ export class ResultsComponent {
     return count ? `${count.toString().padStart(2, '0')} Trigger${count === 1 ? '' : 's'}` : 'No Triggers';
   }
 
+  decisionSubtitle(): string {
+    if (!this.result) {
+      return '';
+    }
+    if (this.result.claim_status === 'likely_covered') {
+      return 'The required coverage conclusions are grounded and no unresolved policy contradiction was found.';
+    }
+    if (this.result.claim_status === 'likely_not_covered') {
+      return 'Policy wording currently weighs against coverage. A human adjuster should confirm before any denial.';
+    }
+    return 'One or more required conclusions are missing support, conditional, or contradicted and need an adjuster.';
+  }
+
+  decisionPropositions(): AssessmentProposition[] {
+    if (!this.result) {
+      return [];
+    }
+    const priority: Record<string, number> = {
+      coverage: 0,
+      exclusion: 1,
+      condition: 2,
+      definition: 3,
+      limit: 4,
+      missing_evidence: 5,
+      claim_fact: 6,
+    };
+    return [...this.result.assessment_propositions].sort((left, right) => {
+      const requiredDifference = Number(right.required_for_coverage) - Number(left.required_for_coverage);
+      if (requiredDifference) {
+        return requiredDifference;
+      }
+      return (priority[left.proposition_type] ?? 99) - (priority[right.proposition_type] ?? 99);
+    });
+  }
+
+  secondaryPropositions(): AssessmentProposition[] {
+    const primaryId = this.primaryProposition()?.proposition_id;
+    return this.decisionPropositions().filter(
+      (item) => item.proposition_id !== primaryId && item.proposition_type !== 'claim_fact'
+    );
+  }
+
+  blockingPropositions(): AssessmentProposition[] {
+    return this.decisionPropositions().filter(
+      (item) => item.required_for_coverage && item.status !== 'supported'
+    );
+  }
+
+  groundedPropositionCount(): number {
+    return this.decisionPropositions().filter((item) => item.status === 'supported').length;
+  }
+
+  policyCitationCount(): number {
+    if (!this.result) {
+      return 0;
+    }
+    const clauseIds = this.result.assessment_propositions.flatMap((item) =>
+      item.evidence
+        .filter((evidence) => evidence.source_kind === 'policy' && !!evidence.policy_clause_id)
+        .map((evidence) => evidence.policy_clause_id as string)
+    );
+    return new Set(clauseIds).size;
+  }
+
+  supportingCitationCount(): number {
+    return this.result?.evidence.filter((item) => item.source.startsWith('supporting:')).length || 0;
+  }
+
+  supportingEvidence(): EvidenceItem[] {
+    return this.result?.evidence.filter((item) => item.source.startsWith('supporting:')) || [];
+  }
+
+  openReviewCount(): number {
+    if (!this.result) {
+      return 0;
+    }
+    const additionalBlockers = this.blockingPropositions().filter(
+      (item) => item.proposition_type !== 'missing_evidence' && item.proposition_type !== 'exclusion'
+    );
+    return this.result.missing_documents.length
+      + this.result.potential_exclusions.length
+      + additionalBlockers.length;
+  }
+
+  propositionTone(proposition: AssessmentProposition): string {
+    return proposition.status;
+  }
+
+  propositionStatusCopy(proposition: AssessmentProposition): string {
+    if (proposition.status === 'supported') {
+      return 'Grounded by the cited evidence';
+    }
+    if (proposition.status === 'contradicted') {
+      return 'Conflicts with policy evidence';
+    }
+    if (proposition.status === 'inconclusive') {
+      return 'More evidence or review is needed';
+    }
+    return 'Awaiting evidence validation';
+  }
+
+  relevantPolicyClauses(): PolicyClause[] {
+    if (!this.result) {
+      return [];
+    }
+    const referencedIds = new Set(
+      this.result.assessment_propositions.flatMap((item) => [
+        ...item.supporting_policy_clause_ids,
+        ...item.contradicting_policy_clause_ids,
+      ])
+    );
+    const relevant = this.result.policy_clauses.filter((item) => referencedIds.has(item.clause_id));
+    return relevant.length ? relevant : this.result.policy_clauses.slice(0, 6);
+  }
+
+  visualEvidenceAvailable(): boolean {
+    return !!this.result && (
+      this.result.image_assessment.detected_damage !== 'unknown'
+      || this.result.image_assessment.confidence > 0
+    );
+  }
+
   reviewChecklist(): Array<{ title: string; note: string; checked: boolean }> {
     if (!this.result) {
       return [];
@@ -129,7 +258,7 @@ export class ResultsComponent {
 
     const exclusions = this.result.potential_exclusions.map((item) => ({
       title: `Review ${this.formatConcept(item)}`,
-      note: 'Confirm whether this exclusion applies to the submitted claim.',
+      note: item.reason || 'Confirm whether this exclusion applies to the submitted claim.',
       checked: false,
     }));
     const missing = this.result.missing_documents.map((document) => ({
@@ -138,7 +267,15 @@ export class ResultsComponent {
       checked: false,
     }));
 
-    return [...exclusions, ...missing].slice(0, 5);
+    const blockers = this.blockingPropositions()
+      .filter((item) => item.proposition_type !== 'missing_evidence' && item.proposition_type !== 'exclusion')
+      .map((item) => ({
+        title: `Resolve ${this.statusLabel(item.proposition_type)}`,
+        note: item.statement,
+        checked: false,
+      }));
+
+    return [...exclusions, ...missing, ...blockers].slice(0, 6);
   }
 
   topPolicyMatches(): PolicyMatch[] {

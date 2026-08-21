@@ -1,17 +1,34 @@
-<article class="evidence-reference">
+<article class="evidence-reference" [attr.data-source]="sourceKind()">
   <header>
-    <strong>{{ sourceLabel() }}</strong>
-    <span *ngIf="evidence.page">Page {{ evidence.page }}</span>
-    <span *ngIf="section() as heading">{{ heading }}</span>
+    <div class="source-identity">
+      <span class="source-mark" aria-hidden="true"></span>
+      <div>
+        <small>{{ sourceKindLabel() }}</small>
+        <strong>{{ sourceLabel() }}</strong>
+      </div>
+    </div>
+    <div class="source-location">
+      <span *ngIf="evidence.page">Page {{ evidence.page }}</span>
+      <span *ngIf="section() as heading">{{ heading }}</span>
+    </div>
   </header>
 
   <blockquote>{{ quote() }}</blockquote>
 
   <footer>
-    <span *ngIf="verificationLabel() as verification" class="verified">{{ verification }}</span>
-    <span *ngIf="extractionLabel() as extraction">{{ extraction }}</span>
-    <span *ngIf="confidenceScore() as confidence">{{ confidence }}% confidence</span>
-    <span *ngIf="relevanceScore() as relevance">{{ relevance }}% relevance</span>
-    <span *ngIf="offsetLabel() as offsets">{{ offsets }}</span>
+    <div class="quality-signals">
+      <span *ngIf="verificationLabel() as verification" class="verified">{{ verification }}</span>
+      <span *ngIf="confidenceScore() as confidence">{{ confidence }}% confidence</span>
+      <span *ngIf="relevanceScore() as relevance">{{ relevance }}% relevance</span>
+    </div>
+
+    <details class="source-details" *ngIf="hasTechnicalDetails()">
+      <summary>Source details</summary>
+      <div>
+        <span *ngIf="clauseId() as id">Clause {{ id }}</span>
+        <span *ngIf="extractionLabel() as extraction">{{ extraction }}</span>
+        <span *ngIf="offsetLabel() as offsets">{{ offsets }}</span>
+      </div>
+    </details>
   </footer>
 </article>

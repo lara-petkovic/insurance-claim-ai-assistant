@@ -70,12 +70,18 @@ def policy_clause(
     concept = str(item.get("concept", "other"))
     polarity = _polarity(item.get("polarity"))
     reference = evidence_reference(document, str(item.get("evidence_text", "")))
-    resolved_type = clause_type or (
-        ClauseType.EXCLUSION if polarity is ClausePolarity.EXCLUDED else ClauseType.COVERAGE
+    resolved_type = (
+        ClauseType(clause_type) if clause_type is not None else
+        ClauseType.EXCLUSION if polarity is ClausePolarity.EXCLUDED else
+        ClauseType.CONDITION if polarity is ClausePolarity.CONDITIONAL else
+        ClauseType.COVERAGE
     )
-    identity = f"{document.document_id}:{concept}:{reference.stable_location}:{polarity.value}"
+    identity = (
+        f"{document.document_id}:{concept}:{reference.stable_location}:"
+        f"{polarity.value}:{resolved_type.value}"
+    )
     return PolicyClause(
-        **reference.model_dump(),
+        **reference.model_dump(exclude={"source_kind", "policy_clause_id"}),
         clause_id=f"clause_{sha256(identity.encode('utf-8')).hexdigest()[:20]}",
         concept=concept,
         clause_type=resolved_type,

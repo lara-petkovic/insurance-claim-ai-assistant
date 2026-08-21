@@ -10,6 +10,7 @@ export type VerificationStatus = 'unverified' | 'machine_verified' | 'human_veri
 export type ClauseType = 'coverage' | 'exclusion' | 'condition' | 'limit' | 'deductible' | 'definition' | 'requirement' | 'other';
 export type ClausePolarity = 'covered' | 'excluded' | 'conditional' | 'neutral' | 'unclear';
 export type PropositionStatus = 'proposed' | 'supported' | 'contradicted' | 'inconclusive';
+export type PropositionType = 'coverage' | 'exclusion' | 'condition' | 'missing_evidence' | 'definition' | 'limit' | 'claim_fact';
 export type TaskStatus = 'pending' | 'in_progress' | 'completed' | 'failed' | 'skipped';
 
 export interface DocumentPage {
@@ -49,6 +50,8 @@ export interface EvidenceProvenance {
   extraction_method: ExtractionMethod;
   confidence: number;
   verification_status: VerificationStatus;
+  source_kind?: 'policy' | 'claim' | 'supporting_document';
+  policy_clause_id?: string | null;
 }
 
 export interface EvidenceItem {
@@ -65,6 +68,9 @@ export interface EvidenceItem {
   stable_location?: string | null;
   extraction_method?: ExtractionMethod | null;
   verification_status?: VerificationStatus | null;
+  policy_clause_id?: string | null;
+  clause_type?: ClauseType | null;
+  proposition_ids?: string[];
 }
 
 export interface PolicyClause extends EvidenceProvenance {
@@ -104,8 +110,13 @@ export interface ClaimFact extends EvidenceProvenance {
 
 export interface AssessmentProposition {
   proposition_id: string;
+  proposition_type: PropositionType;
   statement: string;
   status: PropositionStatus;
+  required_for_coverage: boolean;
+  supporting_policy_clause_ids: string[];
+  contradicting_policy_clause_ids: string[];
+  resolved_policy_clause_ids: string[];
   evidence: EvidenceProvenance[];
   confidence: number;
   created_by: string;
@@ -384,8 +395,16 @@ function isPolicyClause(value: unknown): value is PolicyClause {
 function isAssessmentProposition(value: unknown): value is AssessmentProposition {
   return isRecord(value)
     && typeof value['proposition_id'] === 'string'
+    && typeof value['proposition_type'] === 'string'
     && typeof value['statement'] === 'string'
     && typeof value['status'] === 'string'
+    && typeof value['required_for_coverage'] === 'boolean'
+    && Array.isArray(value['supporting_policy_clause_ids'])
+    && value['supporting_policy_clause_ids'].every((item) => typeof item === 'string')
+    && Array.isArray(value['contradicting_policy_clause_ids'])
+    && value['contradicting_policy_clause_ids'].every((item) => typeof item === 'string')
+    && Array.isArray(value['resolved_policy_clause_ids'])
+    && value['resolved_policy_clause_ids'].every((item) => typeof item === 'string')
     && isUnitInterval(value['confidence'])
     && typeof value['created_by'] === 'string'
     && Array.isArray(value['evidence'])

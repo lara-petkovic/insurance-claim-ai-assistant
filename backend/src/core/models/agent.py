@@ -46,6 +46,9 @@ class EvidenceItem(BaseModel):
     stable_location: str | None = None
     extraction_method: str | None = None
     verification_status: str | None = None
+    policy_clause_id: str | None = None
+    clause_type: str | None = None
+    proposition_ids: list[str] = Field(default_factory=list)
 
 
 class AgentMessage(BaseModel):

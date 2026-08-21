@@ -1,3 +1,4 @@
+import re
 from typing import Any
 
 from core.agents.base import AgentContext, BaseAgent
@@ -146,10 +147,16 @@ class PolicyConceptExtractionAgent(BaseAgent):
             text=policy_text,
         )
         findings_data["coverage_clauses"] = [
-            policy_clause(source_document, item) for item in raw_clauses
+            policy_clause(source_document, item)
+            for item in raw_clauses
+            if str(item.get("polarity")) == "covered"
         ]
         # Exclusion concepts with exact model evidence are also represented as typed clauses.
         typed_exclusions = [
+            policy_clause(source_document, item, clause_type=ClauseType.EXCLUSION)
+            for item in raw_clauses
+            if str(item.get("polarity")) == "excluded"
+        ] + [
             policy_clause(
                 source_document,
                 {**item, "polarity": "excluded"},
@@ -158,7 +165,60 @@ class PolicyConceptExtractionAgent(BaseAgent):
             for item in findings_data["exclusions"]
             if str(item.get("evidence_text", "")).strip()
         ]
-        findings_data["coverage_clauses"].extend(typed_exclusions)
+        typed_conditions = [
+            policy_clause(source_document, item, clause_type=ClauseType.CONDITION)
+            for item in raw_clauses
+            if str(item.get("polarity")) == "conditional"
+        ]
+        structural_clauses = self._structural_clauses(source_document, policy_text)
+        typed_conditions.extend(structural_clauses[ClauseType.CONDITION])
+        typed_limits = structural_clauses[ClauseType.LIMIT]
+        typed_definitions = structural_clauses[ClauseType.DEFINITION]
+        represented_text = {
+            str(item.get("evidence_text", "")).strip().casefold() for item in raw_clauses
+        }
+        generic_operative_clauses = []
+        for evidence_text in policy_clauses(policy_text):
+            polarity = clause_polarity(evidence_text)
+            if polarity not in {"covered", "excluded"} or evidence_text.strip().casefold() in represented_text:
+                continue
+            generic_operative_clauses.append(
+                policy_clause(
+                    source_document,
+                    {
+                        "concept": "general",
+                        "evidence_text": evidence_text,
+                        "polarity": polarity,
+                        "direct_match": True,
+                    },
+                )
+            )
+        all_policy_clauses = self._deduplicate_typed_clauses(
+            [
+                *findings_data["coverage_clauses"],
+                *typed_exclusions,
+                *typed_conditions,
+                *typed_limits,
+                *typed_definitions,
+                *generic_operative_clauses,
+            ]
+        )
+        findings_data["coverage_clauses"] = [
+            item for item in all_policy_clauses if item.clause_type is ClauseType.COVERAGE
+        ]
+        findings_data["exclusion_clauses"] = [
+            item for item in all_policy_clauses if item.clause_type is ClauseType.EXCLUSION
+        ]
+        findings_data["condition_clauses"] = [
+            item for item in all_policy_clauses if item.clause_type is ClauseType.CONDITION
+        ]
+        findings_data["limit_clauses"] = [
+            item for item in all_policy_clauses if item.clause_type is ClauseType.LIMIT
+        ]
+        findings_data["definition_clauses"] = [
+            item for item in all_policy_clauses if item.clause_type is ClauseType.DEFINITION
+        ]
+        findings_data["policy_clauses"] = all_policy_clauses
         findings = PolicyExtractionFindings.model_validate(findings_data)
         return self.respond(
             findings=findings,
@@ -262,3 +322,64 @@ class PolicyConceptExtractionAgent(BaseAgent):
                     )
                     break
         return extracted
+
+    @classmethod
+    def _structural_clauses(
+        cls,
+        document: PolicyDocument,
+        policy_text: str,
+    ) -> dict[ClauseType, list]:
+        grouped: dict[ClauseType, list] = {
+            ClauseType.CONDITION: [],
+            ClauseType.LIMIT: [],
+            ClauseType.DEFINITION: [],
+        }
+        for evidence_text in policy_clauses(policy_text):
+            lower = evidence_text.casefold()
+            concept, matched_terms = cls._clause_concept(lower)
+            items: list[tuple[ClauseType, str]] = []
+            if re.search(r"\b(?:means|is\s+defined\s+as|shall\s+mean)\b", lower):
+                items.append((ClauseType.DEFINITION, "neutral"))
+            if re.search(r"\b(?:limit(?:ed)?\s+to|maximum|up\s+to|not\s+exceed|sublimit)\b", lower):
+                items.append((ClauseType.LIMIT, "neutral"))
+            if (
+                clause_polarity(evidence_text) == "conditional"
+                or re.search(
+                    r"\b(?:must|required|requires|only\s+if|provided\s+that|subject\s+to|unless|except)\b",
+                    lower,
+                )
+            ):
+                items.append((ClauseType.CONDITION, "conditional"))
+            for clause_type, polarity in items:
+                grouped[clause_type].append(
+                    policy_clause(
+                        document,
+                        {
+                            "concept": concept,
+                            "matched_terms": matched_terms,
+                            "evidence_text": evidence_text,
+                            "polarity": polarity,
+                            "direct_match": concept != "general",
+                        },
+                        clause_type=clause_type,
+                    )
+                )
+        return grouped
+
+    @classmethod
+    def _clause_concept(cls, lower_clause: str) -> tuple[str, list[str]]:
+        for concept, terms in cls.COVERAGE_PATTERNS.items():
+            matched = [term for term in terms if term in lower_clause]
+            if matched:
+                return concept, matched
+        return "general", []
+
+    @staticmethod
+    def _deduplicate_typed_clauses(clauses: list) -> list:
+        deduplicated = []
+        seen: set[str] = set()
+        for clause in clauses:
+            if clause.clause_id not in seen:
+                seen.add(clause.clause_id)
+                deduplicated.append(clause)
+        return deduplicated

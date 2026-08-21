@@ -1,9 +1,20 @@
 .evidence-reference {
-  background: rgba(255, 255, 255, 0.025);
-  border: 1px solid rgba(102, 214, 255, 0.15);
-  border-left: 3px solid var(--secondary);
-  margin-top: 16px;
-  padding: 16px 18px;
+  --evidence-color: #69d4f4;
+  background: rgba(7, 13, 19, 0.54);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 14px;
+  box-shadow: inset 3px 0 0 var(--evidence-color);
+  margin-top: 12px;
+  overflow: hidden;
+  padding: 17px 18px 15px;
+}
+
+.evidence-reference[data-source="supporting"] {
+  --evidence-color: #a68cff;
+}
+
+.evidence-reference[data-source="claim"] {
+  --evidence-color: #f3b548;
 }
 
 .evidence-reference header,
@@ -11,40 +22,146 @@
   align-items: center;
   display: flex;
   flex-wrap: wrap;
-  gap: 7px;
+  gap: 12px;
+  justify-content: space-between;
 }
 
-.evidence-reference header strong {
-  color: #b9efff;
-  font-size: 12px;
-  margin-right: 3px;
-  overflow-wrap: anywhere;
+.source-identity {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  min-width: 0;
 }
 
-.evidence-reference header span,
-.evidence-reference footer span {
-  background: rgba(255, 255, 255, 0.055);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
-  color: #cbd4df;
+.source-mark {
+  background: var(--evidence-color);
+  border-radius: 50%;
+  box-shadow: 0 0 0 5px color-mix(in srgb, var(--evidence-color) 14%, transparent);
+  flex: 0 0 auto;
+  height: 8px;
+  width: 8px;
+}
+
+.source-identity div {
+  min-width: 0;
+}
+
+.source-identity small {
+  color: #8995a5;
+  display: block;
   font-size: 9px;
   font-weight: 850;
-  letter-spacing: 0.04em;
-  padding: 3px 6px;
+  letter-spacing: 0.12em;
+  margin-bottom: 3px;
   text-transform: uppercase;
 }
 
-.evidence-reference footer .verified {
+.evidence-reference header strong {
+  color: #eef5fb;
+  display: block;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.source-location,
+.quality-signals {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.source-location span,
+.quality-signals span {
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  color: #b7c2cf;
+  font-size: 9px;
+  font-weight: 850;
+  padding: 4px 8px;
+  text-transform: uppercase;
+}
+
+.quality-signals .verified {
   background: rgba(25, 216, 203, 0.1);
   border-color: rgba(25, 216, 203, 0.25);
   color: var(--accent);
 }
 
 .evidence-reference blockquote {
-  color: #d7dce5;
+  color: #dce4ed;
   font-size: 13px;
-  line-height: 1.55;
-  margin: 12px 0;
+  line-height: 1.65;
+  margin: 16px 0;
   overflow-wrap: anywhere;
+  padding-left: 18px;
+  position: relative;
   white-space: pre-wrap;
+}
+
+.evidence-reference blockquote::before {
+  color: var(--evidence-color);
+  content: "\201C";
+  font-family: Georgia, serif;
+  font-size: 27px;
+  left: -1px;
+  line-height: 1;
+  opacity: 0.8;
+  position: absolute;
+  top: -2px;
+}
+
+.source-details {
+  margin-left: auto;
+  position: relative;
+}
+
+.source-details summary {
+  color: #8f9baa;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 800;
+  list-style: none;
+}
+
+.source-details summary::-webkit-details-marker {
+  display: none;
+}
+
+.source-details summary::after {
+  content: " +";
+}
+
+.source-details[open] summary::after {
+  content: " -";
+}
+
+.source-details div {
+  background: #111923;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  display: grid;
+  gap: 5px;
+  margin-top: 8px;
+  max-width: min(480px, 80vw);
+  padding: 10px;
+}
+
+.source-details span {
+  color: #9faaba;
+  font-size: 9px;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 620px) {
+  .evidence-reference header,
+  .evidence-reference footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .source-details {
+    margin-left: 0;
+  }
 }

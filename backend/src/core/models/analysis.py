@@ -151,6 +151,9 @@ class ProvenancedExcerpt(BaseModel):
 class EvidenceReference(ProvenancedExcerpt):
     """A reusable evidence citation for propositions and agent responses."""
 
+    source_kind: Literal["policy", "claim", "supporting_document"] = "policy"
+    policy_clause_id: str | None = None
+
 
 class PolicyClause(ProvenancedExcerpt):
     clause_id: str = Field(min_length=1)
@@ -174,15 +177,47 @@ class PropositionStatus(StrEnum):
     INCONCLUSIVE = "inconclusive"
 
 
+class PropositionType(StrEnum):
+    COVERAGE = "coverage"
+    EXCLUSION = "exclusion"
+    CONDITION = "condition"
+    MISSING_EVIDENCE = "missing_evidence"
+    DEFINITION = "definition"
+    LIMIT = "limit"
+    CLAIM_FACT = "claim_fact"
+
+
 class AssessmentProposition(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     proposition_id: str = Field(min_length=1)
+    proposition_type: PropositionType = PropositionType.COVERAGE
     statement: str = Field(min_length=1)
     status: PropositionStatus = PropositionStatus.PROPOSED
+    required_for_coverage: bool = False
+    supporting_policy_clause_ids: list[str] = Field(default_factory=list)
+    contradicting_policy_clause_ids: list[str] = Field(default_factory=list)
+    resolved_policy_clause_ids: list[str] = Field(default_factory=list)
     evidence: list[EvidenceReference] = Field(default_factory=list)
     confidence: UnitInterval = Field(default=0.0, ge=0.0, le=1.0)
     created_by: str = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def validate_clause_links(self) -> AssessmentProposition:
+        self.supporting_policy_clause_ids = list(dict.fromkeys(self.supporting_policy_clause_ids))
+        self.contradicting_policy_clause_ids = list(dict.fromkeys(self.contradicting_policy_clause_ids))
+        self.resolved_policy_clause_ids = list(dict.fromkeys(self.resolved_policy_clause_ids))
+        overlap = set(self.supporting_policy_clause_ids).intersection(
+            self.contradicting_policy_clause_ids
+        )
+        if overlap:
+            raise ValueError("a policy clause cannot both support and contradict one proposition")
+        unresolved_targets = set(self.resolved_policy_clause_ids) - set(
+            self.contradicting_policy_clause_ids
+        )
+        if unresolved_targets:
+            raise ValueError("resolved policy clause IDs must reference contradicting clauses")
+        return self
 
 
 class TaskStatus(StrEnum):
@@ -330,6 +365,11 @@ class PolicyExtractionFindings(AgentFindings):
     insured_subject: dict[str, Any]
     covered_events: list[dict[str, Any]] = Field(default_factory=list)
     coverage_clauses: list[PolicyClause] = Field(default_factory=list)
+    policy_clauses: list[PolicyClause] = Field(default_factory=list)
+    exclusion_clauses: list[PolicyClause] = Field(default_factory=list)
+    condition_clauses: list[PolicyClause] = Field(default_factory=list)
+    limit_clauses: list[PolicyClause] = Field(default_factory=list)
+    definition_clauses: list[PolicyClause] = Field(default_factory=list)
     exclusions: list[dict[str, Any]] = Field(default_factory=list)
     limits: list[Any] = Field(default_factory=list)
     deductible_or_excess: str | None = None
@@ -470,7 +510,7 @@ __all__ = [
     "ImageIntegrityModelOutput", "InvestigationTask", "PdfExtractionModelOutput",
     "DynamicPlanningFindings", "PlanningSignalsFindings", "PlanningSignalsModelOutput",
     "PolicyClause", "PolicyDocument", "PolicyExtractionFindings",
-    "PolicyExtractionModelOutput", "PropositionStatus", "SourceDocument",
+    "PolicyExtractionModelOutput", "PropositionStatus", "PropositionType", "SourceDocument",
     "SupportingDocument", "TaskStatus", "VerificationStatus", "VisualEvidenceFindings",
     "VisualEvidenceModelOutput",
 ]

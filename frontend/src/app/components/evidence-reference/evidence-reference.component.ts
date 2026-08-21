@@ -64,7 +64,38 @@ export class EvidenceReferenceComponent {
     const start = this.evidence.char_start;
     const end = this.evidence.char_end;
     return start !== null && start !== undefined && end !== null && end !== undefined
-      ? `Chars ${start}–${end}`
+      ? `Chars ${start}-${end}`
       : null;
+  }
+
+  sourceKind(): 'policy' | 'supporting' | 'claim' {
+    if ('source' in this.evidence) {
+      if (this.evidence.source === 'policy') {
+        return 'policy';
+      }
+      return this.evidence.source.startsWith('supporting:') ? 'supporting' : 'claim';
+    }
+    if (this.evidence.source_kind === 'policy') {
+      return 'policy';
+    }
+    return this.evidence.source_kind === 'supporting_document' ? 'supporting' : 'claim';
+  }
+
+  sourceKindLabel(): string {
+    if (this.sourceKind() === 'policy') {
+      return 'Policy wording';
+    }
+    if (this.sourceKind() === 'supporting') {
+      return 'Claim evidence';
+    }
+    return 'Claim fact';
+  }
+
+  clauseId(): string | null {
+    return this.evidence.policy_clause_id || null;
+  }
+
+  hasTechnicalDetails(): boolean {
+    return !!(this.extractionLabel() || this.offsetLabel() || this.clauseId());
   }
 }

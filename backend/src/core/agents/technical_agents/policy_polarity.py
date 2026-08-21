@@ -12,7 +12,7 @@ _EXCLUDED = re.compile(
 )
 _CONDITIONAL = re.compile(
     r"\b(?:may\s+be\s+covered|might\s+be\s+covered|covered\s+(?:only\s+)?if|"
-    r"subject\s+to|provided\s+that|depending\s+on|unless)\b",
+    r"subject\s+to|provided\s+that|depending\s+on|unless|except(?:\s+when|\s+if|\s+for)?)\b",
     re.IGNORECASE,
 )
 _COVERED = re.compile(

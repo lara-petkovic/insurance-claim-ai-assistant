@@ -13,6 +13,7 @@ from core.models.analysis import (
     EvidenceReference,
     PolicyDocument,
     PropositionStatus,
+    PropositionType,
 )
 from core.provenance import policy_clause
 from models.model_client import get_model_client
@@ -27,24 +28,44 @@ class CoverageMatchingAgent(BaseAgent):
     def run(self, context: AgentContext) -> AgentResponse:
         claim_type = context.memory.get("ClaimExtractionAgent", {}).get("claim_type", "unknown")
         policy_concepts = context.memory.get("PolicyConceptExtractionAgent", {})
-        coverage_clauses = policy_concepts.get("coverage_clauses", [])
+        coverage_clauses = policy_concepts.get("policy_clauses") or policy_concepts.get(
+            "coverage_clauses", []
+        )
         functional_checks = _functional_checklist(context)
-        relevant_clauses = [item for item in coverage_clauses if item.get("concept") == claim_type]
+        relevant_clauses = [
+            item for item in coverage_clauses
+            if item.get("concept") in {claim_type, "general"}
+        ]
         retrieved_evidence = []
         for response in reversed(context.responses):
             if response.agent_name == "RetrievalAgent":
                 retrieved_evidence = [item.model_dump() for item in response.evidence if item.source == "policy"]
                 break
-        positive_clauses = [item for item in relevant_clauses if item.get("polarity") == "covered"]
+        positive_clauses = [
+            item for item in relevant_clauses
+            if item.get("polarity") == "covered"
+            and item.get("clause_type", "coverage") == "coverage"
+        ]
         excluded_clauses = [
             item
             for item in relevant_clauses
-            if item.get("polarity") == "excluded" and item.get("direct_match", True)
+            if item.get("clause_type", "exclusion") == "exclusion"
+            and item.get("polarity") == "excluded"
+            and item.get("direct_match", True)
         ]
         conditional_clauses = [
             item
             for item in relevant_clauses
-            if item.get("polarity") == "conditional" and item.get("direct_match", True)
+            if item.get("clause_type") == "condition"
+            and item.get("direct_match", True)
+        ]
+        definition_clauses = [
+            item for item in relevant_clauses
+            if item.get("clause_type") == "definition" and item.get("concept") == claim_type
+        ]
+        limit_clauses = [
+            item for item in relevant_clauses
+            if item.get("clause_type") == "limit"
         ]
         supporting_clauses = [
             item
@@ -56,6 +77,7 @@ class CoverageMatchingAgent(BaseAgent):
             positive=positive_clauses,
             excluded=excluded_clauses,
             conditional=conditional_clauses,
+            definitions=definition_clauses,
             has_exact_support=bool(supporting_clauses),
         )
         fallback = {
@@ -138,28 +160,98 @@ class CoverageMatchingAgent(BaseAgent):
         for item in findings.matched_policy_concepts:
             if all(item.get(field) is not None for field in ("source_document_id", "source_filename", "stable_location")):
                 try:
-                    proposition_evidence.append(EvidenceReference.model_validate(
-                        {field: item.get(field) for field in EvidenceReference.model_fields}
-                    ))
+                    proposition_evidence.append(EvidenceReference.model_validate({
+                        **{field: item.get(field) for field in EvidenceReference.model_fields},
+                        "source_kind": "policy",
+                        "policy_clause_id": item.get("clause_id"),
+                    }))
                 except ValidationError:
                     provenance_warnings.append(
                         f"Ignored internally inconsistent provenance for policy concept {item.get('concept', 'unknown')}."
                     )
-        assessment_value = findings.coverage_assessment
+        context.propositions = [
+            item for item in context.propositions if item.created_by != self.name
+        ]
+        coverage_status = self._coverage_proposition_status(
+            positive=positive_clauses,
+            excluded=excluded_clauses,
+            conditional=conditional_clauses,
+            definitions=definition_clauses,
+            has_exact_support=bool(supporting_clauses),
+        )
         context.propositions.append(
             AssessmentProposition(
-                proposition_id=f"coverage-{len(context.propositions) + 1}",
-                statement=f"The claim coverage assessment is {assessment_value}.",
-                status=(
-                    PropositionStatus.SUPPORTED
-                    if proposition_evidence and assessment_value in {"covered", "not_covered"}
-                    else PropositionStatus.INCONCLUSIVE
-                ),
+                proposition_id=f"coverage-{claim_type}",
+                proposition_type=PropositionType.COVERAGE,
+                statement=f"The policy covers this {claim_type} claim.",
+                status=coverage_status,
+                required_for_coverage=True,
+                supporting_policy_clause_ids=self._clause_ids(positive_clauses),
+                contradicting_policy_clause_ids=self._clause_ids(excluded_clauses),
                 evidence=proposition_evidence,
-                confidence=0.9 if assessment_value in {"covered", "not_covered"} else 0.4,
+                confidence=0.9 if coverage_status is PropositionStatus.SUPPORTED else 0.4,
                 created_by=self.name,
             )
         )
+        for index, clause in enumerate(excluded_clauses, start=1):
+            context.propositions.append(
+                AssessmentProposition(
+                    proposition_id=f"policy-exclusion-{claim_type}-{index}",
+                    proposition_type=PropositionType.EXCLUSION,
+                    statement=f"The policy exclusion in clause {clause.get('clause_id', index)} bars this claim.",
+                    status=(
+                        PropositionStatus.SUPPORTED
+                        if not positive_clauses else PropositionStatus.INCONCLUSIVE
+                    ),
+                    required_for_coverage=True,
+                    supporting_policy_clause_ids=self._clause_ids([clause]),
+                    evidence=self._references_for_clauses([clause]),
+                    confidence=0.85 if not positive_clauses else 0.4,
+                    created_by=self.name,
+                )
+            )
+        for index, clause in enumerate(conditional_clauses, start=1):
+            context.propositions.append(
+                AssessmentProposition(
+                    proposition_id=f"condition-{claim_type}-{index}",
+                    proposition_type=PropositionType.CONDITION,
+                    statement=f"The policy condition for {claim_type} is satisfied by the claim facts.",
+                    status=PropositionStatus.INCONCLUSIVE,
+                    required_for_coverage=True,
+                    supporting_policy_clause_ids=self._clause_ids([clause]),
+                    evidence=self._references_for_clauses([clause]),
+                    confidence=0.35,
+                    created_by=self.name,
+                )
+            )
+        for index, clause in enumerate(definition_clauses, start=1):
+            context.propositions.append(
+                AssessmentProposition(
+                    proposition_id=f"definition-{claim_type}-{index}",
+                    proposition_type=PropositionType.DEFINITION,
+                    statement=f"The reported loss satisfies the policy definition of {claim_type}.",
+                    status=PropositionStatus.INCONCLUSIVE,
+                    required_for_coverage=True,
+                    supporting_policy_clause_ids=self._clause_ids([clause]),
+                    evidence=self._references_for_clauses([clause]),
+                    confidence=0.35,
+                    created_by=self.name,
+                )
+            )
+        for index, clause in enumerate(limit_clauses, start=1):
+            context.propositions.append(
+                AssessmentProposition(
+                    proposition_id=f"limit-{claim_type}-{index}",
+                    proposition_type=PropositionType.LIMIT,
+                    statement=f"A policy limit may affect the amount payable for {claim_type}.",
+                    status=PropositionStatus.SUPPORTED,
+                    required_for_coverage=False,
+                    supporting_policy_clause_ids=self._clause_ids([clause]),
+                    evidence=self._references_for_clauses([clause]),
+                    confidence=0.8,
+                    created_by=self.name,
+                )
+            )
         return self.respond(
             findings=findings,
             confidence=0.9 if findings.get("coverage_assessment") in {"covered", "not_covered"} else 0.4,
@@ -190,17 +282,53 @@ class CoverageMatchingAgent(BaseAgent):
         positive: list[dict[str, Any]],
         excluded: list[dict[str, Any]],
         conditional: list[dict[str, Any]],
+        definitions: list[dict[str, Any]],
         has_exact_support: bool,
     ) -> str:
         if claim_type == "unknown" or (positive and excluded):
             return "unclear"
         if excluded:
             return "not_covered"
-        if conditional:
+        if conditional or definitions:
             return "possibly_covered"
         if positive and has_exact_support:
             return "covered"
         return "unclear"
+
+    @staticmethod
+    def _coverage_proposition_status(
+        *,
+        positive: list[dict[str, Any]],
+        excluded: list[dict[str, Any]],
+        conditional: list[dict[str, Any]],
+        definitions: list[dict[str, Any]],
+        has_exact_support: bool,
+    ) -> PropositionStatus:
+        if excluded and not positive:
+            return PropositionStatus.CONTRADICTED
+        if excluded or conditional or definitions:
+            return PropositionStatus.INCONCLUSIVE
+        if positive and has_exact_support:
+            return PropositionStatus.SUPPORTED
+        return PropositionStatus.INCONCLUSIVE
+
+    @staticmethod
+    def _clause_ids(clauses: list[dict[str, Any]]) -> list[str]:
+        return [str(item.get("clause_id")) for item in clauses if item.get("clause_id")]
+
+    @staticmethod
+    def _references_for_clauses(clauses: list[dict[str, Any]]) -> list[EvidenceReference]:
+        references = []
+        for item in clauses:
+            try:
+                references.append(EvidenceReference.model_validate({
+                    **{field: item.get(field) for field in EvidenceReference.model_fields},
+                    "source_kind": "policy",
+                    "policy_clause_id": item.get("clause_id"),
+                }))
+            except ValidationError:
+                continue
+        return references
 
     @staticmethod
     def _has_retrieved_support(clause: dict[str, Any], evidence: list[dict[str, Any]]) -> bool:

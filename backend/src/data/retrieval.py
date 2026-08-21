@@ -4,7 +4,7 @@ import re
 from collections import Counter
 
 from core.models.agent import EvidenceItem
-from core.models.analysis import SourceDocument, VerificationStatus
+from core.models.analysis import ClauseType, PolicyClause, VerificationStatus, SourceDocument
 
 # ¨y
 def tokenize(text: str) -> list[str]:
@@ -92,3 +92,49 @@ def retrieve_passages(
             )
         )
     return results
+
+
+def retrieve_policy_clauses(
+    clauses: list[PolicyClause],
+    query: str,
+    *,
+    clause_type: ClauseType | str,
+    claim_type: str,
+    top_k: int = 10,
+) -> list[EvidenceItem]:
+    """Rank one policy-clause category without losing clause identity or provenance."""
+    resolved_clause_type = ClauseType(clause_type)
+    query_terms = Counter(tokenize(f"{claim_type} {query}"))
+    ranked: list[tuple[float, PolicyClause]] = []
+    for clause in clauses:
+        if clause.clause_type is not resolved_clause_type:
+            continue
+        terms = Counter(tokenize(f"{clause.concept} {clause.evidence_text}"))
+        overlap = sum(min(count, terms.get(term, 0)) for term, count in query_terms.items())
+        concept_match = clause.concept in {claim_type, "general"}
+        if not overlap and not concept_match:
+            continue
+        score = min((overlap + (3 if clause.concept == claim_type else 1 if concept_match else 0)) /
+                    max(len(query_terms) + 3, 1), 1.0)
+        ranked.append((score, clause))
+    ranked.sort(key=lambda item: (item[0], item[1].direct_match), reverse=True)
+    return [
+        EvidenceItem(
+            source="policy",
+            text=clause.evidence_text,
+            section=clause.section_heading,
+            page=clause.page,
+            score=round(score, 3),
+            source_document_id=clause.source_document_id,
+            source_filename=clause.source_filename,
+            section_heading=clause.section_heading,
+            char_start=clause.char_start,
+            char_end=clause.char_end,
+            stable_location=clause.stable_location,
+            extraction_method=clause.extraction_method.value,
+            verification_status=clause.verification_status.value,
+            policy_clause_id=clause.clause_id,
+            clause_type=clause.clause_type.value,
+        )
+        for score, clause in ranked[:top_k]
+    ]

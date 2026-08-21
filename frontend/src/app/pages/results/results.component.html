@@ -34,164 +34,300 @@
   </aside>
 </section>
 
-<section class="results-page" *ngIf="view === 'results'">
+<section class="results-page decision-report" *ngIf="view === 'results'">
   <ng-container *ngIf="result; else noResult">
-    <header class="report-hero final-hero" [ngClass]="decisionTone()">
-      <div>
-        <p class="review-pill">{{ decisionTitle() }}</p>
-        <h2>{{ decisionTitle() }}</h2>
-        <span>{{ result.reasoning_summary }}</span>
+    <header class="decision-hero" [ngClass]="decisionTone()">
+      <div class="decision-copy">
+        <span class="eyebrow">Preliminary coverage assessment</span>
+        <div class="decision-heading">
+          <span class="decision-mark" aria-hidden="true"></span>
+          <h2>{{ decisionTitle() }}</h2>
+        </div>
+        <p>{{ decisionSubtitle() }}</p>
+        <div class="hero-tags">
+          <span>{{ statusLabel(result.claim_type) }}</span>
+          <span>{{ result.insurance_type }} insurance</span>
+          <span>{{ coverageLabel() }} coverage</span>
+        </div>
       </div>
-      <div class="hero-gauge" [style.--score]="confidenceScore()">
-        <strong>{{ confidenceScore() }}%</strong>
-        <span>{{ confidenceLabel() }}</span>
+
+      <div class="confidence-panel">
+        <div class="confidence-ring" [style.--score]="confidenceScore()">
+          <div>
+            <strong>{{ confidenceScore() }}%</strong>
+            <span>confidence</span>
+          </div>
+        </div>
+        <small>{{ confidenceLabel() }}</small>
+        <p>Confidence measures evidence support, not payment certainty.</p>
       </div>
     </header>
 
-    <section class="report-summary">
+    <section class="signal-strip" aria-label="Assessment overview">
       <article>
-        <span class="metric-icon">CV</span>
-        <small>Coverage</small>
+        <span class="signal-label">Coverage</span>
         <strong>{{ coverageLabel() }}</strong>
-        <em>{{ result.coverage_assessment === 'covered' ? 'Policy match found' : 'Review reasoning' }}</em>
+        <small>{{ primaryPropositionStatusLabel() }}</small>
       </article>
       <article>
-        <span class="metric-icon">CL</span>
-        <small>Claim type</small>
-        <strong>{{ statusLabel(result.claim_type) }}</strong>
-        <em>{{ result.insurance_type }} insurance</em>
+        <span class="signal-label">Grounded conclusions</span>
+        <strong>{{ groundedPropositionCount() }} / {{ decisionPropositions().length }}</strong>
+        <small>Proposition-level checks</small>
       </article>
       <article>
-        <span class="metric-icon warn">MD</span>
-        <small>Missing docs</small>
-        <strong>{{ primaryMissingDocument() }}</strong>
-        <em>{{ missingDocumentAction() }}</em>
+        <span class="signal-label">Policy citations</span>
+        <strong>{{ policyCitationCount() }}</strong>
+        <small>{{ supportingCitationCount() }} supporting-document citation(s)</small>
       </article>
-      <article>
-        <span class="metric-icon warn">EX</span>
-        <small>Exclusions</small>
-        <strong>{{ exclusionCountLabel() }}</strong>
-        <em>{{ result.potential_exclusions.length ? 'Review reasoning' : 'None detected' }}</em>
+      <article [class.needs-attention]="openReviewCount() > 0">
+        <span class="signal-label">Needs attention</span>
+        <strong>{{ openReviewCount() }}</strong>
+        <small>{{ openReviewCount() ? 'Open review item(s)' : 'No blockers found' }}</small>
       </article>
     </section>
 
-    <section class="decision-layout">
-      <div class="main-stack">
-        <article class="report-card primary">
-          <h3>Assessment Summary</h3>
-          <p>{{ result.reasoning_summary }}</p>
+    <section class="report-grid">
+      <main class="report-main">
+        <article class="panel decision-basis" *ngIf="primaryProposition() as proposition">
+          <header class="section-heading">
+            <div>
+              <span class="section-index">01</span>
+              <div>
+                <small>Decision basis</small>
+                <h3>Why the assessment reached this result</h3>
+              </div>
+            </div>
+            <span class="status-badge" [attr.data-status]="proposition.status">
+              {{ statusLabel(proposition.status) }}
+            </span>
+          </header>
+
+          <p class="assessment-narrative">{{ result.reasoning_summary }}</p>
+
+          <div class="primary-proposition" [attr.data-status]="proposition.status">
+            <div class="proposition-copy">
+              <span>{{ statusLabel(proposition.proposition_type) }} conclusion</span>
+              <h4>{{ proposition.statement }}</h4>
+              <p>{{ propositionStatusCopy(proposition) }}</p>
+            </div>
+            <div class="rule-counts">
+              <div>
+                <strong>{{ proposition.supporting_policy_clause_ids.length }}</strong>
+                <span>supporting</span>
+              </div>
+              <div [class.has-conflict]="proposition.contradicting_policy_clause_ids.length">
+                <strong>{{ proposition.contradicting_policy_clause_ids.length }}</strong>
+                <span>contradicting</span>
+              </div>
+              <div>
+                <strong>{{ proposition.required_for_coverage ? 'Yes' : 'No' }}</strong>
+                <span>required</span>
+              </div>
+            </div>
+          </div>
+
+          <section class="evidence-lane">
+            <div class="evidence-lane-heading">
+              <div>
+                <span class="evidence-icon">E</span>
+                <div>
+                  <strong>Evidence tied to this conclusion</strong>
+                  <small>Each passage is linked by its exact policy-clause ID.</small>
+                </div>
+              </div>
+              <span>{{ proposition.evidence.length }} citation(s)</span>
+            </div>
+            <app-evidence-reference
+              *ngFor="let item of proposition.evidence"
+              [evidence]="item"
+            />
+            <div class="empty-evidence" *ngIf="!proposition.evidence.length">
+              No exact citation is attached to this conclusion. Human review is required.
+            </div>
+          </section>
+        </article>
+
+        <article class="panel conclusions-panel">
+          <header class="section-heading">
+            <div>
+              <span class="section-index">02</span>
+              <div>
+                <small>Grounded conclusions</small>
+                <h3>Conditions, exclusions and evidence gaps</h3>
+              </div>
+            </div>
+            <span class="section-count">{{ secondaryPropositions().length }} checks</span>
+          </header>
+
+          <div class="conclusion-list" *ngIf="secondaryPropositions().length; else noSecondaryConclusions">
+            <details
+              class="proposition-row"
+              *ngFor="let proposition of secondaryPropositions()"
+              [attr.data-status]="propositionTone(proposition)"
+            >
+              <summary>
+                <span class="status-dot"></span>
+                <div class="row-copy">
+                  <small>{{ statusLabel(proposition.proposition_type) }}</small>
+                  <strong>{{ proposition.statement }}</strong>
+                  <span>{{ propositionStatusCopy(proposition) }}</span>
+                </div>
+                <div class="row-meta">
+                  <span *ngIf="proposition.required_for_coverage">Required</span>
+                  <span>{{ proposition.evidence.length }} source(s)</span>
+                  <span class="chevron" aria-hidden="true"></span>
+                </div>
+              </summary>
+              <div class="proposition-detail">
+                <div class="clause-link-summary">
+                  <span>{{ proposition.supporting_policy_clause_ids.length }} supporting clause(s)</span>
+                  <span [class.conflict]="proposition.contradicting_policy_clause_ids.length">
+                    {{ proposition.contradicting_policy_clause_ids.length }} contradicting clause(s)
+                  </span>
+                  <span>{{ proposition.confidence | percent:'1.0-0' }} confidence</span>
+                </div>
+                <app-evidence-reference
+                  *ngFor="let item of proposition.evidence"
+                  [evidence]="item"
+                />
+                <div class="empty-evidence" *ngIf="!proposition.evidence.length">
+                  No exact source passage is attached to this conclusion.
+                </div>
+              </div>
+            </details>
+          </div>
+          <ng-template #noSecondaryConclusions>
+            <p class="empty-state">No additional policy conditions or exclusions were returned.</p>
+          </ng-template>
+        </article>
+
+        <article class="panel case-file-panel">
+          <header class="section-heading">
+            <div>
+              <span class="section-index">03</span>
+              <div>
+                <small>Case file</small>
+                <h3>Facts and source details</h3>
+              </div>
+            </div>
+            <span class="section-count">Secondary detail</span>
+          </header>
+
+          <div class="case-drawers">
+            <details open>
+              <summary>
+                <span>Extracted claim facts</span>
+                <small>{{ claimFacts().length }} facts</small>
+              </summary>
+              <div class="drawer-content fact-grid">
+                <div class="fact-tile" *ngFor="let fact of claimFacts()">
+                  <small>{{ statusLabel(fact.fact_type) }}</small>
+                  <strong>{{ factValue(fact) }}</strong>
+                  <span>{{ fact.confidence | percent:'1.0-0' }} confidence</span>
+                </div>
+                <p class="empty-state" *ngIf="!claimFacts().length">No typed claim facts were returned.</p>
+              </div>
+            </details>
+
+            <details>
+              <summary>
+                <span>Relevant policy clauses</span>
+                <small>{{ relevantPolicyClauses().length }} referenced</small>
+              </summary>
+              <div class="drawer-content">
+                <div class="clause-block" *ngFor="let clause of relevantPolicyClauses()">
+                  <div class="clause-heading">
+                    <strong>{{ statusLabel(clause.concept) }}</strong>
+                    <span [attr.data-polarity]="clause.polarity">
+                      {{ statusLabel(clause.clause_type) }} / {{ statusLabel(clause.polarity) }}
+                    </span>
+                  </div>
+                  <app-evidence-reference [evidence]="clause" />
+                </div>
+                <p class="empty-state" *ngIf="!relevantPolicyClauses().length">
+                  No typed policy clauses were returned.
+                </p>
+              </div>
+            </details>
+
+            <details *ngIf="supportingEvidence().length">
+              <summary>
+                <span>Supporting-document evidence</span>
+                <small>{{ supportingEvidence().length }} source(s)</small>
+              </summary>
+              <div class="drawer-content">
+                <app-evidence-reference
+                  *ngFor="let item of supportingEvidence()"
+                  [evidence]="item"
+                />
+              </div>
+            </details>
+          </div>
+        </article>
+      </main>
+
+      <aside class="report-sidebar">
+        <article class="panel action-panel">
+          <span class="panel-kicker">Recommended next step</span>
+          <h3>{{ result.claim_status === 'requires_human_review' ? 'Prepare for adjuster review' : 'Continue the claim workflow' }}</h3>
           <p>{{ result.recommendation }}</p>
 
-          <div class="rationale-bars">
-            <div>
-              <span>{{ confidenceLabel() }}</span>
-              <strong [style.width.%]="confidenceScore()"></strong>
-            </div>
-            <div>
-              <span>Review Load</span>
-              <strong class="warning-bar" [style.width.%]="(result.missing_documents.length + result.potential_exclusions.length) ? 64 : 12"></strong>
-            </div>
-          </div>
-        </article>
+          <div class="action-divider"></div>
 
-        <article class="report-card evidence-card">
-          <div class="card-title-row">
-            <h3>Evidence Citations</h3>
-            <span>{{ result.evidence.length }} total</span>
+          <div class="action-heading">
+            <strong>Open actions</strong>
+            <span>{{ reviewChecklist().length }}</span>
           </div>
-          <app-evidence-reference *ngFor="let item of topEvidence()" [evidence]="item" />
-          <p *ngIf="!result.evidence.length">No citations returned.</p>
-        </article>
-
-        <article class="report-card facts-card">
-          <div class="card-title-row">
-            <h3>Extracted Claim Facts</h3>
-            <span>{{ claimFacts().length }} facts</span>
-          </div>
-          <div class="fact-row" *ngFor="let fact of claimFacts()">
-            <div>
-              <small>{{ statusLabel(fact.fact_type) }}</small>
-              <strong>{{ factValue(fact) }}</strong>
-            </div>
-            <div class="fact-meta">
-              <span>{{ statusLabel(fact.extraction_method) }}</span>
-              <span>{{ fact.confidence | percent:'1.0-0' }}</span>
-              <span>{{ statusLabel(fact.verification_status) }}</span>
-            </div>
-          </div>
-          <p *ngIf="!claimFacts().length">No typed claim facts were returned.</p>
-        </article>
-
-        <article class="report-card clauses-card">
-          <div class="card-title-row">
-            <h3>Policy Clause Provenance</h3>
-            <span>{{ result.policy_clauses.length }} clauses</span>
-          </div>
-          <div class="clause-block" *ngFor="let clause of topPolicyClauses()">
-            <div class="clause-heading">
-              <strong>{{ statusLabel(clause.concept) }}</strong>
-              <span [attr.data-polarity]="clause.polarity">{{ clause.clause_type }} / {{ clause.polarity }}</span>
-            </div>
-            <app-evidence-reference [evidence]="clause" />
-          </div>
-          <p *ngIf="!result.policy_clauses.length">No typed policy clauses were returned.</p>
-        </article>
-      </div>
-
-      <aside class="side-stack">
-        <article class="report-card compact">
-          <h3>Policy Matches</h3>
-          <ul class="match-list" *ngIf="topPolicyMatches().length; else noConcepts">
-            <li *ngFor="let concept of topPolicyMatches()">
-              <span></span>
+          <ol class="action-list" *ngIf="reviewChecklist().length; else noActions">
+            <li *ngFor="let item of reviewChecklist(); let index = index">
+              <span>{{ index + 1 }}</span>
               <div>
-                <strong>{{ formatConcept(concept) }}</strong>
-                <small>{{ provenanceLabel(concept) }}</small>
+                <strong>{{ item.title }}</strong>
+                <p>{{ item.note }}</p>
               </div>
-              <em>{{ clauseEffect(concept) }}</em>
             </li>
-          </ul>
-          <ng-template #noConcepts><p>No direct policy concept match was returned.</p></ng-template>
+          </ol>
+          <ng-template #noActions>
+            <div class="all-clear">No additional evidence requests were identified.</div>
+          </ng-template>
         </article>
 
-        <article class="report-card compact proposition-card" *ngIf="primaryProposition() as proposition">
-          <h3>Assessment Proposition</h3>
-          <p>{{ proposition.statement }}</p>
-          <div class="proposition-meta">
-            <span>{{ statusLabel(proposition.status) }}</span>
-            <span>{{ proposition.confidence | percent:'1.0-0' }} confidence</span>
-            <span>{{ proposition.evidence.length }} evidence reference(s)</span>
+        <article class="panel evidence-health">
+          <span class="panel-kicker">Evidence integrity</span>
+          <h3>Traceable to source</h3>
+          <div class="health-row">
+            <span>Policy citations</span>
+            <strong>{{ policyCitationCount() }}</strong>
           </div>
-        </article>
-
-        <article class="report-card checklist-card">
-          <h3>Human Review Checklist</h3>
-          <div class="review-item" *ngFor="let item of reviewChecklist()">
-            <span [class.checked]="item.checked"></span>
-            <div>
-              <strong>{{ item.title }}</strong>
-              <p>{{ item.note }}</p>
-            </div>
+          <div class="health-row">
+            <span>Supporting documents</span>
+            <strong>{{ supportingCitationCount() }}</strong>
           </div>
-          <p *ngIf="!reviewChecklist().length">No additional human review checklist items were returned.</p>
+          <div class="health-row">
+            <span>Unresolved conclusions</span>
+            <strong [class.alert]="blockingPropositions().length">{{ blockingPropositions().length }}</strong>
+          </div>
+          <p>Open a conclusion to inspect its exact page, section and source passage.</p>
         </article>
 
-        <article class="report-card visual-card">
-          <h3>Visual Evidence</h3>
+        <article class="panel visual-summary" *ngIf="visualEvidenceAvailable()">
+          <span class="panel-kicker">Visual evidence</span>
+          <h3>{{ statusLabel(result.image_assessment.detected_damage) }}</h3>
           <dl>
-            <div>
-              <dt>Detected damage</dt>
-              <dd>{{ result.image_assessment.detected_damage }}</dd>
-            </div>
             <div>
               <dt>Vision confidence</dt>
               <dd>{{ result.image_assessment.confidence | percent:'1.0-0' }}</dd>
             </div>
             <div>
               <dt>Authenticity risk</dt>
-              <dd>{{ result.image_authenticity.risk_level }} ({{ result.image_authenticity.risk_score }})</dd>
+              <dd>{{ statusLabel(result.image_authenticity.risk_level) }}</dd>
             </div>
           </dl>
+        </article>
+
+        <article class="security-notice" *ngIf="result.security_flags.length">
+          <strong>Security review required</strong>
+          <p>Untrusted input signals were detected. Do not automate the final outcome.</p>
         </article>
       </aside>
     </section>

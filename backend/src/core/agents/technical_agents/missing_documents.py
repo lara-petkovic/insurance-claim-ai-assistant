@@ -3,6 +3,9 @@ import re
 from core.agents.base import AgentContext, BaseAgent
 from core.agents.technical_agents.shared import _functional_checklist
 from core.models.agent import AgentResponse
+from core.models.analysis import AssessmentProposition, PropositionStatus, PropositionType
+from core.provenance import evidence_reference
+from security.input_security import detect_prompt_injection
 
 
 class MissingDocumentsAgent(BaseAgent):
@@ -35,6 +38,8 @@ class MissingDocumentsAgent(BaseAgent):
     def _satisfying_document(self, requirement: str, context: AgentContext) -> str | None:
         alternatives = self.ALTERNATIVES.get(requirement, [tuple(requirement.split())])
         for document in context.request.supporting_documents:
+            if detect_prompt_injection(document.text):
+                continue
             words = self._normalized_words(
                 f"{document.filename} {document.document_type} {document.text}"
             )
@@ -62,6 +67,50 @@ class MissingDocumentsAgent(BaseAgent):
             else:
                 missing.append(requirement)
 
+        context.propositions = [
+            item for item in context.propositions if item.created_by != self.name
+        ]
+        policy_requirements = context.memory.get("PolicyConceptExtractionAgent", {}).get(
+            "condition_clauses", []
+        )
+        for index, requirement in enumerate(
+            self.REQUIREMENTS.get(claim_type, ["supporting evidence"]), start=1
+        ):
+            clause_ids = self._requirement_clause_ids(requirement, policy_requirements)
+            satisfying_filename = satisfied_by.get(requirement)
+            proposition_evidence = []
+            if satisfying_filename:
+                document = next(
+                    (
+                        item for item in context.request.supporting_documents
+                        if item.filename == satisfying_filename
+                    ),
+                    None,
+                )
+                if document is not None:
+                    reference = evidence_reference(document, document.text.strip())
+                    proposition_evidence = [
+                        reference.model_copy(update={"source_kind": "supporting_document"})
+                    ]
+            is_missing = requirement in missing
+            context.propositions.append(
+                AssessmentProposition(
+                    proposition_id=f"missing-evidence-{index}",
+                    proposition_type=PropositionType.MISSING_EVIDENCE,
+                    statement=(
+                        f"Required claim evidence '{requirement}' is missing."
+                        if is_missing else
+                        f"Required claim evidence '{requirement}' is present."
+                    ),
+                    status=PropositionStatus.SUPPORTED,
+                    required_for_coverage=False,
+                    supporting_policy_clause_ids=clause_ids,
+                    evidence=proposition_evidence,
+                    confidence=0.9 if is_missing or satisfying_filename else 0.7,
+                    created_by=self.name,
+                )
+            )
+
         return self.respond(
             findings={
                 "missing_documents": missing,
@@ -80,3 +129,13 @@ class MissingDocumentsAgent(BaseAgent):
                 )
             ],
         )
+
+    @classmethod
+    def _requirement_clause_ids(cls, requirement: str, clauses: list) -> list[str]:
+        requirement_words = cls._normalized_words(requirement) - {"or", "for", "claim"}
+        return [
+            str(clause.get("clause_id"))
+            for clause in clauses
+            if clause.get("clause_id")
+            and requirement_words.intersection(cls._normalized_words(str(clause.get("evidence_text", ""))))
+        ]
