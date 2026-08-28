@@ -5,6 +5,8 @@ from core.models.agent import AgentResponse
 from core.models.analysis import (
     ClaimFact,
     ImageIntegrityModelOutput,
+    InvestigationTask,
+    OrchestrationLimits,
     PolicyClause,
     PolicyDocument,
     VisualEvidenceModelOutput,
@@ -98,3 +100,28 @@ def test_typed_run_state_tracks_tasks_and_serializes_typed_findings():
     serialized = state.model_dump(mode="json")
     assert state.tasks[0].status == "completed"
     assert serialized["memory"]["ClaimExtractionAgent"]["claim_type"] == "water_damage"
+
+
+def test_run_state_enforces_time_and_estimated_cost_bounds():
+    task = InvestigationTask(
+        task_id="bounded-task",
+        task_type="extract_claim",
+        agent_name="ClaimExtractionAgent",
+        objective="Extract claim facts.",
+        expected_model_calls=1,
+        estimated_cost_usd=0.01,
+    )
+    state = ClaimAnalysisRunState(
+        request=ClaimRequestData(claim_description="A pipe burst."),
+        limits=OrchestrationLimits(max_seconds=1, max_estimated_cost_usd=0.005),
+    )
+
+    allowed, reason = state.budget_allows(task)
+    assert allowed is False
+    assert reason == "maximum estimated cost reached"
+
+    state.limits.max_estimated_cost_usd = 1
+    state._started_at -= 2
+    allowed, reason = state.budget_allows(task)
+    assert allowed is False
+    assert reason == "maximum orchestration time reached"

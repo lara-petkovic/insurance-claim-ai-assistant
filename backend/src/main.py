@@ -6,7 +6,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from api.claim_request_api import router as api_router
+from api.claim_request_api import router as claim_request_router
+from api.health_api import router as health_router
 from models.model_client import ModelCallError
 from security.api_protection import ApiProtector
 
@@ -41,4 +42,5 @@ async def model_call_error_handler(_, exc: ModelCallError) -> JSONResponse:
     )
 
 
-app.include_router(api_router)
+app.include_router(claim_request_router)
+app.include_router(health_router)

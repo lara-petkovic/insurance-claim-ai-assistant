@@ -64,6 +64,23 @@ def test_json_response_uses_structured_output_with_pydantic_model():
     assert "schema" in request["text"]["format"]
 
 
+def test_json_response_forwards_bounded_request_options():
+    client = make_client('{"decision": "healthy", "score": 1.0}')
+
+    client.json_response(
+        system="Return health.",
+        prompt="Health probe.",
+        fallback={"decision": "fallback", "score": 0.0},
+        response_model=StructuredDecision,
+        timeout_seconds=10.0,
+        max_output_tokens=128,
+    )
+
+    request = client._client.responses.last_create_kwargs
+    assert request["timeout"] == 10.0
+    assert request["max_output_tokens"] == 128
+
+
 def test_json_response_raises_for_invalid_legacy_json_without_schema():
     client = make_client("not JSON at all")
 

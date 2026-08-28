@@ -15,3 +15,8 @@ def test_rate_limit_window_expires():
 
     assert protector._rate_limit_exceeded("client", 1.0) is False
     assert protector._rate_limit_exceeded("client", 61.0) is False
+
+
+def test_only_non_billable_liveness_is_unprotected():
+    assert ApiProtector._is_protected_path("/api/health") is False
+    assert ApiProtector._is_protected_path("/api/health/ready") is True

@@ -1,4 +1,4 @@
-"""Technical agents execute concrete analysis tasks.
+"""Technical agents execute concrete investigation and validation tasks.
 
 Each technical agent knows its own responsibility and performs that task using
 the shared context, extracted data, model calls, retrieval evidence, validation

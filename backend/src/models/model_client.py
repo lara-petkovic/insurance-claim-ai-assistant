@@ -70,6 +70,8 @@ class ModelClient:
         response_model: ResponseModel | None = None,
         schema_description: str | None = None,
         strict_schema: bool = True,
+        timeout_seconds: float | None = None,
+        max_output_tokens: int | None = None,
     ) -> ModelResult:
         if not self._client:
             return self._fallback_or_raise(fallback, self.init_error or "Model client is unavailable.")
@@ -88,6 +90,8 @@ class ModelClient:
             response_model=response_model,
             schema_description=schema_description,
             strict_schema=strict_schema,
+            timeout_seconds=timeout_seconds,
+            max_output_tokens=max_output_tokens,
         )
 
     def image_json_response(
@@ -198,6 +202,8 @@ class ModelClient:
         response_model: ResponseModel | None = None,
         schema_description: str | None = None,
         strict_schema: bool = True,
+        timeout_seconds: float | None = None,
+        max_output_tokens: int | None = None,
     ) -> ModelResult:
         try:
             text_config = self._structured_text_config(
@@ -222,6 +228,10 @@ class ModelClient:
             }
             if text_config:
                 create_kwargs["text"] = text_config
+            if timeout_seconds is not None:
+                create_kwargs["timeout"] = timeout_seconds
+            if max_output_tokens is not None:
+                create_kwargs["max_output_tokens"] = max_output_tokens
             response = self._client.responses.create(**create_kwargs)
             parsed = self._parse_model_json(
                 getattr(response, "output_text", "") or "",

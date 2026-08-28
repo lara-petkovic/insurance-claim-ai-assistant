@@ -7,6 +7,14 @@ from core.claim_validation import (
 from core.models.agent import AgentResponse
 
 
+class DateComparisonService:
+    """Controlled entry point for policy-period date comparison."""
+
+    @staticmethod
+    def compare(context: AgentContext) -> tuple[dict, list[str]]:
+        return ConsistencyVerificationAgent._validate_dates(context)
+
+
 class ConsistencyVerificationAgent(BaseAgent):
     """Cross-checks claim facts, image findings, and required dates for inconsistencies."""
 
@@ -30,7 +38,7 @@ class ConsistencyVerificationAgent(BaseAgent):
             if expected != claim_type:
                 issues.append(f"Image suggests {detected_damage}, while claim was classified as {claim_type}.")
 
-        date_validation, date_issues = self._validate_dates(context)
+        date_validation, date_issues = DateComparisonService.compare(context)
         subject_consistency, subject_issues = self._validate_insured_subject(context, claim_type)
         issues.extend(date_issues)
         issues.extend(subject_issues)
@@ -117,7 +125,6 @@ class ConsistencyVerificationAgent(BaseAgent):
             },
             issues,
         )
-
     @staticmethod
     def _validate_insured_subject(context: AgentContext, claim_type: object) -> tuple[dict, list[str]]:
         policy_subject = context.memory.get("PolicyConceptExtractionAgent", {}).get("insured_subject")

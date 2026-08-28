@@ -1,9 +1,10 @@
 # API Endpoints
 
-The FastAPI application is defined in `backend/src/main.py`; routes live in `backend/src/api/routes_api.py`.
+The FastAPI application is defined in `backend/src/main.py`; claim routes live in
+`backend/src/api/claim_request_api.py` and health routes in `backend/src/api/health_api.py`.
 
 - `GET /api/health`
-- `POST /api/documents/extract`
+- `GET /api/health/ready` — verifies the configured text model with a bounded structured-output call
 - `POST /api/claims/analyze`
 - `POST /api/claims/analyze-stream`
 

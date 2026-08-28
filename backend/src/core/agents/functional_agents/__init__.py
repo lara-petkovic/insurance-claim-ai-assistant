@@ -1,4 +1,4 @@
-"""Functional agents act as domain experts.
+"""Functional agents provide domain-specific investigation guidance.
 
 Their main task is to decide what should be checked for a given insurance
 domain and claim type. They provide rules, checklists, and guidance that help

@@ -175,6 +175,7 @@ class PropositionStatus(StrEnum):
     SUPPORTED = "supported"
     CONTRADICTED = "contradicted"
     INCONCLUSIVE = "inconclusive"
+    REJECTED = "rejected"
 
 
 class PropositionType(StrEnum):
@@ -228,15 +229,92 @@ class TaskStatus(StrEnum):
     SKIPPED = "skipped"
 
 
+class InvestigationTaskType(StrEnum):
+    PLAN = "plan"
+    INGEST_DOCUMENTS = "ingest_documents"
+    CHECK_DOCUMENT_QUALITY = "check_document_quality"
+    EXTRACT_POLICY = "extract_policy"
+    EXTRACT_CLAIM = "extract_claim"
+    LOAD_DOMAIN_GUIDANCE = "load_domain_guidance"
+    REWRITE_QUERY = "rewrite_query"
+    RETRIEVE_EVIDENCE = "retrieve_evidence"
+    ANALYZE_IMAGE = "analyze_image"
+    CHECK_IMAGE_AUTHENTICITY = "check_image_authenticity"
+    ANALYZE_COVERAGE = "analyze_coverage"
+    CHECK_DOCUMENTS = "check_documents"
+    CHECK_CONSISTENCY = "check_consistency"
+    CALCULATE_SETTLEMENT = "calculate_settlement"
+    FORMAT_CITATIONS = "format_citations"
+    CRITIQUE_EVIDENCE = "critique_evidence"
+    SYNTHESIZE = "synthesize"
+
+
+class OrchestrationStopReason(StrEnum):
+    SUFFICIENT_EVIDENCE = "sufficient_evidence"
+    UNAVOIDABLE_UNCERTAINTY = "unavoidable_uncertainty"
+    BUDGET_EXHAUSTED = "budget_exhausted"
+    FAILURE = "failure"
+
+
+class OrchestrationPhase(StrEnum):
+    PLANNING = "planning"
+    INVESTIGATION = "investigation"
+    CRITIQUE = "critique"
+    REPAIR = "repair"
+    SYNTHESIS = "synthesis"
+    STOPPED = "stopped"
+
+
 class InvestigationTask(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     task_id: str = Field(min_length=1)
     agent_name: str = Field(min_length=1)
     objective: str = Field(min_length=1)
+    task_type: InvestigationTaskType = InvestigationTaskType.PLAN
+    assigned_role: str = Field(default="InvestigationPlannerAgent", min_length=1)
+    tool_name: str | None = None
+    selection_reason: str = Field(default="Legacy task requested.", min_length=1)
     status: TaskStatus = TaskStatus.PENDING
     depends_on: list[str] = Field(default_factory=list)
     evidence_ids: list[str] = Field(default_factory=list)
+    parameters: dict[str, Any] = Field(default_factory=dict)
+    parent_task_id: str | None = None
+    attempt: int = Field(default=0, ge=0)
+    expected_model_calls: int = Field(default=0, ge=0)
+    estimated_cost_usd: float = Field(default=0.0, ge=0.0)
+    result_summary: str | None = None
+
+
+class OrchestrationLimits(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    max_repair_iterations: int = Field(default=2, ge=0, le=10)
+    max_model_calls: int = Field(default=12, ge=0, le=100)
+    max_seconds: float = Field(default=60.0, gt=0.0, le=600.0)
+    max_estimated_cost_usd: float = Field(default=0.20, ge=0.0, le=100.0)
+
+
+class OrchestrationUsage(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    repair_iterations: int = Field(default=0, ge=0)
+    model_calls: int = Field(default=0, ge=0)
+    estimated_cost_usd: float = Field(default=0.0, ge=0.0)
+    elapsed_seconds: float = Field(default=0.0, ge=0.0)
+
+
+class OrchestrationAction(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    task_id: str
+    task_type: InvestigationTaskType
+    selected_by: str
+    executor: str
+    reason: str
+    outcome: TaskStatus
+    detail: str = ""
+    repair_iteration: int = Field(default=0, ge=0)
 
 
 AgentTask = InvestigationTask
@@ -507,7 +585,9 @@ __all__ = [
     "CoverageFindings", "CoverageModelOutput", "DocumentPage", "EvidenceReference",
     "ExclusionFindings", "ExclusionModelOutput",
     "ExtractionMethod", "GenericAgentFindings", "ImageIntegrityFindings",
-    "ImageIntegrityModelOutput", "InvestigationTask", "PdfExtractionModelOutput",
+    "ImageIntegrityModelOutput", "InvestigationTask", "InvestigationTaskType",
+    "OrchestrationAction", "OrchestrationLimits", "OrchestrationPhase",
+    "OrchestrationStopReason", "OrchestrationUsage", "PdfExtractionModelOutput",
     "DynamicPlanningFindings", "PlanningSignalsFindings", "PlanningSignalsModelOutput",
     "PolicyClause", "PolicyDocument", "PolicyExtractionFindings",
     "PolicyExtractionModelOutput", "PropositionStatus", "PropositionType", "SourceDocument",

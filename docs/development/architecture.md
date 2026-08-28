@@ -5,7 +5,7 @@ backend/
   src/
     main.py    FastAPI application entrypoint
     api/       API routes
-    core/      Agent orchestration, domain agents, and domain models
+    core/      Bounded execution graph, reasoning roles, controlled services, and domain models
     data/      Document extraction and retrieval
     models/    External AI model adapters
     utils/     Project logging and other small helpers

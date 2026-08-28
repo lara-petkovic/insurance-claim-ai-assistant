@@ -45,29 +45,29 @@ frontend/
   package.json           Angular scripts and dependencies
 ```
 
-## Agents
+## Bounded orchestration
 
-The backend uses a techno-functional multi-agent workflow. The important idea
-is that functional agents decide **what should be checked**, while technical
-agents know **how to perform their specific task**.
+The backend uses a small internal execution graph with three reasoning roles.
+Typed tasks and an allow-listed service registry keep model and tool execution
+bounded and observable.
 
-### Orchestration Agents
+### Reasoning roles and API facade
 
-- `DynamicPlanningAgent` selects the execution plan for the claim. It always
-  includes the general insurance functional agent and then chooses the
-  specialized functional agent from the selected insurance type:
-  - `home` -> `HomeInsuranceFunctionalAgent`
-  - `auto` -> `AutoInsuranceFunctionalAgent`
-  - `travel` -> `TravelInsuranceFunctionalAgent`
-- `OrchestratorAgent` runs the selected agents in order, stores their shared
-  memory, streams progress events to the frontend, logs agent activity, and
-  triggers validator-feedback repair steps when needed.
-- `FinalDecisionSynthesisAgent` combines the final agent outputs into the
-  structured `ClaimAnalysisResult`.
+- `InvestigationPlannerAgent` creates typed tasks only for unresolved state;
+  policy, image, calculation, and retrieval branches run only when applicable.
+- `CoverageAnalystAgent` consumes coverage-analysis tasks and resolves typed
+  coverage and exclusion propositions.
+- `EvidenceCriticAgent` accepts or rejects proposition grounding and can request
+  proposition-targeted retrieval, re-analysis, and citation repair.
+- `OrchestratorAgent` is the API facade over the bounded graph and preserves the
+  existing streaming event contract.
 
-### Functional Agents
+The graph invokes the existing functional and technical agents through an
+allow-listed registry. Calculation and date comparison remain focused services.
 
-Functional agents are domain experts. Their main task is to define the rules,
+### Functional agents
+
+Functional agents define the rules,
 checklists, and guidance that describe what should be checked for the selected
 insurance domain and claim type.
 
@@ -83,7 +83,7 @@ insurance domain and claim type.
   baggage loss, medical claims, trip cancellation, carrier reports, proof of
   ownership, medical receipts, and cancellation evidence.
 
-### Technical Agents
+### Technical agents
 
 Technical agents execute concrete analysis tasks. They use the claim request,
 policy text, extracted concepts, retrieval evidence, functional checklists,
@@ -104,43 +104,41 @@ workflow.
   active functional checklist.
 - `RetrievalAgent` searches policy wording and supporting documents separately,
   preserves each passage's source, and can retry with the rewritten query.
-- `CoverageMatchingAgent` compares the claim facts with policy concepts,
-  retrieved evidence, and functional checks to assess coverage.
+- `CoverageMatchingAgent` supports the coverage role by comparing policy evidence.
 - `VisualEvidenceAgent` classifies visible damage from an uploaded image when
   image evidence is present.
 - `ImageAuthenticityAgent` estimates image-authenticity risk signals.
 
-### Validator Agents
+### Validation agents and focused services
 
-Validator agents check the quality, consistency, and supportability of the
-analysis.
-
-- `ExclusionCheckingAgent` checks whether policy exclusions or functional
-  exclusion risks apply.
+- `ExclusionCheckingAgent` supports the coverage role with exclusion checks.
 - `MissingDocumentsAgent` checks whether required claim evidence is missing.
-- `ConsistencyVerificationAgent` cross-checks claim facts, visual findings, and
-  required dates.
-- `CitationAgent` attaches prioritized policy citations and relevant citations
-  from named supporting documents for claim facts.
-- `OutputValidatorAgent` validates the full agent output and emits feedback
-  for repair or human review.
+- `ConsistencyVerificationAgent` uses `DateComparisonService` to cross-check
+  facts, insured subjects, visual findings, and dates.
+- `CitationAgent` attaches exact policy and supporting-document citations.
+- `OutputValidatorAgent` provides deterministic proposition validation to
+  the critic.
+- `SettlementCalculationService` performs arithmetic only when explicit claim
+  amounts and policy deductibles/excesses are available.
+- `FinalDecisionSynthesisAgent` creates the final bounded summary without
+  resolving unsupported uncertainty.
 
 ### Agent Communication
 
-The orchestrator controls which agents run and in what order. Individual agents
-emit explicit messages such as handoffs, requests, validations, feedback, and
-summaries. Those messages are stored in shared context, logged by the backend,
-and shown in the frontend agent trace.
+The planner and critic emit messages containing typed task IDs. The graph admits
+only the tasks referenced by those messages, then records each action's selection
+reason, executor, outcome, repair iteration, model-call estimate, elapsed time,
+and estimated cost. Execution stops with `sufficient_evidence`,
+`unavoidable_uncertainty`, `budget_exhausted`, or `failure`.
 
 In short:
 
 ```text
-Planner decides who participates.
-Orchestrator decides who runs next.
-Functional agents define what should be checked.
-Technical agents perform the checks.
-Validator agents verify the output.
-Shared context carries findings and inter-agent messages.
+Planner creates typed work from unresolved state.
+The graph executes allow-listed services and reasoning roles.
+The critic either accepts evidence or requests targeted bounded repair.
+Explicit limits bound repair iterations, model calls, time, and estimated cost.
+Shared state carries findings, tasks, actions, propositions, and messages.
 ```
 
 ## OpenAI Setup
@@ -154,9 +152,9 @@ the API key through the process environment:
 $env:OPENAI_API_KEY='your_api_key_here'
 ```
 
-The default model routing uses `gpt-5.6-terra` for substantive text analysis,
-`gpt-5.6-luna` for planning classification, and `gpt-5.6-sol` for vision and
-file-based interpretation.
+Local development uses `gpt-5.4-mini` for text analysis, planning, vision, and
+file-based interpretation. The `env` and `prod` profiles retain their separate
+`gpt-5.6` model routing.
 
 `APP_ENV` selects the config file and defaults to `dev`. Docker uses `prod`.
 Use `APP_ENV=env` when you want `config/config.env.json`. `APP_CONFIG_FILE` can
@@ -233,7 +231,7 @@ The frontend calls the backend through the Angular proxy at:
 ## API Endpoints
 
 - `GET /api/health`
-- `POST /api/documents/extract`
+- `GET /api/health/ready` — performs a bounded, billable LLM readiness probe
 - `POST /api/claims/analyze`
 - `POST /api/claims/analyze-stream`
 

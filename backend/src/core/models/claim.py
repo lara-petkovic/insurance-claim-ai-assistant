@@ -9,7 +9,9 @@ from core.models.agent import AgentResponse, EvidenceItem
 from core.models.analysis import (
     AssessmentProposition,
     ClaimFact,
-    DocumentPage,
+    OrchestrationAction,
+    OrchestrationStopReason,
+    OrchestrationUsage,
     PolicyClause,
     PolicyDocument,
     SupportingDocument,
@@ -95,6 +97,13 @@ class ImageAuthenticity(BaseModel):
     signals: list[str] = Field(default_factory=list)
 
 
+class OrchestrationSummary(BaseModel):
+    stop_reason: OrchestrationStopReason | None = None
+    stop_detail: str | None = None
+    usage: OrchestrationUsage = Field(default_factory=OrchestrationUsage)
+    actions: list[OrchestrationAction] = Field(default_factory=list)
+
+
 class ClaimAnalysisResult(BaseModel):
     claim_status: ClaimStatus
     insurance_type: InsuranceType
@@ -112,14 +121,5 @@ class ClaimAnalysisResult(BaseModel):
     reasoning_summary: str
     recommendation: str
     security_flags: list[str] = Field(default_factory=list)
+    orchestration: OrchestrationSummary = Field(default_factory=OrchestrationSummary)
     agent_trace: list[AgentResponse] = Field(default_factory=list)
-
-
-class DocumentExtractionResult(BaseModel):
-    filename: str
-    document_type: str
-    text: str
-    warnings: list[str] = Field(default_factory=list)
-    document_id: str | None = None
-    pages: list[DocumentPage] = Field(default_factory=list)
-    extraction_method: str | None = None

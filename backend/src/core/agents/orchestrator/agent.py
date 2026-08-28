@@ -4,31 +4,10 @@ from collections.abc import Iterator
 from typing import Any
 
 from core.agents.base import AgentContext, BaseAgent
-from core.agents.functional_agents import (
-    AutoInsuranceFunctionalAgent,
-    GeneralInsuranceFunctionalAgent,
-    HomeInsuranceFunctionalAgent,
-    TravelInsuranceFunctionalAgent,
-)
-from core.agents.orchestrator.planning import DynamicPlanningAgent
-from core.agents.orchestrator.synthesis import FinalDecisionSynthesisAgent
-from core.agents.technical_agents import (
-    CitationAgent,
-    ClaimExtractionAgent,
-    ConsistencyVerificationAgent,
-    CoverageMatchingAgent,
-    DocumentIngestionAgent,
-    DocumentQualityAgent,
-    ExclusionCheckingAgent,
-    ImageAuthenticityAgent,
-    MissingDocumentsAgent,
-    OutputValidatorAgent,
-    PolicyConceptExtractionAgent,
-    QueryRewriteAgent,
-    RetrievalAgent,
-    VisualEvidenceAgent,
-)
+from core.agents.orchestrator.graph import BoundedInvestigationGraph
+from core.agents.orchestrator.streaming import StreamingProgressCompatibilityAdapter
 from core.models.agent import AgentResponse
+from core.models.analysis import OrchestrationLimits, OrchestrationStopReason
 from core.models.claim import (
     ClaimAnalysisResult,
     ClaimRequestData,
@@ -36,6 +15,7 @@ from core.models.claim import (
     CoverageAssessment,
     ImageAssessment,
     ImageAuthenticity,
+    OrchestrationSummary,
     RiskLevel,
 )
 from utils.app_logger import get_logger, log_event
@@ -73,142 +53,69 @@ def _log_agent_completed(response: AgentResponse, **details: Any) -> None:
 
 
 class OrchestratorAgent(BaseAgent):
-    """Coordinates the agent team, shared memory, streaming events, and feedback repairs."""
+    """API facade over the explicit bounded investigation graph."""
 
     name = "OrchestratorAgent"
     agent_type = "orchestrator"
 
-    def __init__(self) -> None:
-        self.planner = DynamicPlanningAgent()
-        self.agent_registry: dict[str, BaseAgent] = {
-            agent.name: agent
-            for agent in [
-                DocumentIngestionAgent(),
-                DocumentQualityAgent(),
-                PolicyConceptExtractionAgent(),
-                ClaimExtractionAgent(),
-                GeneralInsuranceFunctionalAgent(),
-                HomeInsuranceFunctionalAgent(),
-                AutoInsuranceFunctionalAgent(),
-                TravelInsuranceFunctionalAgent(),
-                QueryRewriteAgent(),
-                RetrievalAgent(),
-                VisualEvidenceAgent(),
-                ImageAuthenticityAgent(),
-                CoverageMatchingAgent(),
-                ExclusionCheckingAgent(),
-                MissingDocumentsAgent(),
-                ConsistencyVerificationAgent(),
-                CitationAgent(),
-                OutputValidatorAgent(),
-                FinalDecisionSynthesisAgent(),
-            ]
-        }
-        self.agents: list[BaseAgent] = list(self.agent_registry.values())
+    def __init__(
+        self,
+        *,
+        limits: OrchestrationLimits | None = None,
+        graph: BoundedInvestigationGraph | None = None,
+    ) -> None:
+        self.limits = limits or OrchestrationLimits()
+        self.graph = graph or BoundedInvestigationGraph()
+        self.planner = self.graph.planner
+        self.agents = [self.graph.planner, self.graph.analyst, self.graph.critic]
+        self.last_run_state: AgentContext | None = None
 
     def run(self, context: AgentContext) -> AgentResponse:
-        _log_agent_activity(self.planner.name, "Started.", step="planning")
-        plan_response = context.add(self.planner.run(context))
-        planned_agents = self._agents_from_plan(plan_response)
-        context.set_plan([agent.name for agent in planned_agents])
-        _log_agent_messages(plan_response)
-        _log_agent_completed(plan_response, planned_agents=len(planned_agents))
+        context.limits = self.limits.model_copy(deep=True)
+        self.last_run_state = context
+        for event in self.graph.execute(context):
+            for response in event.get("responses", []):
+                _log_agent_messages(response)
+                _log_agent_completed(response, task_id=event.get("task", {}).task_id if event.get("task") else None)
         _log_agent_activity(
             self.name,
-            "Analysis started.",
-            agents=len(planned_agents),
-            insurance_type=context.request.insurance_type,
-            policy_chars=len(context.request.policy_text or ""),
-            has_image=bool(context.request.damage_image_filename),
+            "Analysis completed.",
+            completed_agents=len(context.responses),
+            stop_reason=context.stop_reason,
+            model_calls=context.usage.model_calls,
+            repair_iterations=context.usage.repair_iterations,
         )
-        for index, agent in enumerate(planned_agents, start=1):
-            _log_agent_activity(agent.name, "Started.", step=f"{index}/{len(planned_agents)}")
-            response = context.add(agent.run(context))
-            _log_agent_messages(response)
-            if agent.name == "OutputValidatorAgent":
-                self._run_feedback_repairs(context)
-            _log_agent_completed(response)
-        _log_agent_activity(self.name, "Analysis completed.", completed_agents=len(context.responses))
         return self.respond(
             findings={
-                "completed_agents": [agent.name for agent in planned_agents],
+                "completed_agents": [response.agent_name for response in context.responses],
                 "inter_agent_messages": [message.model_dump(mode="json") for message in context.messages],
-                "dynamic_plan": plan_response.findings,
+                "stop_reason": context.stop_reason,
+                "stop_detail": context.stop_detail,
+                "usage": context.usage.model_dump(mode="json"),
+                "actions": [action.model_dump(mode="json") for action in context.actions],
             },
             confidence=0.9,
+            requires_human_review=context.stop_reason is not OrchestrationStopReason.SUFFICIENT_EVIDENCE,
             messages=[
                 self.message(
-                    "Agentic team completed dynamic planned execution with shared memory and explicit inter-agent messages.",
+                    f"Bounded execution stopped with {context.stop_reason}.",
                     message_type="summary",
-                    metadata={"completed_agents": [agent.name for agent in planned_agents], "message_count": len(context.messages)},
+                    metadata={
+                        "stop_reason": context.stop_reason,
+                        "stop_detail": context.stop_detail,
+                        "message_count": len(context.messages),
+                    },
                 )
             ],
         )
 
     def stream(self, request: ClaimRequestData) -> Iterator[dict[str, Any]]:
-        context = AgentContext(request=request)
-        _log_agent_activity(self.planner.name, "Started.", step="planning")
-        plan_response = context.add(self.planner.run(context))
-        planned_agents = self._agents_from_plan(plan_response)
-        context.set_plan([agent.name for agent in planned_agents])
-        total = len(planned_agents)
-        _log_agent_messages(plan_response)
-        _log_agent_completed(plan_response, planned_agents=total)
-        _log_agent_activity(
-            self.name,
-            "Streaming analysis started.",
-            agents=total,
-            insurance_type=request.insurance_type,
-            policy_chars=len(request.policy_text or ""),
-            has_image=bool(request.damage_image_filename),
-        )
-        yield {
-            "event": "analysis_started",
-            "total_agents": total,
-            "message": "Dynamic agent analysis started.",
-            "agent_response": plan_response.model_dump(mode="json"),
-            "planned_agents": [agent.name for agent in planned_agents],
-        }
-        yield {
-            "event": "agent_completed",
-            "agent_name": self.planner.name,
-            "index": 0,
-            "total_agents": total,
-            "message": f"{self.planner.name} completed.",
-            "agent_response": plan_response.model_dump(mode="json"),
-        }
-        for index, agent in enumerate(planned_agents, start=1):
-            yield {
-                "event": "agent_started",
-                "agent_name": agent.name,
-                "index": index,
-                "total_agents": total,
-                "message": f"{agent.name} started.",
-            }
-            _log_agent_activity(agent.name, "Started.", step=f"{index}/{total}")
-            response = context.add(agent.run(context))
-            _log_agent_messages(response)
-            repair_responses = []
-            if agent.name == "OutputValidatorAgent":
-                repair_responses = self._run_feedback_repairs(context)
-            _log_agent_completed(response)
-            yield {
-                "event": "agent_completed",
-                "agent_name": agent.name,
-                "index": index,
-                "total_agents": total,
-                "message": f"{agent.name} completed.",
-                "agent_response": response.model_dump(mode="json"),
-            }
-            for repair_response in repair_responses:
-                yield {
-                    "event": "agent_completed",
-                    "agent_name": repair_response.agent_name,
-                    "index": index,
-                    "total_agents": total,
-                    "message": f"{repair_response.agent_name} repaired from validator feedback.",
-                    "agent_response": repair_response.model_dump(mode="json"),
-                }
+        context = AgentContext(request=request, limits=self.limits.model_copy(deep=True))
+        self.last_run_state = context
+        adapter = StreamingProgressCompatibilityAdapter()
+        for graph_event in self.graph.execute(context):
+            for event in adapter.adapt(graph_event, context):
+                yield event
         result = self._result_from_context(request, context)
         _log_agent_activity(
             self.name,
@@ -221,71 +128,17 @@ class OrchestratorAgent(BaseAgent):
             "event": "analysis_completed",
             "message": "Agent analysis completed.",
             "result": result.model_dump(mode="json"),
+            "orchestration": {
+                "stop_reason": context.stop_reason,
+                "stop_detail": context.stop_detail,
+                "usage": context.usage.model_dump(mode="json"),
+            },
         }
 
     def analyze(self, request: ClaimRequestData) -> ClaimAnalysisResult:
-        context = AgentContext(request=request)
+        context = AgentContext(request=request, limits=self.limits.model_copy(deep=True))
         self.run(context)
         return self._result_from_context(request, context)
-
-    def _agents_from_plan(self, plan_response: AgentResponse) -> list[BaseAgent]:
-        names = plan_response.findings.get("planned_agents", [])
-        agents = [self.agent_registry[name] for name in names if isinstance(name, str) and name in self.agent_registry]
-        return agents or list(self.agent_registry.values())
-
-    def _run_feedback_repairs(self, context: AgentContext) -> list[AgentResponse]:
-        feedback = context.memory.get("OutputValidatorAgent", {}).get("feedback", [])
-        if not feedback:
-            return []
-
-        repair_targets: list[str] = []
-        for item in feedback:
-            if not isinstance(item, dict):
-                continue
-            issue = str(item.get("issue", "")).lower()
-            target = str(item.get("target_agent", ""))
-            if (
-                "no citation" in issue
-                or "no citation is available" in issue
-                or "supporting policy citation" in issue
-                or "not grounded" in issue
-            ):
-                repair_targets.extend(["QueryRewriteAgent", "RetrievalAgent", "CoverageMatchingAgent", "CitationAgent"])
-            elif target in {"CoverageMatchingAgent", "RetrievalAgent"}:
-                repair_targets.append(target)
-
-        ordered_unique = []
-        for target in repair_targets:
-            if target in self.agent_registry and target not in ordered_unique:
-                ordered_unique.append(target)
-
-        repair_responses = []
-        for target in ordered_unique[:4]:
-            agent = self.agent_registry[target]
-            _log_agent_activity(agent.name, "Started.", step="validator-repair")
-            response = agent.run(context)
-            response.messages.append(
-                self.message(
-                    f"{target} reran after validator feedback.",
-                    to_agent="OutputValidatorAgent",
-                    message_type="feedback",
-                    metadata={"repair_target": target},
-                )
-            )
-            response = context.replace(response)
-            _log_agent_messages(response)
-            _log_agent_completed(response, step="validator-repair")
-            repair_responses.append(response)
-
-        if repair_responses:
-            validator = self.agent_registry["OutputValidatorAgent"]
-            _log_agent_activity(validator.name, "Started.", step="validator-recheck")
-            validator_response = context.replace(validator.run(context))
-            _log_agent_messages(validator_response)
-            _log_agent_completed(validator_response, step="validator-recheck")
-            repair_responses.append(validator_response)
-
-        return repair_responses
 
     def _result_from_context(self, request: ClaimRequestData, context: AgentContext) -> ClaimAnalysisResult:
         claim = context.memory.get("ClaimExtractionAgent", {})
@@ -315,7 +168,11 @@ class OrchestratorAgent(BaseAgent):
             if isinstance(item, dict)
         ):
             coverage_assessment = CoverageAssessment.UNCLEAR
-        requires_review = bool(request.security_flags) or any(response.requires_human_review for response in context.responses)
+        requires_review = (
+            bool(request.security_flags)
+            or context.stop_reason is not OrchestrationStopReason.SUFFICIENT_EVIDENCE
+            or any(response.requires_human_review for response in context.responses)
+        )
 
         claim_status: ClaimStatus
         if request.security_flags:
@@ -345,6 +202,11 @@ class OrchestratorAgent(BaseAgent):
         synthesis = context.memory.get("FinalDecisionSynthesisAgent", {})
         if synthesis.get("review_reasons"):
             reasoning_summary += f" Final synthesis flagged: {', '.join(synthesis.get('review_reasons', []))}."
+        if context.stop_reason is not None:
+            reasoning_summary += (
+                f" Orchestration stopped because {context.stop_reason.value}: "
+                f"{context.stop_detail or 'no additional detail'}"
+            )
 
         return ClaimAnalysisResult(
             claim_status=claim_status,
@@ -372,6 +234,12 @@ class OrchestratorAgent(BaseAgent):
             reasoning_summary=reasoning_summary,
             recommendation=recommendation,
             security_flags=request.security_flags,
+            orchestration=OrchestrationSummary(
+                stop_reason=context.stop_reason,
+                stop_detail=context.stop_detail,
+                usage=context.usage,
+                actions=context.actions,
+            ),
             agent_trace=context.responses,
         )
 

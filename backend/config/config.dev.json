@@ -1,8 +1,8 @@
 {
   "model": {
-    "text_model": "gpt-5.5",
-    "planning_model": "gpt-5.5",
-    "vision_model": "gpt-5.5"
+    "text_model": "gpt-5.4-mini",
+    "planning_model": "gpt-5.4-mini",
+    "vision_model": "gpt-5.4-mini"
   },
   "logging": {
     "level": "INFO",
