@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1000" height="1600" viewBox="0 0 1000 1600" role="img" aria-labelledby="title description">
-  <title id="title">Архитектура вишеагентског система за анализу захтева за осигурање</title>
-  <desc id="description">Вертикални архитектонски дијаграм који приказује корисника, Angular клијент, серверску апликацију, API слој, обраду докумената, вишеагентски аналитички слој, моделски клијент и спољне AI моделе.</desc>
+  <title id="title">Компонентна архитектура система и ток комуникације</title>
+  <desc id="description">Поједностављен дијаграм главних компоненти система и тока комуникације од Angular клијента, преко серверске апликације и ограниченог графа истраге, до резултата и спољних AI модела.</desc>
 
   <defs>
     <filter id="shadow" x="-20%" y="-20%" width="140%" height="160%">
-      <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#173b71" flood-opacity="0.12"/>
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#173b71" flood-opacity="0.13"/>
     </filter>
     <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
       <path d="M0 0 L10 5 L0 10 Z" fill="#0b3474"/>
@@ -12,165 +12,175 @@
     <marker id="arrow-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
       <path d="M0 0 L10 5 L0 10 Z" fill="#009c52"/>
     </marker>
+    <marker id="arrow-orange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#c56a00"/>
+    </marker>
+    <marker id="arrow-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#667085"/>
+    </marker>
     <style>
-      .server { fill: #f7faff; stroke: #0b3474; stroke-width: 1.6; stroke-dasharray: 7 5; }
-      .layer { fill: #ffffff; stroke: #0b3474; stroke-width: 1.5; }
-      .box-blue { fill: #ffffff; stroke: #0b3474; stroke-width: 2; }
-      .box-green { fill: #ffffff; stroke: #009c52; stroke-width: 2; }
-      .box-context { fill: #e2f5e9; stroke: #009c52; stroke-width: 1.8; }
-      .box-orchestrator { fill: #214b87; stroke: #123a73; stroke-width: 1.8; }
-      .line-blue { fill: none; stroke: #0b3474; stroke-width: 2; stroke-linecap: square; stroke-linejoin: miter; }
-      .line-green { fill: none; stroke: #009c52; stroke-width: 2; stroke-linecap: square; stroke-linejoin: miter; }
-      .dash-blue { stroke-dasharray: 6 5; }
-      .model-call { stroke-dasharray: 6 5; }
-      .text-main, .text-server, .text-layer, .text-node, .text-small {
-        font-family: "Times New Roman", Times, serif;
-        font-size: 22px;
-        font-weight: 700;
-        fill: #0b3474;
+      .server { fill:#f7faff; stroke:#0b3474; stroke-width:1.7; stroke-dasharray:8 6; }
+      .graph { fill:#ffffff; stroke:#0b3474; stroke-width:1.8; }
+      .box-blue { fill:#ffffff; stroke:#0b3474; stroke-width:2; }
+      .box-green { fill:#ffffff; stroke:#009c52; stroke-width:2; }
+      .box-soft-green { fill:#e7f7ed; stroke:#009c52; stroke-width:1.8; }
+      .box-soft-blue { fill:#eef4fc; stroke:#0b3474; stroke-width:1.6; }
+      .box-soft-orange { fill:#fff4e5; stroke:#c56a00; stroke-width:1.8; }
+      .box-dark { fill:#214b87; stroke:#123a73; stroke-width:1.8; }
+      .box-gray { fill:#f5f6f8; stroke:#667085; stroke-width:1.6; }
+      .line-blue { fill:none; stroke:#0b3474; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; }
+      .line-green { fill:none; stroke:#009c52; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+      .line-orange { fill:none; stroke:#c56a00; stroke-width:2.2; stroke-dasharray:7 5; stroke-linecap:round; stroke-linejoin:round; }
+      .line-gray { fill:none; stroke:#667085; stroke-width:2; stroke-dasharray:6 5; stroke-linecap:round; stroke-linejoin:round; }
+      .title, .section, .node, .small, .tiny, .white, .orange-text, .gray-text {
+        font-family:"Times New Roman", Times, serif;
+        fill:#0b3474;
       }
-      .text-orchestrator {
-        font-family: "Times New Roman", Times, serif;
-        font-size: 22px;
-        font-weight: 700;
-        fill: #ffffff;
-      }
+      .title { font-size:25px; font-weight:700; }
+      .section { font-size:22px; font-weight:700; }
+      .node { font-size:21px; font-weight:700; }
+      .small { font-size:15px; font-weight:400; }
+      .tiny { font-size:13px; font-weight:400; }
+      .white { font-size:21px; font-weight:700; fill:#ffffff; }
+      .orange-text { font-size:19px; font-weight:700; fill:#a55300; }
+      .gray-text { font-size:14px; font-weight:400; fill:#475467; }
     </style>
   </defs>
 
   <rect width="1000" height="1600" fill="#ffffff"/>
 
-  <g transform="translate(55 0)">
-
-  <!-- Корисник -->
+  <!-- Корисник и клијент -->
   <g filter="url(#shadow)">
-    <rect x="310" y="36" width="269" height="88" rx="8" class="box-blue"/>
+    <rect x="365" y="25" width="270" height="65" rx="8" class="box-blue"/>
+    <rect x="365" y="125" width="270" height="65" rx="8" class="box-blue"/>
   </g>
-  <text x="444.5" y="85" text-anchor="middle" class="text-main">Корисник</text>
-
-  <path d="M444.5 124 V178" class="line-blue" marker-start="url(#arrow-blue)" marker-end="url(#arrow-blue)"/>
-
-  <!-- Angular клијент -->
-  <g filter="url(#shadow)">
-    <rect x="310" y="178" width="269" height="89" rx="8" class="box-blue"/>
-  </g>
-  <text x="444.5" y="227" text-anchor="middle" class="text-main">Angular клијент</text>
+  <text x="500" y="65" text-anchor="middle" class="title">Корисник</text>
+  <text x="500" y="165" text-anchor="middle" class="title">Angular клијент</text>
+  <path d="M500 90 V125" class="line-blue" marker-start="url(#arrow-blue)" marker-end="url(#arrow-blue)"/>
 
   <!-- Серверска апликација -->
-  <rect x="-11" y="320" width="912" height="1156" rx="14" class="server"/>
-  <text x="7" y="352" class="text-server">Серверска апликација</text>
+  <rect x="35" y="225" width="930" height="1235" rx="14" class="server"/>
+  <text x="55" y="258" class="section">Серверска апликација</text>
 
-  <!-- API слој -->
+  <!-- API и заштита -->
   <g filter="url(#shadow)">
-    <rect x="310" y="373" width="269" height="90" rx="8" class="box-blue"/>
+    <rect x="330" y="280" width="340" height="78" rx="8" class="box-blue"/>
+    <rect x="70" y="287" width="220" height="64" rx="8" class="box-gray"/>
   </g>
-  <text x="444.5" y="423" text-anchor="middle" class="text-main">API слој</text>
+  <text x="500" y="327" text-anchor="middle" class="node">FastAPI API слој</text>
+  <text x="180" y="326" text-anchor="middle" class="node">API заштита</text>
+  <path d="M290 319 H330" class="line-gray" marker-end="url(#arrow-gray)"/>
+  <path d="M500 190 V280" class="line-blue" marker-start="url(#arrow-blue)" marker-end="url(#arrow-blue)"/>
 
-  <path d="M444.5 267 V373" class="line-blue" marker-start="url(#arrow-blue)" marker-end="url(#arrow-blue)"/>
-
-  <!-- Повратни ток ка API слоју -->
-  <path d="M310 1351 H11 V418 H310" class="line-blue" marker-end="url(#arrow-blue)"/>
-
-  <path d="M444.5 463 V516" class="line-blue" marker-start="url(#arrow-blue)" marker-end="url(#arrow-blue)"/>
-
-  <!-- Обрада докумената -->
+  <!-- Припрема улаза -->
   <g filter="url(#shadow)">
-    <rect x="310" y="516" width="269" height="89" rx="8" class="box-green"/>
+    <rect x="240" y="395" width="520" height="105" rx="8" class="box-green"/>
   </g>
-  <text x="444.5" y="566" text-anchor="middle" class="text-main">Обрада докумената</text>
+  <text x="500" y="456" text-anchor="middle" class="node">Припрема и валидација улаза</text>
+  <path d="M500 358 V395" class="line-blue" marker-end="url(#arrow-blue)"/>
 
-  <!-- Вишеагентски аналитички слој -->
-  <rect x="33" y="658" width="823" height="622" rx="11" class="layer"/>
-  <text x="444" y="690" text-anchor="middle" class="text-layer">Вишеагентски аналитички слој</text>
-
-  <!-- Динамички планер -->
+  <!-- API фасада -->
   <g filter="url(#shadow)">
-    <rect x="85" y="720" width="235" height="72" rx="8" class="box-green"/>
+    <rect x="320" y="535" width="360" height="72" rx="8" class="box-dark"/>
   </g>
-  <text x="202.5" y="762" text-anchor="middle" class="text-small">Динамички планер</text>
+  <text x="500" y="565" text-anchor="middle" class="white">OrchestratorAgent</text>
+  <text x="500" y="590" text-anchor="middle" class="white">API фасада</text>
+  <path d="M500 500 V535" class="line-blue" marker-end="url(#arrow-blue)"/>
 
-  <!-- Двосмерна веза планера и оркестратора -->
-  <path d="M320 756 H373" class="line-green" marker-start="url(#arrow-green)" marker-end="url(#arrow-green)"/>
+  <!-- Ограничени граф -->
+  <rect x="65" y="650" width="700" height="655" rx="12" class="graph"/>
+  <text x="415" y="691" text-anchor="middle" class="section">Ограничени граф истраге</text>
+  <path d="M500 607 V630 H192.5 V725" class="line-blue" marker-end="url(#arrow-blue)"/>
 
-  <!-- Оркестратор -->
+  <!-- Планер, регистар и ограничења -->
   <g filter="url(#shadow)">
-    <rect x="373" y="720" width="383" height="72" rx="8" class="box-orchestrator"/>
+    <rect x="90" y="725" width="205" height="82" rx="8" class="box-green"/>
+    <rect x="315" y="725" width="230" height="82" rx="8" class="box-blue"/>
+    <rect x="565" y="725" width="170" height="82" rx="8" class="box-soft-blue"/>
   </g>
-  <text x="564.5" y="762" text-anchor="middle" class="text-orchestrator">Оркестратор</text>
+  <text x="192.5" y="774" text-anchor="middle" class="node">Планер истраге</text>
+  <text x="430" y="758" text-anchor="middle" class="node">Контролисани</text>
+  <text x="430" y="785" text-anchor="middle" class="node">регистар сервиса</text>
+  <text x="650" y="758" text-anchor="middle" class="node">Ограничења</text>
+  <text x="650" y="785" text-anchor="middle" class="node">извршавања</text>
+  <path d="M295 766 H315" class="line-blue" marker-end="url(#arrow-blue)"/>
+  <path d="M565 766 H545" class="line-green" marker-end="url(#arrow-green)"/>
 
-  <!-- API директно формира захтев и позива Оркестратор -->
-  <path d="M579 418 H820 V756 H756" class="line-blue" marker-end="url(#arrow-blue)"/>
-
-  <!-- Оркестраторска магистрала ка групама агената -->
-  <path d="M426 792 V951.5" class="line-blue" marker-start="url(#arrow-blue)"/>
-  <path d="M426 827.5 H462" class="line-blue" marker-end="url(#arrow-blue)"/>
-  <path d="M426 889.5 H462" class="line-blue" marker-end="url(#arrow-blue)"/>
-  <path d="M426 951.5 H462" class="line-blue" marker-end="url(#arrow-blue)"/>
-
-  <!-- Групе агената -->
+  <!-- Групе контролисаних сервиса -->
+  <path d="M430 807 V832 H185 M430 832 H625" class="line-blue"/>
+  <path d="M185 832 V855 M405 832 V855 M625 832 V855" class="line-blue" marker-end="url(#arrow-blue)"/>
   <g filter="url(#shadow)">
-    <rect x="462" y="800" width="294" height="55" rx="8" class="box-blue"/>
+    <rect x="95" y="855" width="180" height="82" rx="8" class="box-blue"/>
+    <rect x="315" y="855" width="180" height="82" rx="8" class="box-blue"/>
+    <rect x="535" y="855" width="180" height="82" rx="8" class="box-blue"/>
   </g>
-  <text x="609" y="834" text-anchor="middle" class="text-small">Функционални агенти</text>
+  <text x="185" y="889" text-anchor="middle" class="node">Функционални</text>
+  <text x="185" y="916" text-anchor="middle" class="node">агенти</text>
+  <text x="405" y="889" text-anchor="middle" class="node">Технички</text>
+  <text x="405" y="916" text-anchor="middle" class="node">агенти</text>
+  <text x="625" y="889" text-anchor="middle" class="node">Валидациони</text>
+  <text x="625" y="916" text-anchor="middle" class="node">агенти</text>
 
+  <!-- Аналитичар и критичар -->
   <g filter="url(#shadow)">
-    <rect x="462" y="862" width="294" height="55" rx="8" class="box-blue"/>
+    <rect x="115" y="970" width="270" height="95" rx="8" class="box-green"/>
+    <rect x="455" y="970" width="270" height="95" rx="8" class="box-green"/>
   </g>
-  <text x="609" y="896" text-anchor="middle" class="text-small">Технички агенти</text>
+  <text x="250" y="1025" text-anchor="middle" class="node">Аналитичар покрића</text>
+  <text x="590" y="1025" text-anchor="middle" class="node">Критичар доказа</text>
+  <path d="M185 937 V955 H250 V970" class="line-blue" marker-end="url(#arrow-blue)"/>
+  <path d="M405 937 V955 H250" class="line-blue"/>
+  <path d="M625 937 V970" class="line-blue" marker-end="url(#arrow-blue)"/>
+  <path d="M385 1018 H455" class="line-blue" marker-end="url(#arrow-blue)"/>
 
+  <!-- Ограничена петља поправке -->
   <g filter="url(#shadow)">
-    <rect x="462" y="924" width="294" height="55" rx="8" class="box-blue"/>
+    <rect x="390" y="1080" width="320" height="48" rx="8" class="box-soft-orange"/>
   </g>
-  <text x="609" y="958" text-anchor="middle" class="text-small">Валидациони агенти</text>
+  <text x="550" y="1111" text-anchor="middle" class="orange-text">Циљана поправка</text>
+  <path d="M650 1065 V1080" class="line-orange" marker-end="url(#arrow-orange)"/>
+  <path d="M710 1104 H750 V825 H520 V807" class="line-orange" marker-end="url(#arrow-orange)"/>
 
-  <!-- Контекстуална магистрала -->
-  <path d="M795 827.5 V951.5" class="line-green"/>
-  <path d="M756 827.5 H795" class="line-green" marker-start="url(#arrow-green)"/>
-  <path d="M756 889.5 H795" class="line-green" marker-start="url(#arrow-green)"/>
-  <path d="M756 951.5 H795" class="line-green" marker-start="url(#arrow-green)"/>
-  <path d="M795 951.5 V1022 H444 V1048" class="line-green" marker-end="url(#arrow-green)"/>
-
-  <!-- Оркестратор управља заједничким контекстом -->
-  <path d="M405 792 V1048" class="line-green" marker-start="url(#arrow-green)" marker-end="url(#arrow-green)"/>
-
-  <!-- Потенцијални позиви ка Моделском клијенту: обрада PDF-а, планер, технички и поједини валидациони агенти -->
-  <path d="M579 560.5 H879 V1431 H579" class="line-green model-call" marker-start="url(#arrow-green)" marker-end="url(#arrow-green)"/>
-  <path d="M202.5 720 V705 H879" class="line-green model-call" marker-start="url(#arrow-green)"/>
-  <path d="M756 879 H788 C788 870 802 870 802 879 H813 C813 870 827 870 827 879 H879" class="line-green model-call" marker-start="url(#arrow-green)"/>
-  <path d="M756 941 H788 C788 932 802 932 802 941 H813 C813 932 827 932 827 941 H879" class="line-green model-call" marker-start="url(#arrow-green)"/>
-
-  <!-- Заједнички контекст -->
+  <!-- Стање извршавања -->
   <g filter="url(#shadow)">
-    <rect x="133" y="1048" width="623" height="55" rx="8" class="box-context"/>
+    <rect x="95" y="1160" width="630" height="82" rx="8" class="box-soft-green"/>
   </g>
-  <text x="444.5" y="1083" text-anchor="middle" class="text-small">Заједнички контекст</text>
+  <text x="410" y="1209" text-anchor="middle" class="node">Стање анализе</text>
+  <path d="M250 1065 V1160" class="line-green" marker-end="url(#arrow-green)"/>
+  <path d="M720 1065 V1145 H600 V1160" class="line-green" marker-end="url(#arrow-green)"/>
 
-  <!-- Синтеза је део плана агената: Оркестратор је позива, а она чита заједнички контекст -->
-  <path d="M444.5 1103 V1191" class="line-green" marker-end="url(#arrow-green)"/>
-  <path d="M756 770 H820 V1227 H623" class="line-blue" marker-start="url(#arrow-blue)" marker-end="url(#arrow-blue)"/>
-  <g filter="url(#shadow)">
-    <rect x="266" y="1191" width="357" height="72" rx="8" class="box-blue"/>
-  </g>
-  <text x="444.5" y="1233" text-anchor="middle" class="text-main">Синтеза коначне одлуке</text>
+  <!-- Разлог завршетка -->
+  <rect x="95" y="1255" width="630" height="40" rx="6" class="box-soft-blue"/>
+  <text x="410" y="1282" text-anchor="middle" class="node">Услов завршетка анализе</text>
+  <path d="M410 1242 V1255" class="line-blue" marker-end="url(#arrow-blue)"/>
 
-  <!-- Излаз -->
-  <path d="M444.5 1280 V1315" class="line-blue" marker-end="url(#arrow-blue)"/>
+  <!-- Синтеза и стримовање -->
   <g filter="url(#shadow)">
-    <rect x="310" y="1315" width="269" height="72" rx="8" class="box-green"/>
+    <rect x="270" y="1325" width="460" height="65" rx="8" class="box-green"/>
+    <rect x="250" y="1410" width="500" height="48" rx="8" class="box-blue"/>
   </g>
-  <text x="444.5" y="1358" text-anchor="middle" class="text-main">Излаз анализе</text>
+  <text x="500" y="1366" text-anchor="middle" class="node">Синтеза коначног резултата</text>
+  <path d="M410 1290 V1310 H500 V1325" class="line-blue" marker-end="url(#arrow-blue)"/>
+  <text x="500" y="1442" text-anchor="middle" class="node">Стримовање резултата</text>
+  <path d="M500 1390 V1410" class="line-blue" marker-end="url(#arrow-blue)"/>
+
+  <!-- Повратни ток ка клијенту -->
+  <path d="M250 1434 H50 V375 H500 V358" class="line-blue" marker-end="url(#arrow-blue)"/>
 
   <!-- Моделски клијент -->
   <g filter="url(#shadow)">
-    <rect x="310" y="1404" width="269" height="55" rx="8" class="box-blue"/>
+    <rect x="795" y="755" width="140" height="105" rx="8" class="box-blue"/>
   </g>
-  <text x="444.5" y="1438" text-anchor="middle" class="text-small">Моделски клијент</text>
+  <text x="865" y="816" text-anchor="middle" class="node">ModelClient</text>
+  <path d="M760 447 H865 V755" class="line-gray" marker-end="url(#arrow-gray)"/>
+  <path d="M765 807 H795" class="line-gray" marker-start="url(#arrow-gray)" marker-end="url(#arrow-gray)"/>
 
-  <!-- Спољни AI модели -->
-  <path d="M444.5 1459 V1511" class="line-blue dash-blue" marker-start="url(#arrow-blue)" marker-end="url(#arrow-blue)"/>
+  <!-- Спољни AI модели су ван серверске границе -->
+  <path d="M935 807 H953 V1525 H950" class="line-gray"/>
   <g filter="url(#shadow)">
-    <rect x="346" y="1511" width="197" height="63" rx="8" class="box-blue"/>
+    <rect x="780" y="1490" width="170" height="72" rx="8" class="box-blue"/>
   </g>
-  <text x="444.5" y="1550" text-anchor="middle" class="text-small">Спољни AI модели</text>
-  </g>
+  <path d="M953 1525 H950" class="line-gray" marker-end="url(#arrow-gray)"/>
+  <text x="865" y="1523" text-anchor="middle" class="node">Спољни AI</text>
+  <text x="865" y="1550" text-anchor="middle" class="node">модели</text>
 </svg>
