@@ -1,0 +1,198 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2400" height="2020" viewBox="0 0 2400 2020" role="img" aria-labelledby="description">
+  <desc id="description">UML dijagram modela dokaznog porekla i ogranicene orkestracije.</desc>
+  <defs>
+    <marker id="inheritance" markerWidth="16" markerHeight="14" refX="14" refY="7" orient="auto" markerUnits="strokeWidth">
+      <path d="M1,1 L14,7 L1,13 Z" fill="#ffffff" stroke="#2D8B69" stroke-width="2"/>
+    </marker>
+    <style>
+      .canvas{fill:#fff}.section{fill:#fff;stroke:#AEB8C5;stroke-width:2.5;rx:18}
+      .class-box{fill:#F7FAFD;stroke:#173F79;stroke-width:2.5;rx:12}.document-box{fill:#F5FBF8;stroke:#2D8B69;stroke-width:2.5;rx:12}.support-box{fill:#FAFAFA;stroke:#6B7280;stroke-width:2.5;rx:12}
+      .header-blue{fill:#173F79}.header-green{fill:#2D8B69}.header-gray{fill:#5F6874}
+      .class-name{font-family:Georgia,"Times New Roman",serif;font-size:35px;font-weight:700;fill:#fff}
+      .field-small{font-family:"Courier New",Consolas,monospace;font-size:25px;fill:#223247}
+      .divider-blue{stroke:#173F79;stroke-width:1.6}.divider-green{stroke:#2D8B69;stroke-width:1.6}.divider-gray{stroke:#6B7280;stroke-width:1.6}
+      .inheritance{fill:none;stroke:#2D8B69;stroke-width:2.5;marker-end:url(#inheritance)}.tree{fill:none;stroke:#2D8B69;stroke-width:2.5}
+    </style>
+  </defs>
+  <rect class="canvas" width="2400" height="2020"/>
+
+  <!-- Dokazno poreklo -->
+  <rect x="28" y="28" width="2344" height="870" class="section"/>
+
+  <g aria-label="ProvenancedExcerpt">
+    <rect x="848" y="68" width="704" height="430" class="document-box"/>
+    <path d="M860 68 H1540 Q1552 68 1552 80 V140 H848 V80 Q848 68 860 68 Z" class="header-green"/>
+    <text x="1200" y="113" text-anchor="middle" class="class-name" style="font-size:32px">ProvenancedExcerpt</text>
+    <line x1="848" y1="140" x2="1552" y2="140" class="divider-green"/>
+    <text x="872" y="178" class="field-small">+ source_document_id: str</text>
+    <text x="872" y="210" class="field-small">+ source_filename: str</text>
+    <text x="872" y="242" class="field-small">+ page: int | None</text>
+    <text x="872" y="274" class="field-small">+ section_heading: str | None</text>
+    <text x="872" y="306" class="field-small">+ evidence_text: str</text>
+    <text x="872" y="338" class="field-small">+ char_start / char_end: int | None</text>
+    <text x="872" y="370" class="field-small">+ stable_location: str</text>
+    <text x="872" y="402" class="field-small">+ extraction_method: ExtractionMethod</text>
+    <text x="872" y="434" class="field-small">+ confidence: float</text>
+    <text x="872" y="466" class="field-small">+ verification_status: VerificationStatus</text>
+  </g>
+
+  <g aria-label="EvidenceReference">
+    <rect x="68" y="568" width="620" height="250" class="document-box"/>
+    <path d="M80 568 H676 Q688 568 688 580 V640 H68 V580 Q68 568 80 568 Z" class="header-green"/>
+    <text x="378" y="613" text-anchor="middle" class="class-name" style="font-size:31px">EvidenceReference</text>
+    <line x1="68" y1="640" x2="688" y2="640" class="divider-green"/>
+    <text x="92" y="674" class="field-small">+ source_kind:</text>
+    <text x="122" y="708" class="field-small">Literal["policy", "claim",</text>
+    <text x="122" y="742" class="field-small">"supporting_document"]</text>
+    <text x="92" y="780" class="field-small">+ policy_clause_id: str | None</text>
+  </g>
+
+  <g aria-label="PolicyClause">
+    <rect x="758" y="568" width="724" height="300" class="document-box"/>
+    <path d="M770 568 H1470 Q1482 568 1482 580 V640 H758 V580 Q758 568 770 568 Z" class="header-green"/>
+    <text x="1120" y="613" text-anchor="middle" class="class-name">PolicyClause</text>
+    <line x1="758" y1="640" x2="1482" y2="640" class="divider-green"/>
+    <text x="782" y="678" class="field-small">+ clause_id: str</text>
+    <text x="782" y="710" class="field-small">+ concept: str</text>
+    <text x="782" y="742" class="field-small">+ clause_type: ClauseType</text>
+    <text x="782" y="774" class="field-small">+ polarity: ClausePolarity</text>
+    <text x="782" y="806" class="field-small">+ matched_terms: list[str]</text>
+    <text x="782" y="838" class="field-small">+ direct_match: bool</text>
+  </g>
+
+  <g aria-label="ClaimFact">
+    <rect x="1552" y="568" width="780" height="240" class="document-box"/>
+    <path d="M1564 568 H2320 Q2332 568 2332 580 V640 H1552 V580 Q1552 568 1564 568 Z" class="header-green"/>
+    <text x="1942" y="613" text-anchor="middle" class="class-name">ClaimFact</text>
+    <line x1="1552" y1="640" x2="2332" y2="640" class="divider-green"/>
+    <text x="1576" y="678" class="field-small">+ fact_id: str</text>
+    <text x="1576" y="710" class="field-small">+ fact_type: str</text>
+    <text x="1576" y="742" class="field-small">+ value:</text>
+    <text x="1606" y="776" class="field-small">str | int | float | bool | None</text>
+  </g>
+
+  <path d="M378 568 V532 H1942" class="tree"/>
+  <path d="M1120 568 V532" class="tree"/>
+  <path d="M1942 568 V532" class="tree"/>
+  <path d="M1200 532 V498" class="inheritance"/>
+
+  <!-- Orkestraciono stanje -->
+  <rect x="28" y="928" width="2344" height="1060" class="section"/>
+
+  <g aria-label="ClaimAnalysisRunState">
+    <rect x="68" y="968" width="760" height="590" class="class-box"/>
+    <path d="M80 968 H816 Q828 968 828 980 V1040 H68 V980 Q68 968 80 968 Z" class="header-blue"/>
+    <text x="448" y="1013" text-anchor="middle" class="class-name" style="font-size:32px">ClaimAnalysisRunState</text>
+    <line x1="68" y1="1040" x2="828" y2="1040" class="divider-blue"/>
+    <text x="92" y="1078" class="field-small">+ request: ClaimRequestData</text>
+    <text x="92" y="1110" class="field-small">+ responses: list[AgentResponse]</text>
+    <text x="92" y="1142" class="field-small">+ memory:</text>
+    <text x="122" y="1174" class="field-small">dict[str, SerializeAsAny[AgentFindings]]</text>
+    <text x="92" y="1206" class="field-small">+ messages: list[AgentMessage]</text>
+    <text x="92" y="1238" class="field-small">+ tasks: list[InvestigationTask]</text>
+    <text x="92" y="1270" class="field-small">+ propositions: list[AssessmentProposition]</text>
+    <text x="92" y="1302" class="field-small">+ phase: OrchestrationPhase</text>
+    <text x="92" y="1334" class="field-small">+ limits: OrchestrationLimits</text>
+    <text x="92" y="1366" class="field-small">+ usage: OrchestrationUsage</text>
+    <text x="92" y="1398" class="field-small">+ actions: list[OrchestrationAction]</text>
+    <text x="92" y="1430" class="field-small">+ stop_reason: OrchestrationStopReason | None</text>
+    <text x="92" y="1462" class="field-small">+ stop_detail: str | None</text>
+  </g>
+
+  <g aria-label="InvestigationTask">
+    <rect x="868" y="968" width="700" height="600" class="class-box"/>
+    <path d="M880 968 H1556 Q1568 968 1568 980 V1040 H868 V980 Q868 968 880 968 Z" class="header-blue"/>
+    <text x="1218" y="1013" text-anchor="middle" class="class-name">InvestigationTask</text>
+    <line x1="868" y1="1040" x2="1568" y2="1040" class="divider-blue"/>
+    <text x="892" y="1076" class="field-small">+ task_id: str</text>
+    <text x="892" y="1107" class="field-small">+ agent_name: str</text>
+    <text x="892" y="1138" class="field-small">+ objective: str</text>
+    <text x="892" y="1169" class="field-small">+ task_type: InvestigationTaskType</text>
+    <text x="892" y="1200" class="field-small">+ assigned_role: str</text>
+    <text x="892" y="1231" class="field-small">+ tool_name: str | None</text>
+    <text x="892" y="1262" class="field-small">+ selection_reason: str</text>
+    <text x="892" y="1293" class="field-small">+ status: TaskStatus</text>
+    <text x="892" y="1324" class="field-small">+ depends_on: list[str]</text>
+    <text x="892" y="1355" class="field-small">+ evidence_ids: list[str]</text>
+    <text x="892" y="1386" class="field-small">+ parameters: dict[str, Any]</text>
+    <text x="892" y="1417" class="field-small">+ parent_task_id: str | None</text>
+    <text x="892" y="1448" class="field-small">+ attempt: int</text>
+    <text x="892" y="1479" class="field-small">+ expected_model_calls: int</text>
+    <text x="892" y="1510" class="field-small">+ estimated_cost_usd: float</text>
+    <text x="892" y="1541" class="field-small">+ result_summary: str | None</text>
+  </g>
+
+  <g aria-label="AssessmentProposition">
+    <rect x="1608" y="968" width="724" height="540" class="class-box"/>
+    <path d="M1620 968 H2320 Q2332 968 2332 980 V1040 H1608 V980 Q1608 968 1620 968 Z" class="header-blue"/>
+    <text x="1970" y="1013" text-anchor="middle" class="class-name" style="font-size:27px">AssessmentProposition</text>
+    <line x1="1608" y1="1040" x2="2332" y2="1040" class="divider-blue"/>
+    <text x="1632" y="1076" class="field-small">+ proposition_id: str</text>
+    <text x="1632" y="1107" class="field-small">+ proposition_type: PropositionType</text>
+    <text x="1632" y="1138" class="field-small">+ statement: str</text>
+    <text x="1632" y="1169" class="field-small">+ status: PropositionStatus</text>
+    <text x="1632" y="1200" class="field-small">+ required_for_coverage: bool</text>
+    <text x="1632" y="1231" class="field-small">+ supporting_policy_clause_ids:</text>
+    <text x="1662" y="1262" class="field-small">list[str]</text>
+    <text x="1632" y="1293" class="field-small">+ contradicting_policy_clause_ids:</text>
+    <text x="1662" y="1324" class="field-small">list[str]</text>
+    <text x="1632" y="1355" class="field-small">+ resolved_policy_clause_ids:</text>
+    <text x="1662" y="1386" class="field-small">list[str]</text>
+    <text x="1632" y="1417" class="field-small">+ evidence: list[EvidenceReference]</text>
+    <text x="1632" y="1448" class="field-small">+ confidence: float</text>
+    <text x="1632" y="1479" class="field-small">+ created_by: str</text>
+  </g>
+
+  <g aria-label="OrchestrationSummary">
+    <rect x="68" y="1638" width="520" height="330" class="support-box"/>
+    <path d="M80 1638 H576 Q588 1638 588 1650 V1710 H68 V1650 Q68 1638 80 1638 Z" class="header-gray"/>
+    <text x="328" y="1683" text-anchor="middle" class="class-name" style="font-size:28px">OrchestrationSummary</text>
+    <line x1="68" y1="1710" x2="588" y2="1710" class="divider-gray"/>
+    <text x="92" y="1748" class="field-small">+ stop_reason:</text>
+    <text x="122" y="1780" class="field-small">OrchestrationStopReason | None</text>
+    <text x="92" y="1812" class="field-small">+ stop_detail: str | None</text>
+    <text x="92" y="1844" class="field-small">+ usage: OrchestrationUsage</text>
+    <text x="92" y="1876" class="field-small">+ actions:</text>
+    <text x="122" y="1908" class="field-small">list[OrchestrationAction]</text>
+  </g>
+
+  <g aria-label="OrchestrationLimits">
+    <rect x="628" y="1638" width="510" height="330" class="support-box"/>
+    <path d="M640 1638 H1126 Q1138 1638 1138 1650 V1710 H628 V1650 Q628 1638 640 1638 Z" class="header-gray"/>
+    <text x="883" y="1683" text-anchor="middle" class="class-name" style="font-size:29px">OrchestrationLimits</text>
+    <line x1="628" y1="1710" x2="1138" y2="1710" class="divider-gray"/>
+    <text x="652" y="1748" class="field-small">+ max_repair_iterations: int</text>
+    <text x="652" y="1780" class="field-small">+ max_model_calls: int</text>
+    <text x="652" y="1812" class="field-small">+ max_seconds: float</text>
+    <text x="652" y="1844" class="field-small">+ max_estimated_cost_usd:</text>
+    <text x="682" y="1876" class="field-small">float</text>
+  </g>
+
+  <g aria-label="OrchestrationUsage">
+    <rect x="1178" y="1638" width="470" height="330" class="support-box"/>
+    <path d="M1190 1638 H1636 Q1648 1638 1648 1650 V1710 H1178 V1650 Q1178 1638 1190 1638 Z" class="header-gray"/>
+    <text x="1413" y="1683" text-anchor="middle" class="class-name" style="font-size:29px">OrchestrationUsage</text>
+    <line x1="1178" y1="1710" x2="1648" y2="1710" class="divider-gray"/>
+    <text x="1202" y="1748" class="field-small">+ repair_iterations: int</text>
+    <text x="1202" y="1780" class="field-small">+ model_calls: int</text>
+    <text x="1202" y="1812" class="field-small">+ estimated_cost_usd:</text>
+    <text x="1232" y="1844" class="field-small">float</text>
+    <text x="1202" y="1876" class="field-small">+ elapsed_seconds: float</text>
+  </g>
+
+  <g aria-label="OrchestrationAction">
+    <rect x="1688" y="1638" width="644" height="330" class="support-box"/>
+    <path d="M1700 1638 H2320 Q2332 1638 2332 1650 V1710 H1688 V1650 Q1688 1638 1700 1638 Z" class="header-gray"/>
+    <text x="2010" y="1683" text-anchor="middle" class="class-name" style="font-size:29px">OrchestrationAction</text>
+    <line x1="1688" y1="1710" x2="2332" y2="1710" class="divider-gray"/>
+    <text x="1712" y="1746" class="field-small">+ task_id: str</text>
+    <text x="1712" y="1775" class="field-small">+ task_type: InvestigationTaskType</text>
+    <text x="1712" y="1804" class="field-small">+ selected_by: str</text>
+    <text x="1712" y="1833" class="field-small">+ executor: str</text>
+    <text x="1712" y="1862" class="field-small">+ reason: str</text>
+    <text x="1712" y="1891" class="field-small">+ outcome: TaskStatus</text>
+    <text x="1712" y="1920" class="field-small">+ detail: str</text>
+    <text x="1712" y="1949" class="field-small">+ repair_iteration: int</text>
+  </g>
+
+</svg>

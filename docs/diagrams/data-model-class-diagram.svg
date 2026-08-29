@@ -1,247 +1,243 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1900" height="2900" viewBox="0 0 1900 2900" role="img" aria-labelledby="description">
-  <desc id="description">UML дијаграм Pydantic модела за систем анализе захтева за осигурање.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" width="2400" height="2200" viewBox="0 0 2400 2200" role="img" aria-labelledby="description">
+  <desc id="description">UML dijagram javnih modela zahteva i rezultata, dokumenata i agentskog traga, sa agregacionim vezama i kardinalnostima.</desc>
   <defs>
-    <marker id="diamond" markerWidth="18" markerHeight="14" refX="5" refY="7" orient="auto" markerUnits="strokeWidth">
-      <path d="M 0 7 L 5 2 L 10 7 L 5 12 Z" fill="#ffffff" stroke="#000000" stroke-width="1.5"/>
+    <marker id="inheritance" markerWidth="16" markerHeight="14" refX="14" refY="7" orient="auto" markerUnits="strokeWidth">
+      <path d="M1,1 L14,7 L1,13 Z" fill="#ffffff" stroke="#2D8B69" stroke-width="2"/>
     </marker>
-    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
-      <path d="M 1 1 L 10 6 L 1 11 Z" fill="#000000"/>
+    <marker id="aggregation" markerWidth="16" markerHeight="14" refX="4" refY="7" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,7 L5,2 L10,7 L5,12 Z" fill="#ffffff" stroke="#173F79" stroke-width="1.7"/>
+    </marker>
+    <marker id="composition" markerWidth="16" markerHeight="14" refX="4" refY="7" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,7 L5,2 L10,7 L5,12 Z" fill="#173F79" stroke="#173F79" stroke-width="1.5"/>
+    </marker>
+    <marker id="nav-arrow" markerWidth="13" markerHeight="13" refX="11" refY="6.5" orient="auto" markerUnits="strokeWidth">
+      <path d="M1,1 L11,6.5 L1,12 Z" fill="#173F79"/>
     </marker>
     <style>
-      .box { fill: #ecf3fb; stroke: #0e3c75; stroke-width: 2; rx: 8; }
-      .head-input, .head-output, .head-agent, .head-value { fill: #0e3c75; }
-      .enum-box { fill: #e9f5f3; stroke: #2a7f75; stroke-width: 2; rx: 8; }
-      .enum-head { fill: #2a7f75; }
-      .class-name { font-family: "Courier New", Courier, monospace; font-size: 35px; font-weight: 700; fill: #ffffff; }
-      .field { font-family: "Courier New", Courier, monospace; font-size: 30px; fill: #243b53; }
-      .enum-field { font-family: "Courier New", Courier, monospace; font-size: 28px; fill: #174c47; }
-      .field-note { font-family: "Courier New", Courier, monospace; font-size: 25px; fill: #627d98; }
-      .divider { stroke: #0e3c75; stroke-width: 1.4; }
-      .relation { fill: none; stroke: #000000; stroke-width: 2.1; marker-start: url(#diamond); marker-end: url(#arrow); }
-      .cardinality { font-family: "Courier New", Courier, monospace; font-size: 30px; font-weight: 700; fill: #243b53; paint-order: stroke; stroke: #ffffff; stroke-width: 5; }
+      .canvas{fill:#fff}.section{fill:#fff;stroke:#AEB8C5;stroke-width:2.5;rx:18}
+      .class-box{fill:#F7FAFD;stroke:#173F79;stroke-width:2.5;rx:12}.document-box{fill:#F5FBF8;stroke:#2D8B69;stroke-width:2.5;rx:12}.support-box{fill:#FAFAFA;stroke:#6B7280;stroke-width:2.5;rx:12}
+      .header-blue{fill:#173F79}.header-green{fill:#2D8B69}.header-gray{fill:#5F6874}
+      .class-name{font-family:Georgia,"Times New Roman",serif;font-size:35px;font-weight:700;fill:#fff}
+      .field{font-family:"Courier New",Consolas,monospace;font-size:27px;fill:#223247}.field-small{font-family:"Courier New",Consolas,monospace;font-size:25px;fill:#223247}
+      .divider-blue{stroke:#173F79;stroke-width:1.6}.divider-green{stroke:#2D8B69;stroke-width:1.6}.divider-gray{stroke:#6B7280;stroke-width:1.6}
+      .inheritance{fill:none;stroke:#2D8B69;stroke-width:2.5;marker-end:url(#inheritance)}.tree{fill:none;stroke:#2D8B69;stroke-width:2.5}
+      .association{fill:none;stroke:#173F79;stroke-width:2.4;marker-start:url(#aggregation);marker-end:url(#nav-arrow)}
+      .composition-link{fill:none;stroke:#173F79;stroke-width:2.4;marker-start:url(#composition);marker-end:url(#nav-arrow)}
+      .multiplicity{font-family:Georgia,"Times New Roman",serif;font-size:24px;font-weight:700;fill:#173F79;paint-order:stroke;stroke:#fff;stroke-width:7;stroke-linejoin:round}
     </style>
   </defs>
+  <rect class="canvas" width="2400" height="2200"/>
 
-  <rect width="1900" height="2900" fill="#ffffff"/>
+  <!-- Zahtev i dokumenti -->
+  <rect x="28" y="28" width="2344" height="890" class="section"/>
 
-  <!-- ClaimRequestData -->
-  <g transform="translate(50 50)">
-    <rect class="box" width="1000" height="560"/>
-    <path class="head-input" d="M12 0 H988 Q1000 0 1000 12 V70 H0 V12 Q0 0 12 0 Z"/>
-    <text x="500" y="44" text-anchor="middle" class="class-name">ClaimRequestData</text>
-    <line x1="0" y1="70" x2="1000" y2="70" class="divider"/>
-    <text x="22" y="105" class="field">+ insurance_type: str = "home"</text>
-    <text x="22" y="142" class="field">+ claim_description: str</text>
-    <text x="22" y="179" class="field">+ incident_date: str | None</text>
-    <text x="22" y="216" class="field">+ policy_text: str</text>
-    <text x="22" y="253" class="field">+ policy_filename: str | None</text>
-    <text x="22" y="290" class="field">+ policy_extraction_warnings: list[str]</text>
-    <text x="22" y="327" class="field">+ supporting_documents: list[SupportingDocumentData]</text>
-    <text x="22" y="364" class="field">+ damage_image_filename: str | None</text>
-    <text x="22" y="401" class="field">+ damage_image_size: int | None</text>
-    <text x="22" y="438" class="field">+ damage_image_mime_type: str | None</text>
-    <text x="22" y="475" class="field">+ damage_image_bytes: bytes | None</text>
-    <text x="22" y="512" class="field">+ security_flags: list[str]</text>
+  <g aria-label="ClaimRequestData">
+    <rect x="68" y="68" width="930" height="610" class="class-box"/>
+    <path d="M80 68 H986 Q998 68 998 80 V140 H68 V80 Q68 68 80 68 Z" class="header-blue"/>
+    <text x="533" y="113" text-anchor="middle" class="class-name">ClaimRequestData</text>
+    <line x1="68" y1="140" x2="998" y2="140" class="divider-blue"/>
+    <text x="92" y="178" class="field-small">+ insurance_type: InsuranceType</text>
+    <text x="92" y="210" class="field-small">+ claim_description: str</text>
+    <text x="92" y="242" class="field-small">+ incident_date: str | None</text>
+    <text x="92" y="274" class="field-small">+ policy_text: str</text>
+    <text x="92" y="306" class="field-small">+ policy_filename: str | None</text>
+    <text x="92" y="338" class="field-small">+ policy_extraction_warnings: list[str]</text>
+    <text x="92" y="370" class="field-small">+ policy_document: PolicyDocument | None</text>
+    <text x="92" y="402" class="field-small">+ damage_image_filename: str | None</text>
+    <text x="92" y="434" class="field-small">+ damage_image_size: int | None</text>
+    <text x="92" y="466" class="field-small">+ damage_image_mime_type: str | None</text>
+    <text x="92" y="498" class="field-small">+ damage_image_bytes: bytes | None</text>
+    <text x="92" y="530" class="field-small">+ supporting_documents:</text>
+    <text x="122" y="562" class="field-small">list[SupportingDocumentData]</text>
+    <text x="92" y="594" class="field-small">+ security_flags: list[str]</text>
   </g>
 
-  <!-- SupportingDocumentData -->
-  <g transform="translate(1180 135)">
-    <rect class="box" width="650" height="285"/>
-    <path class="head-value" d="M12 0 H638 Q650 0 650 12 V70 H0 V12 Q0 0 12 0 Z"/>
-    <text x="325" y="44" text-anchor="middle" class="class-name">SupportingDocumentData</text>
-    <line x1="0" y1="70" x2="650" y2="70" class="divider"/>
-    <text x="20" y="105" class="field">+ filename: str</text>
-    <text x="20" y="142" class="field">+ document_type: str</text>
-    <text x="20" y="179" class="field">+ text: str</text>
-    <text x="20" y="216" class="field">+ extraction_warnings: list[str]</text>
-    <text x="20" y="253" class="field">+ text_length: int</text>
+  <g aria-label="SourceDocument">
+    <rect x="1098" y="68" width="620" height="390" class="document-box"/>
+    <path d="M1110 68 H1706 Q1718 68 1718 80 V140 H1098 V80 Q1098 68 1110 68 Z" class="header-green"/>
+    <text x="1408" y="113" text-anchor="middle" class="class-name">SourceDocument</text>
+    <line x1="1098" y1="140" x2="1718" y2="140" class="divider-green"/>
+    <text x="1122" y="178" class="field-small">+ document_id: str</text>
+    <text x="1122" y="210" class="field-small">+ filename: str</text>
+    <text x="1122" y="242" class="field-small">+ document_type: str</text>
+    <text x="1122" y="274" class="field-small">+ text: str</text>
+    <text x="1122" y="306" class="field-small">+ pages: list[DocumentPage]</text>
+    <text x="1122" y="338" class="field-small">+ extraction_method: ExtractionMethod</text>
+    <text x="1122" y="370" class="field-small">+ extraction_warnings: list[str]</text>
+    <text x="1122" y="402" class="field-small">+ text_length: int</text>
   </g>
 
-  <!-- ClaimAnalysisResult -->
-  <g transform="translate(50 760)">
-    <rect class="box" width="900" height="625"/>
-    <path class="head-output" d="M12 0 H888 Q900 0 900 12 V70 H0 V12 Q0 0 12 0 Z"/>
-    <text x="450" y="44" text-anchor="middle" class="class-name">ClaimAnalysisResult</text>
-    <line x1="0" y1="70" x2="900" y2="70" class="divider"/>
-    <text x="22" y="105" class="field">+ claim_status: ClaimStatus</text>
-    <text x="22" y="142" class="field">+ insurance_type: str</text>
-    <text x="22" y="179" class="field">+ claim_type: str</text>
-    <text x="22" y="216" class="field">+ coverage_assessment: CoverageAssessment</text>
-    <text x="22" y="253" class="field">+ matched_policy_concepts: list[dict[str, Any]]</text>
-    <text x="22" y="290" class="field">+ potential_exclusions: list[dict[str, Any]]</text>
-    <text x="22" y="327" class="field">+ missing_documents: list[str]</text>
-    <text x="22" y="364" class="field">+ image_assessment: ImageAssessment</text>
-    <text x="22" y="401" class="field">+ image_authenticity: ImageAuthenticity</text>
-    <text x="22" y="438" class="field">+ evidence: list[EvidenceItem]</text>
-    <text x="22" y="475" class="field">+ reasoning_summary: str</text>
-    <text x="22" y="512" class="field">+ recommendation: str</text>
-    <text x="22" y="549" class="field">+ security_flags: list[str]</text>
-    <text x="22" y="586" class="field">+ agent_trace: list[AgentResponse]</text>
+  <g aria-label="DocumentPage">
+    <rect x="1798" y="68" width="534" height="280" class="document-box"/>
+    <path d="M1810 68 H2320 Q2332 68 2332 80 V140 H1798 V80 Q1798 68 1810 68 Z" class="header-green"/>
+    <text x="2065" y="113" text-anchor="middle" class="class-name">DocumentPage</text>
+    <line x1="1798" y1="140" x2="2332" y2="140" class="divider-green"/>
+    <text x="1822" y="178" class="field-small">+ page_number: int</text>
+    <text x="1822" y="210" class="field-small">+ text: str</text>
+    <text x="1822" y="242" class="field-small">+ char_start: int</text>
+    <text x="1822" y="274" class="field-small">+ char_end: int</text>
+    <text x="1822" y="306" class="field-small">+ extraction_method: ExtractionMethod</text>
   </g>
 
-  <!-- Enumerations -->
-  <g transform="translate(50 2140)">
-    <rect class="enum-box" width="500" height="230"/>
-    <path class="enum-head" d="M8 0 H492 Q500 0 500 8 V60 H0 V8 Q0 0 8 0 Z"/>
-    <text x="250" y="40" text-anchor="middle" class="class-name">ClaimStatus</text>
-    <line x1="0" y1="60" x2="500" y2="60" stroke="#2a7f75" stroke-width="1.4"/>
-    <text x="18" y="94" class="enum-field">LIKELY_COVERED</text>
-    <text x="18" y="128" class="enum-field">LIKELY_NOT_COVERED</text>
-    <text x="18" y="162" class="enum-field">PARTIALLY_COVERED</text>
-    <text x="18" y="196" class="enum-field">REQUIRES_HUMAN_REVIEW</text>
+  <g aria-label="PolicyDocument">
+    <rect x="1058" y="540" width="360" height="175" class="document-box"/>
+    <path d="M1070 540 H1406 Q1418 540 1418 552 V612 H1058 V552 Q1058 540 1070 540 Z" class="header-green"/>
+    <text x="1238" y="585" text-anchor="middle" class="class-name" style="font-size:31px">PolicyDocument</text>
+    <line x1="1058" y1="612" x2="1418" y2="612" class="divider-green"/>
+    <text x="1238" y="650" text-anchor="middle" class="field-small">document_type:</text>
+    <text x="1238" y="684" text-anchor="middle" class="field-small">Literal["policy"]</text>
   </g>
 
-  <g transform="translate(600 2140)">
-    <rect class="enum-box" width="500" height="230"/>
-    <path class="enum-head" d="M8 0 H492 Q500 0 500 8 V60 H0 V8 Q0 0 8 0 Z"/>
-    <text x="250" y="40" text-anchor="middle" class="class-name">CoverageAssessment</text>
-    <line x1="0" y1="60" x2="500" y2="60" stroke="#2a7f75" stroke-width="1.4"/>
-    <text x="18" y="94" class="enum-field">COVERED</text>
-    <text x="18" y="128" class="enum-field">NOT_COVERED</text>
-    <text x="18" y="162" class="enum-field">POSSIBLY_COVERED</text>
-    <text x="18" y="196" class="enum-field">UNCLEAR</text>
+  <g aria-label="SupportingDocument">
+    <rect x="1478" y="540" width="430" height="72" class="document-box"/>
+    <path d="M1490 540 H1896 Q1908 540 1908 552 V612 H1478 V552 Q1478 540 1490 540 Z" class="header-green"/>
+    <text x="1693" y="585" text-anchor="middle" class="class-name" style="font-size:30px">SupportingDocument</text>
   </g>
 
-  <g transform="translate(1150 2140)">
-    <rect class="enum-box" width="500" height="230"/>
-    <path class="enum-head" d="M8 0 H492 Q500 0 500 8 V60 H0 V8 Q0 0 8 0 Z"/>
-    <text x="250" y="40" text-anchor="middle" class="class-name">AgentStatus</text>
-    <line x1="0" y1="60" x2="500" y2="60" stroke="#2a7f75" stroke-width="1.4"/>
-    <text x="18" y="94" class="enum-field">COMPLETED</text>
-    <text x="18" y="128" class="enum-field">WARNING</text>
-    <text x="18" y="162" class="enum-field">FAILED</text>
-    <text x="18" y="196" class="enum-field">SKIPPED</text>
+  <g aria-label="SupportingDocumentData">
+    <rect x="1433" y="800" width="520" height="72" class="class-box"/>
+    <path d="M1445 800 H1941 Q1953 800 1953 812 V872 H1433 V812 Q1433 800 1445 800 Z" class="header-blue"/>
+    <text x="1693" y="845" text-anchor="middle" class="class-name" style="font-size:29px">SupportingDocumentData</text>
   </g>
 
-  <g transform="translate(50 2450)">
-    <rect class="enum-box" width="500" height="270"/>
-    <path class="enum-head" d="M8 0 H492 Q500 0 500 8 V60 H0 V8 Q0 0 8 0 Z"/>
-    <text x="250" y="40" text-anchor="middle" class="class-name">AgentType</text>
-    <line x1="0" y1="60" x2="500" y2="60" stroke="#2a7f75" stroke-width="1.4"/>
-    <text x="18" y="94" class="enum-field">ORCHESTRATOR</text>
-    <text x="18" y="128" class="enum-field">TECHNICAL</text>
-    <text x="18" y="162" class="enum-field">FUNCTIONAL</text>
-    <text x="18" y="196" class="enum-field">VALIDATOR</text>
-    <text x="18" y="230" class="enum-field">SYNTHESIS</text>
+  <!-- Nasledjivanje i sadrzaj dokumenta -->
+  <path d="M1718 220 H1758 V300 H1798" class="composition-link"/>
+  <text x="1728" y="204" class="multiplicity">1</text>
+  <text x="1728" y="290" class="multiplicity">0..*</text>
+  <path d="M1238 540 V505 H1693" class="tree"/>
+  <path d="M1693 540 V505" class="tree"/>
+  <path d="M1408 505 V458" class="inheritance"/>
+  <path d="M1693 800 V612" class="inheritance"/>
+
+  <!-- Agregacije zahteva -->
+  <path d="M998 510 H1028 V628 H1058" class="association"/>
+  <text x="1008" y="495" class="multiplicity">1</text>
+  <text x="1015" y="658" class="multiplicity">0..1</text>
+  <path d="M800 678 V836 H1433" class="association"/>
+  <text x="814" y="714" class="multiplicity">1</text>
+  <text x="1368" y="821" class="multiplicity">0..*</text>
+
+  <!-- Rezultat i agentski trag -->
+  <rect x="28" y="950" width="2344" height="1210" class="section"/>
+
+  <g aria-label="ClaimAnalysisResult">
+    <rect x="68" y="990" width="930" height="700" class="class-box"/>
+    <path d="M80 990 H986 Q998 990 998 1002 V1062 H68 V1002 Q68 990 80 990 Z" class="header-blue"/>
+    <text x="533" y="1035" text-anchor="middle" class="class-name">ClaimAnalysisResult</text>
+    <line x1="68" y1="1062" x2="998" y2="1062" class="divider-blue"/>
+    <text x="92" y="1098" class="field-small">+ claim_status: ClaimStatus</text>
+    <text x="92" y="1129" class="field-small">+ insurance_type: InsuranceType</text>
+    <text x="92" y="1160" class="field-small">+ claim_type: str</text>
+    <text x="92" y="1191" class="field-small">+ coverage_assessment: CoverageAssessment</text>
+    <text x="92" y="1222" class="field-small">+ matched_policy_concepts: list[dict[str, Any]]</text>
+    <text x="92" y="1253" class="field-small">+ potential_exclusions: list[dict[str, Any]]</text>
+    <text x="92" y="1284" class="field-small">+ missing_documents: list[str]</text>
+    <text x="92" y="1315" class="field-small">+ image_assessment: ImageAssessment</text>
+    <text x="92" y="1346" class="field-small">+ image_authenticity: ImageAuthenticity</text>
+    <text x="92" y="1377" class="field-small">+ evidence: list[EvidenceItem]</text>
+    <text x="92" y="1408" class="field-small">+ claim_facts: list[ClaimFact]</text>
+    <text x="92" y="1439" class="field-small">+ policy_clauses: list[PolicyClause]</text>
+    <text x="92" y="1470" class="field-small">+ assessment_propositions:</text>
+    <text x="122" y="1501" class="field-small">list[AssessmentProposition]</text>
+    <text x="92" y="1532" class="field-small">+ reasoning_summary: str</text>
+    <text x="92" y="1563" class="field-small">+ recommendation: str</text>
+    <text x="92" y="1594" class="field-small">+ security_flags: list[str]</text>
+    <text x="92" y="1625" class="field-small">+ orchestration: OrchestrationSummary</text>
+    <text x="92" y="1656" class="field-small">+ agent_trace: list[AgentResponse]</text>
   </g>
 
-  <g transform="translate(600 2450)">
-    <rect class="enum-box" width="500" height="330"/>
-    <path class="enum-head" d="M8 0 H492 Q500 0 500 8 V60 H0 V8 Q0 0 8 0 Z"/>
-    <text x="250" y="40" text-anchor="middle" class="class-name">MessageType</text>
-    <line x1="0" y1="60" x2="500" y2="60" stroke="#2a7f75" stroke-width="1.4"/>
-    <text x="18" y="94" class="enum-field">HANDOFF</text>
-    <text x="18" y="128" class="enum-field">REQUEST</text>
-    <text x="18" y="162" class="enum-field">RESPONSE</text>
-    <text x="18" y="196" class="enum-field">GUIDANCE</text>
-    <text x="18" y="230" class="enum-field">FEEDBACK</text>
-    <text x="18" y="264" class="enum-field">VALIDATION</text>
-    <text x="18" y="298" class="enum-field">SUMMARY</text>
+  <g aria-label="ImageAssessment">
+    <rect x="1078" y="990" width="480" height="200" class="support-box"/>
+    <path d="M1090 990 H1546 Q1558 990 1558 1002 V1062 H1078 V1002 Q1078 990 1090 990 Z" class="header-gray"/>
+    <text x="1318" y="1035" text-anchor="middle" class="class-name" style="font-size:29px">ImageAssessment</text>
+    <line x1="1078" y1="1062" x2="1558" y2="1062" class="divider-gray"/>
+    <text x="1102" y="1100" class="field-small">+ detected_damage: str</text>
+    <text x="1102" y="1132" class="field-small">+ confidence: float</text>
+    <text x="1102" y="1164" class="field-small">+ notes: list[str]</text>
   </g>
 
-  <g transform="translate(1150 2450)">
-    <rect class="enum-box" width="500" height="230"/>
-    <path class="enum-head" d="M8 0 H492 Q500 0 500 8 V60 H0 V8 Q0 0 8 0 Z"/>
-    <text x="250" y="40" text-anchor="middle" class="class-name">RiskLevel</text>
-    <line x1="0" y1="60" x2="500" y2="60" stroke="#2a7f75" stroke-width="1.4"/>
-    <text x="18" y="94" class="enum-field">LOW</text>
-    <text x="18" y="128" class="enum-field">MEDIUM</text>
-    <text x="18" y="162" class="enum-field">HIGH</text>
-    <text x="18" y="196" class="enum-field">REQUIRES_HUMAN_REVIEW</text>
+  <g aria-label="ImageAuthenticity">
+    <rect x="1078" y="1230" width="480" height="200" class="support-box"/>
+    <path d="M1090 1230 H1546 Q1558 1230 1558 1242 V1302 H1078 V1242 Q1078 1230 1090 1230 Z" class="header-gray"/>
+    <text x="1318" y="1275" text-anchor="middle" class="class-name" style="font-size:28px">ImageAuthenticity</text>
+    <line x1="1078" y1="1302" x2="1558" y2="1302" class="divider-gray"/>
+    <text x="1102" y="1340" class="field-small">+ risk_level: RiskLevel</text>
+    <text x="1102" y="1372" class="field-small">+ risk_score: float</text>
+    <text x="1102" y="1404" class="field-small">+ signals: list[str]</text>
   </g>
 
-  <!-- ImageAssessment -->
-  <g transform="translate(1180 780)">
-    <rect class="box" width="600" height="225"/>
-    <path class="head-value" d="M12 0 H588 Q600 0 600 12 V65 H0 V12 Q0 0 12 0 Z"/>
-    <text x="300" y="42" text-anchor="middle" class="class-name">ImageAssessment</text>
-    <line x1="0" y1="65" x2="600" y2="65" class="divider"/>
-    <text x="20" y="105" class="field">+ detected_damage: str</text>
-    <text x="20" y="145" class="field">+ confidence: float</text>
-    <text x="20" y="185" class="field">+ notes: list[str]</text>
+  <g aria-label="EvidenceItem">
+    <rect x="1638" y="990" width="694" height="590" class="document-box"/>
+    <path d="M1650 990 H2320 Q2332 990 2332 1002 V1062 H1638 V1002 Q1638 990 1650 990 Z" class="header-green"/>
+    <text x="1985" y="1035" text-anchor="middle" class="class-name">EvidenceItem</text>
+    <line x1="1638" y1="1062" x2="2332" y2="1062" class="divider-green"/>
+    <text x="1662" y="1098" class="field-small">+ source: str</text>
+    <text x="1662" y="1129" class="field-small">+ text: str</text>
+    <text x="1662" y="1160" class="field-small">+ section: str | None</text>
+    <text x="1662" y="1191" class="field-small">+ page: int | None</text>
+    <text x="1662" y="1222" class="field-small">+ score: float | None</text>
+    <text x="1662" y="1253" class="field-small">+ source_document_id: str | None</text>
+    <text x="1662" y="1284" class="field-small">+ source_filename: str | None</text>
+    <text x="1662" y="1315" class="field-small">+ section_heading: str | None</text>
+    <text x="1662" y="1346" class="field-small">+ char_start / char_end: int | None</text>
+    <text x="1662" y="1377" class="field-small">+ stable_location: str | None</text>
+    <text x="1662" y="1408" class="field-small">+ extraction_method: str | None</text>
+    <text x="1662" y="1439" class="field-small">+ verification_status: str | None</text>
+    <text x="1662" y="1470" class="field-small">+ policy_clause_id: str | None</text>
+    <text x="1662" y="1501" class="field-small">+ clause_type: str | None</text>
+    <text x="1662" y="1532" class="field-small">+ proposition_ids: list[str]</text>
   </g>
 
-  <!-- ImageAuthenticity -->
-  <g transform="translate(1180 1080)">
-    <rect class="box" width="600" height="225"/>
-    <path class="head-value" d="M12 0 H588 Q600 0 600 12 V65 H0 V12 Q0 0 12 0 Z"/>
-    <text x="300" y="42" text-anchor="middle" class="class-name">ImageAuthenticity</text>
-    <line x1="0" y1="65" x2="600" y2="65" class="divider"/>
-    <text x="20" y="105" class="field">+ risk_level: RiskLevel</text>
-    <text x="20" y="145" class="field">+ risk_score: float</text>
-    <text x="20" y="185" class="field">+ signals: list[str]</text>
+  <g aria-label="AgentResponse">
+    <rect x="1078" y="1640" width="650" height="390" class="class-box"/>
+    <path d="M1090 1640 H1716 Q1728 1640 1728 1652 V1712 H1078 V1652 Q1078 1640 1090 1640 Z" class="header-blue"/>
+    <text x="1403" y="1685" text-anchor="middle" class="class-name">AgentResponse</text>
+    <line x1="1078" y1="1712" x2="1728" y2="1712" class="divider-blue"/>
+    <text x="1102" y="1748" class="field-small">+ agent_name: str</text>
+    <text x="1102" y="1778" class="field-small">+ agent_type: AgentType</text>
+    <text x="1102" y="1808" class="field-small">+ status: AgentStatus</text>
+    <text x="1102" y="1838" class="field-small">+ findings:</text>
+    <text x="1132" y="1868" class="field-small">SerializeAsAny[AgentFindings]</text>
+    <text x="1102" y="1898" class="field-small">+ evidence: list[EvidenceItem]</text>
+    <text x="1102" y="1928" class="field-small">+ confidence: float</text>
+    <text x="1102" y="1958" class="field-small">+ warnings: list[str]</text>
+    <text x="1102" y="1988" class="field-small">+ requires_human_review: bool</text>
+    <text x="1102" y="2018" class="field-small">+ messages: list[AgentMessage]</text>
   </g>
 
-  <!-- AgentResponse -->
-  <g transform="translate(50 1480)">
-    <rect class="box" width="720" height="440"/>
-    <path class="head-agent" d="M12 0 H708 Q720 0 720 12 V70 H0 V12 Q0 0 12 0 Z"/>
-    <text x="360" y="44" text-anchor="middle" class="class-name">AgentResponse</text>
-    <line x1="0" y1="70" x2="720" y2="70" class="divider"/>
-    <text x="22" y="105" class="field">+ agent_name: str</text>
-    <text x="22" y="142" class="field">+ agent_type: AgentType</text>
-    <text x="22" y="179" class="field">+ status: AgentStatus</text>
-    <text x="22" y="216" class="field">+ findings: dict[str, Any]</text>
-    <text x="22" y="253" class="field">+ evidence: list[EvidenceItem]</text>
-    <text x="22" y="290" class="field">+ confidence: float</text>
-    <text x="22" y="327" class="field">+ warnings: list[str]</text>
-    <text x="22" y="364" class="field">+ requires_human_review: bool</text>
-    <text x="22" y="401" class="field">+ messages: list[AgentMessage]</text>
+  <g aria-label="AgentFindings">
+    <rect x="1798" y="1640" width="534" height="72" class="support-box"/>
+    <path d="M1810 1640 H2320 Q2332 1640 2332 1652 V1712 H1798 V1652 Q1798 1640 1810 1640 Z" class="header-gray"/>
+    <text x="2065" y="1685" text-anchor="middle" class="class-name" style="font-size:31px">AgentFindings</text>
   </g>
 
-  <!-- EvidenceItem -->
-  <g transform="translate(1180 1450)">
-    <rect class="box" width="600" height="285"/>
-    <path class="head-value" d="M12 0 H588 Q600 0 600 12 V65 H0 V12 Q0 0 12 0 Z"/>
-    <text x="300" y="42" text-anchor="middle" class="class-name">EvidenceItem</text>
-    <line x1="0" y1="65" x2="600" y2="65" class="divider"/>
-    <text x="20" y="100" class="field">+ source: str</text>
-    <text x="20" y="138" class="field">+ text: str</text>
-    <text x="20" y="176" class="field">+ section: str | None</text>
-    <text x="20" y="214" class="field">+ page: int | None</text>
-    <text x="20" y="252" class="field">+ score: float | None</text>
+  <g aria-label="AgentMessage">
+    <rect x="1798" y="1830" width="534" height="315" class="class-box"/>
+    <path d="M1810 1830 H2320 Q2332 1830 2332 1842 V1902 H1798 V1842 Q1798 1830 1810 1830 Z" class="header-blue"/>
+    <text x="2065" y="1875" text-anchor="middle" class="class-name">AgentMessage</text>
+    <line x1="1798" y1="1902" x2="2332" y2="1902" class="divider-blue"/>
+    <text x="1822" y="1940" class="field-small">+ from_agent: str</text>
+    <text x="1822" y="1972" class="field-small">+ to_agent: str | None</text>
+    <text x="1822" y="2004" class="field-small">+ message_type: MessageType</text>
+    <text x="1822" y="2036" class="field-small">+ content: str</text>
+    <text x="1822" y="2068" class="field-small">+ metadata: dict[str, Any]</text>
   </g>
 
-  <!-- AgentMessage -->
-  <g transform="translate(1180 1795)">
-    <rect class="box" width="650" height="290"/>
-    <path class="head-value" d="M12 0 H638 Q650 0 650 12 V65 H0 V12 Q0 0 12 0 Z"/>
-    <text x="325" y="42" text-anchor="middle" class="class-name">AgentMessage</text>
-    <line x1="0" y1="65" x2="650" y2="65" class="divider"/>
-    <text x="20" y="100" class="field">+ from_agent: str</text>
-    <text x="20" y="138" class="field">+ to_agent: str | None</text>
-    <text x="20" y="176" class="field">+ message_type: MessageType</text>
-    <text x="20" y="214" class="field">+ content: str</text>
-    <text x="20" y="252" class="field">+ metadata: dict[str, Any]</text>
-  </g>
+  <!-- Agregacije rezultata -->
+  <path d="M998 1100 H1078" class="association"/>
+  <text x="1008" y="1084" class="multiplicity">1</text><text x="1048" y="1084" class="multiplicity">1</text>
+  <path d="M998 1340 H1078" class="association"/>
+  <text x="1008" y="1324" class="multiplicity">1</text><text x="1048" y="1324" class="multiplicity">1</text>
+  <path d="M998 1515 H1600 V1500 H1638" class="association"/>
+  <text x="1008" y="1498" class="multiplicity">1</text><text x="1580" y="1485" class="multiplicity">0..*</text>
+  <path d="M998 1670 H1078" class="association"/>
+  <text x="1008" y="1654" class="multiplicity">1</text><text x="1030" y="1698" class="multiplicity">0..*</text>
 
-  <!-- Relations -->
-  <path d="M1050 270 H1180" class="relation"/>
-  <text x="1070" y="248" class="cardinality">1</text>
-  <text x="1120" y="248" class="cardinality">0..*</text>
-
-  <path d="M950 880 H1110 V890 H1180" class="relation"/>
-  <text x="965" y="862" class="cardinality">1</text>
-  <text x="1140" y="868" class="cardinality">1</text>
-
-  <path d="M950 1190 H1180" class="relation"/>
-  <text x="970" y="1172" class="cardinality">1</text>
-  <text x="1145" y="1168" class="cardinality">1</text>
-
-  <path d="M950 1260 H1110 V1550 H1180" class="relation"/>
-  <text x="965" y="1242" class="cardinality">1</text>
-  <text x="1115" y="1528" class="cardinality">0..*</text>
-
-  <path d="M500 1385 V1480" class="relation"/>
-  <text x="515" y="1420" class="cardinality">1</text>
-  <text x="515" y="1465" class="cardinality">0..*</text>
-
-  <path d="M770 1600 H1180" class="relation"/>
-  <text x="790" y="1582" class="cardinality">1</text>
-  <text x="1115" y="1578" class="cardinality">0..*</text>
-
-  <path d="M770 1780 H1080 V1940 H1180" class="relation"/>
-  <text x="790" y="1762" class="cardinality">1</text>
-  <text x="1115" y="1918" class="cardinality">0..*</text>
-
+  <!-- Agregacije agentskog odgovora -->
+  <path d="M1728 1676 H1798" class="association"/>
+  <text x="1738" y="1660" class="multiplicity">1</text><text x="1770" y="1660" class="multiplicity">1</text>
+  <path d="M1728 1940 H1798" class="association"/>
+  <text x="1738" y="1924" class="multiplicity">1</text><text x="1748" y="1968" class="multiplicity">0..*</text>
+  <path d="M1450 1640 V1612 H1985 V1580" class="association"/>
+  <text x="1464" y="1627" class="multiplicity">1</text><text x="1998" y="1610" class="multiplicity">0..*</text>
 </svg>
