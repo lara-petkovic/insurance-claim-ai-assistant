@@ -15,7 +15,8 @@
     "claim_status": "requires_human_review",
     "potential_exclusions": [
       "pipe_or_apparatus_itself",
-      "gradual_damage"
+      "gradual_damage",
+      "poor_maintenance"
     ],
     "missing_documents": [],
     "evidence": [
@@ -117,7 +118,8 @@
         "policy_clause_id": "clause_b821388e05e50d576dec",
         "clause_type": null,
         "proposition_ids": [
-          "exclusion-gradual_damage-2"
+          "exclusion-gradual_damage-2",
+          "exclusion-poor_maintenance-3"
         ]
       },
       {
@@ -141,7 +143,7 @@
         ]
       }
     ],
-    "reasoning_summary": "The claim was classified as water_damage. Policy concept matching returned unclear. Potential exclusions were detected: pipe_or_apparatus_itself, gradual_damage. Image authenticity risk is low with score 0.18. This is a preliminary explainable opinion, not a final insurance decision. Final synthesis flagged: validator feedback, potential exclusions. Orchestration stopped because budget_exhausted: Maximum repair iterations reached with rejected propositions unresolved."
+    "reasoning_summary": "The claim was classified as water_damage. Policy concept matching returned unclear. Potential exclusions were detected: pipe_or_apparatus_itself, gradual_damage, poor_maintenance. Image authenticity risk is low with score 0.18. This is a preliminary explainable opinion, not a final insurance decision. Final synthesis flagged: validator feedback, potential exclusions. Orchestration stopped because budget_exhausted: Maximum repair iterations reached with rejected propositions unresolved."
   },
   {
     "id": "home-water-gradual",
@@ -157,10 +159,8 @@
     "potential_exclusions": [
       "gradual_damage",
       "rot",
-      "gradual_leakage",
-      "repeated_exposure",
-      "mould",
-      "pipe_or_apparatus_itself"
+      "pipe_or_apparatus_itself",
+      "poor_maintenance"
     ],
     "missing_documents": [
       "damage photos",
@@ -207,8 +207,7 @@
         "proposition_ids": [
           "exclusion-gradual_damage-1",
           "exclusion-rot-2",
-          "exclusion-gradual_leakage-3",
-          "exclusion-repeated_exposure-4"
+          "exclusion-poor_maintenance-4"
         ]
       },
       {
@@ -228,11 +227,11 @@
         "policy_clause_id": "clause_54bb692a772ab2d7651b",
         "clause_type": null,
         "proposition_ids": [
-          "exclusion-pipe_or_apparatus_itself-6"
+          "exclusion-pipe_or_apparatus_itself-3"
         ]
       }
     ],
-    "reasoning_summary": "The claim was classified as water_damage. Policy concept matching returned not_covered. Potential exclusions were detected: gradual_damage, rot, gradual_leakage, repeated_exposure, mould, pipe_or_apparatus_itself. The claim package is missing: damage photos, plumber report, repair estimate. Image authenticity risk is low with score 0.0. This is a preliminary explainable opinion, not a final insurance decision. Final synthesis flagged: validator feedback, potential exclusions, missing documents. Orchestration stopped because budget_exhausted: Maximum repair iterations reached with rejected propositions unresolved."
+    "reasoning_summary": "The claim was classified as water_damage. Policy concept matching returned not_covered. Potential exclusions were detected: gradual_damage, rot, pipe_or_apparatus_itself, poor_maintenance. The claim package is missing: damage photos, plumber report, repair estimate. Image authenticity risk is low with score 0.0. This is a preliminary explainable opinion, not a final insurance decision. Final synthesis flagged: validator feedback, potential exclusions, missing documents. Orchestration stopped because budget_exhausted: Maximum repair iterations reached with rejected propositions unresolved."
   },
   {
     "id": "home-theft-excluded",
@@ -333,7 +332,10 @@
     "claim_type": "theft",
     "coverage_assessment": "unclear",
     "claim_status": "requires_human_review",
-    "potential_exclusions": [],
+    "potential_exclusions": [
+      "deliberate damage by an insured person",
+      "damage arising from wear and tear or poor maintenance"
+    ],
     "missing_documents": [],
     "evidence": [
       {
@@ -415,7 +417,8 @@
         "clause_type": null,
         "proposition_ids": [
           "coverage-theft",
-          "policy-exclusion-theft-1"
+          "policy-exclusion-theft-1",
+          "exclusion-deliberate damage by an insured person-1"
         ]
       },
       {
@@ -436,7 +439,8 @@
         "clause_type": null,
         "proposition_ids": [
           "coverage-theft",
-          "policy-exclusion-theft-2"
+          "policy-exclusion-theft-2",
+          "exclusion-damage arising from wear and tear or poor maintenance-2"
         ]
       },
       {
@@ -460,7 +464,7 @@
         ]
       }
     ],
-    "reasoning_summary": "The claim was classified as theft. Policy concept matching returned unclear. Image authenticity risk is low with score 0.0. This is a preliminary explainable opinion, not a final insurance decision. Final synthesis flagged: validator feedback. Orchestration stopped because budget_exhausted: Maximum repair iterations reached with rejected propositions unresolved."
+    "reasoning_summary": "The claim was classified as theft. Policy concept matching returned unclear. Potential exclusions were detected: deliberate damage by an insured person, damage arising from wear and tear or poor maintenance. Image authenticity risk is low with score 0.0. This is a preliminary explainable opinion, not a final insurance decision. Final synthesis flagged: validator feedback, potential exclusions. Orchestration stopped because budget_exhausted: Maximum repair iterations reached with rejected propositions unresolved."
   },
   {
     "id": "home-bike-theft",
@@ -473,10 +477,85 @@
     "claim_type": "theft",
     "coverage_assessment": "unclear",
     "claim_status": "requires_human_review",
-    "potential_exclusions": [],
-    "missing_documents": [],
-    "evidence": [],
-    "reasoning_summary": "The claim was classified as theft. Policy concept matching returned unclear. Image authenticity risk is low with score 0.0. This is a preliminary explainable opinion, not a final insurance decision. Orchestration stopped because failure: Execution failed in a controlled graph node: ModelCallError."
+    "potential_exclusions": [
+      "deliberate damage by an insured person",
+      "gradual_damage",
+      "poor_maintenance",
+      "mechanical_breakdown"
+    ],
+    "missing_documents": [
+      "police report",
+      "proof of ownership"
+    ],
+    "evidence": [
+      {
+        "source": "policy",
+        "text": "Covered events: theft from the insured home, storm damage, flood damage, and accidental breakage of fixed glass.",
+        "section": "FICTIONAL TEST POLICY — HOME PLUS",
+        "page": null,
+        "score": 1.0,
+        "source_document_id": "doc_2c547d95cfc8531e89b3",
+        "source_filename": "02_home_plus.txt",
+        "section_heading": "FICTIONAL TEST POLICY — HOME PLUS",
+        "char_start": 76,
+        "char_end": 188,
+        "stable_location": "chars:76-188",
+        "extraction_method": "text_extraction",
+        "verification_status": "machine_verified",
+        "policy_clause_id": "clause_01b8f7f35258014f3002",
+        "clause_type": null,
+        "proposition_ids": [
+          "coverage-theft"
+        ]
+      },
+      {
+        "source": "policy",
+        "text": "Deliberate damage by an insured person is not covered.",
+        "section": "FICTIONAL TEST POLICY — HOME PLUS",
+        "page": null,
+        "score": 1.0,
+        "source_document_id": "doc_2c547d95cfc8531e89b3",
+        "source_filename": "02_home_plus.txt",
+        "section_heading": "FICTIONAL TEST POLICY — HOME PLUS",
+        "char_start": 190,
+        "char_end": 244,
+        "stable_location": "chars:190-244",
+        "extraction_method": "text_extraction",
+        "verification_status": "machine_verified",
+        "policy_clause_id": "clause_8f45a6c7f26e8bfd782e",
+        "clause_type": null,
+        "proposition_ids": [
+          "coverage-theft",
+          "policy-exclusion-theft-1",
+          "exclusion-deliberate damage by an insured person-1"
+        ]
+      },
+      {
+        "source": "policy",
+        "text": "Damage arising from wear and tear or poor maintenance is excluded.",
+        "section": "FICTIONAL TEST POLICY — HOME PLUS",
+        "page": null,
+        "score": 1.0,
+        "source_document_id": "doc_2c547d95cfc8531e89b3",
+        "source_filename": "02_home_plus.txt",
+        "section_heading": "FICTIONAL TEST POLICY — HOME PLUS",
+        "char_start": 245,
+        "char_end": 311,
+        "stable_location": "chars:245-311",
+        "extraction_method": "text_extraction",
+        "verification_status": "machine_verified",
+        "policy_clause_id": "clause_6af1767c8cdde18c2a7a",
+        "clause_type": null,
+        "proposition_ids": [
+          "coverage-theft",
+          "policy-exclusion-theft-2",
+          "exclusion-gradual_damage-2",
+          "exclusion-poor_maintenance-3",
+          "exclusion-mechanical_breakdown-4"
+        ]
+      }
+    ],
+    "reasoning_summary": "The claim was classified as theft. Policy concept matching returned unclear. Potential exclusions were detected: deliberate damage by an insured person, gradual_damage, poor_maintenance, mechanical_breakdown. The claim package is missing: police report, proof of ownership. Image authenticity risk is low with score 0.0. This is a preliminary explainable opinion, not a final insurance decision. Final synthesis flagged: validator feedback, potential exclusions, missing documents. Orchestration stopped because budget_exhausted: Maximum repair iterations reached with rejected propositions unresolved."
   },
   {
     "id": "home-storm-roof",
@@ -486,13 +565,86 @@
     "expected_behavior": "Storm has positive wording; photos, weather evidence, and estimate remain relevant.",
     "image": "storm-damaged-roof.png",
     "supporting_documents": [],
-    "claim_type": "unknown",
+    "claim_type": "storm_damage",
     "coverage_assessment": "unclear",
     "claim_status": "requires_human_review",
-    "potential_exclusions": [],
-    "missing_documents": [],
-    "evidence": [],
-    "reasoning_summary": "The claim was classified as unknown. Policy concept matching returned unclear. Image authenticity risk is low with score 0.0. This is a preliminary explainable opinion, not a final insurance decision. Orchestration stopped because failure: Execution failed in a controlled graph node: ModelCallError."
+    "potential_exclusions": [
+      "gradual_damage",
+      "poor_maintenance",
+      "Deliberate damage by an insured person"
+    ],
+    "missing_documents": [
+      "weather report",
+      "repair estimate"
+    ],
+    "evidence": [
+      {
+        "source": "policy",
+        "text": "Covered events: theft from the insured home, storm damage, flood damage, and accidental breakage of fixed glass.",
+        "section": "FICTIONAL TEST POLICY — HOME PLUS",
+        "page": null,
+        "score": 1.0,
+        "source_document_id": "doc_2c547d95cfc8531e89b3",
+        "source_filename": "02_home_plus.txt",
+        "section_heading": "FICTIONAL TEST POLICY — HOME PLUS",
+        "char_start": 76,
+        "char_end": 188,
+        "stable_location": "chars:76-188",
+        "extraction_method": "text_extraction",
+        "verification_status": "machine_verified",
+        "policy_clause_id": "clause_0d528bb5ff89852e3873",
+        "clause_type": null,
+        "proposition_ids": [
+          "coverage-storm_damage"
+        ]
+      },
+      {
+        "source": "policy",
+        "text": "Deliberate damage by an insured person is not covered.",
+        "section": "FICTIONAL TEST POLICY — HOME PLUS",
+        "page": null,
+        "score": 1.0,
+        "source_document_id": "doc_2c547d95cfc8531e89b3",
+        "source_filename": "02_home_plus.txt",
+        "section_heading": "FICTIONAL TEST POLICY — HOME PLUS",
+        "char_start": 190,
+        "char_end": 244,
+        "stable_location": "chars:190-244",
+        "extraction_method": "text_extraction",
+        "verification_status": "machine_verified",
+        "policy_clause_id": "clause_8f45a6c7f26e8bfd782e",
+        "clause_type": null,
+        "proposition_ids": [
+          "coverage-storm_damage",
+          "policy-exclusion-storm_damage-1",
+          "exclusion-Deliberate damage by an insured person-3"
+        ]
+      },
+      {
+        "source": "policy",
+        "text": "Damage arising from wear and tear or poor maintenance is excluded.",
+        "section": "FICTIONAL TEST POLICY — HOME PLUS",
+        "page": null,
+        "score": 1.0,
+        "source_document_id": "doc_2c547d95cfc8531e89b3",
+        "source_filename": "02_home_plus.txt",
+        "section_heading": "FICTIONAL TEST POLICY — HOME PLUS",
+        "char_start": 245,
+        "char_end": 311,
+        "stable_location": "chars:245-311",
+        "extraction_method": "text_extraction",
+        "verification_status": "machine_verified",
+        "policy_clause_id": "clause_6af1767c8cdde18c2a7a",
+        "clause_type": null,
+        "proposition_ids": [
+          "coverage-storm_damage",
+          "policy-exclusion-storm_damage-2",
+          "exclusion-gradual_damage-1",
+          "exclusion-poor_maintenance-2"
+        ]
+      }
+    ],
+    "reasoning_summary": "The claim was classified as storm_damage. Policy concept matching returned unclear. Potential exclusions were detected: gradual_damage, poor_maintenance, Deliberate damage by an insured person. The claim package is missing: weather report, repair estimate. Image authenticity risk is low with score 0.13. This is a preliminary explainable opinion, not a final insurance decision. Final synthesis flagged: validator feedback, potential exclusions, missing documents. Orchestration stopped because budget_exhausted: Maximum repair iterations reached with rejected propositions unresolved."
   },
   {
     "id": "home-glass",
@@ -502,13 +654,86 @@
     "expected_behavior": "Fixed glass has an exact positive clause.",
     "image": null,
     "supporting_documents": [],
-    "claim_type": "unknown",
+    "claim_type": "broken_glass",
     "coverage_assessment": "unclear",
     "claim_status": "requires_human_review",
-    "potential_exclusions": [],
-    "missing_documents": [],
-    "evidence": [],
-    "reasoning_summary": "The claim was classified as unknown. Policy concept matching returned unclear. Image authenticity risk is low with score 0.0. This is a preliminary explainable opinion, not a final insurance decision. Orchestration stopped because failure: Execution failed in a controlled graph node: ModelCallError."
+    "potential_exclusions": [
+      "gradual_damage",
+      "poor_maintenance",
+      "Deliberate damage by an insured person"
+    ],
+    "missing_documents": [
+      "damage photos",
+      "repair estimate"
+    ],
+    "evidence": [
+      {
+        "source": "policy",
+        "text": "Covered events: theft from the insured home, storm damage, flood damage, and accidental breakage of fixed glass.",
+        "section": "FICTIONAL TEST POLICY — HOME PLUS",
+        "page": null,
+        "score": 1.0,
+        "source_document_id": "doc_2c547d95cfc8531e89b3",
+        "source_filename": "02_home_plus.txt",
+        "section_heading": "FICTIONAL TEST POLICY — HOME PLUS",
+        "char_start": 76,
+        "char_end": 188,
+        "stable_location": "chars:76-188",
+        "extraction_method": "text_extraction",
+        "verification_status": "machine_verified",
+        "policy_clause_id": "clause_601fe412803e20b28005",
+        "clause_type": null,
+        "proposition_ids": [
+          "coverage-broken_glass"
+        ]
+      },
+      {
+        "source": "policy",
+        "text": "Deliberate damage by an insured person is not covered.",
+        "section": "FICTIONAL TEST POLICY — HOME PLUS",
+        "page": null,
+        "score": 1.0,
+        "source_document_id": "doc_2c547d95cfc8531e89b3",
+        "source_filename": "02_home_plus.txt",
+        "section_heading": "FICTIONAL TEST POLICY — HOME PLUS",
+        "char_start": 190,
+        "char_end": 244,
+        "stable_location": "chars:190-244",
+        "extraction_method": "text_extraction",
+        "verification_status": "machine_verified",
+        "policy_clause_id": "clause_8f45a6c7f26e8bfd782e",
+        "clause_type": null,
+        "proposition_ids": [
+          "coverage-broken_glass",
+          "policy-exclusion-broken_glass-1",
+          "exclusion-Deliberate damage by an insured person-3"
+        ]
+      },
+      {
+        "source": "policy",
+        "text": "Damage arising from wear and tear or poor maintenance is excluded.",
+        "section": "FICTIONAL TEST POLICY — HOME PLUS",
+        "page": null,
+        "score": 1.0,
+        "source_document_id": "doc_2c547d95cfc8531e89b3",
+        "source_filename": "02_home_plus.txt",
+        "section_heading": "FICTIONAL TEST POLICY — HOME PLUS",
+        "char_start": 245,
+        "char_end": 311,
+        "stable_location": "chars:245-311",
+        "extraction_method": "text_extraction",
+        "verification_status": "machine_verified",
+        "policy_clause_id": "clause_6af1767c8cdde18c2a7a",
+        "clause_type": null,
+        "proposition_ids": [
+          "coverage-broken_glass",
+          "policy-exclusion-broken_glass-2",
+          "exclusion-gradual_damage-1",
+          "exclusion-poor_maintenance-2"
+        ]
+      }
+    ],
+    "reasoning_summary": "The claim was classified as broken_glass. Policy concept matching returned unclear. Potential exclusions were detected: gradual_damage, poor_maintenance, Deliberate damage by an insured person. The claim package is missing: damage photos, repair estimate. Image authenticity risk is low with score 0.0. This is a preliminary explainable opinion, not a final insurance decision. Final synthesis flagged: validator feedback, potential exclusions, missing documents. Orchestration stopped because budget_exhausted: Maximum repair iterations reached with rejected propositions unresolved."
   },
   {
     "id": "auto-collision",
@@ -520,13 +745,101 @@
     "supporting_documents": [
       "auto-repair-estimate.txt"
     ],
-    "claim_type": "unknown",
+    "claim_type": "vehicle_damage",
     "coverage_assessment": "unclear",
     "claim_status": "requires_human_review",
-    "potential_exclusions": [],
+    "potential_exclusions": [
+      "mechanical_breakdown",
+      "wear_and_tear"
+    ],
     "missing_documents": [],
-    "evidence": [],
-    "reasoning_summary": "The claim was classified as unknown. Policy concept matching returned unclear. Image authenticity risk is low with score 0.0. This is a preliminary explainable opinion, not a final insurance decision. Orchestration stopped because failure: Execution failed in a controlled graph node: ModelCallError."
+    "evidence": [
+      {
+        "source": "supporting:auto-repair-estimate.txt",
+        "text": "FICTIONAL TEST DOCUMENT — VEHICLE REPAIR ESTIMATE\nEstimate to replace and refinish the rear bumper and replace the damaged tail-light assembly after a low-speed collision: EUR 1,180.",
+        "section": "FICTIONAL TEST DOCUMENT — VEHICLE REPAIR ESTIMATE",
+        "page": null,
+        "score": 1.0,
+        "source_document_id": "doc_8a0e5641fffcdd686ef7",
+        "source_filename": "auto-repair-estimate.txt",
+        "section_heading": "FICTIONAL TEST DOCUMENT — VEHICLE REPAIR ESTIMATE",
+        "char_start": 0,
+        "char_end": 182,
+        "stable_location": "chars:0-182",
+        "extraction_method": "text_extraction",
+        "verification_status": "machine_verified",
+        "policy_clause_id": null,
+        "clause_type": null,
+        "proposition_ids": [
+          "missing-evidence-2",
+          "supporting-fact-1"
+        ]
+      },
+      {
+        "source": "policy",
+        "text": "Covered events: collision, accidental vehicle damage, vehicle theft, fire, and damage caused by hail.",
+        "section": "FICTIONAL TEST POLICY — AUTO COMPREHENSIVE",
+        "page": null,
+        "score": 1.0,
+        "source_document_id": "doc_a8903c05c036275721d3",
+        "source_filename": "03_auto_comprehensive.txt",
+        "section_heading": "FICTIONAL TEST POLICY — AUTO COMPREHENSIVE",
+        "char_start": 125,
+        "char_end": 226,
+        "stable_location": "chars:125-226",
+        "extraction_method": "text_extraction",
+        "verification_status": "machine_verified",
+        "policy_clause_id": "clause_9e5b813876ccee7fd4e3",
+        "clause_type": null,
+        "proposition_ids": [
+          "coverage-vehicle_damage"
+        ]
+      },
+      {
+        "source": "policy",
+        "text": "Mechanical breakdown is not covered.",
+        "section": "FICTIONAL TEST POLICY — AUTO COMPREHENSIVE",
+        "page": null,
+        "score": 1.0,
+        "source_document_id": "doc_a8903c05c036275721d3",
+        "source_filename": "03_auto_comprehensive.txt",
+        "section_heading": "FICTIONAL TEST POLICY — AUTO COMPREHENSIVE",
+        "char_start": 228,
+        "char_end": 264,
+        "stable_location": "chars:228-264",
+        "extraction_method": "text_extraction",
+        "verification_status": "machine_verified",
+        "policy_clause_id": "clause_862922d34039012e3740",
+        "clause_type": null,
+        "proposition_ids": [
+          "coverage-vehicle_damage",
+          "policy-exclusion-vehicle_damage-1",
+          "exclusion-mechanical_breakdown-1"
+        ]
+      },
+      {
+        "source": "policy",
+        "text": "Wear and tear, tyre deterioration, racing, deliberate damage, and driving without a valid licence are excluded.",
+        "section": "FICTIONAL TEST POLICY — AUTO COMPREHENSIVE",
+        "page": null,
+        "score": 1.0,
+        "source_document_id": "doc_a8903c05c036275721d3",
+        "source_filename": "03_auto_comprehensive.txt",
+        "section_heading": "FICTIONAL TEST POLICY — AUTO COMPREHENSIVE",
+        "char_start": 265,
+        "char_end": 376,
+        "stable_location": "chars:265-376",
+        "extraction_method": "text_extraction",
+        "verification_status": "machine_verified",
+        "policy_clause_id": "clause_35c2de691486b40480da",
+        "clause_type": null,
+        "proposition_ids": [
+          "coverage-vehicle_damage",
+          "policy-exclusion-vehicle_damage-2"
+        ]
+      }
+    ],
+    "reasoning_summary": "The claim was classified as vehicle_damage. Policy concept matching returned unclear. Potential exclusions were detected: mechanical_breakdown, wear_and_tear. Image authenticity risk is low with score 0.18. This is a preliminary explainable opinion, not a final insurance decision. Final synthesis flagged: validator feedback, potential exclusions. Orchestration stopped because budget_exhausted: Maximum repair iterations reached with rejected propositions unresolved."
   },
   {
     "id": "auto-theft",
@@ -536,13 +849,79 @@
     "expected_behavior": "Vehicle theft is positively covered, with keys and ownership evidence still required.",
     "image": null,
     "supporting_documents": [],
-    "claim_type": "unknown",
+    "claim_type": "theft",
     "coverage_assessment": "unclear",
     "claim_status": "requires_human_review",
     "potential_exclusions": [],
-    "missing_documents": [],
-    "evidence": [],
-    "reasoning_summary": "The claim was classified as unknown. Policy concept matching returned unclear. Image authenticity risk is low with score 0.0. This is a preliminary explainable opinion, not a final insurance decision. Orchestration stopped because failure: Execution failed in a controlled graph node: ModelCallError."
+    "missing_documents": [
+      "police report",
+      "proof of ownership"
+    ],
+    "evidence": [
+      {
+        "source": "policy",
+        "text": "Covered events: collision, accidental vehicle damage, vehicle theft, fire, and damage caused by hail.",
+        "section": "FICTIONAL TEST POLICY — AUTO COMPREHENSIVE",
+        "page": null,
+        "score": 1.0,
+        "source_document_id": "doc_a8903c05c036275721d3",
+        "source_filename": "03_auto_comprehensive.txt",
+        "section_heading": "FICTIONAL TEST POLICY — AUTO COMPREHENSIVE",
+        "char_start": 125,
+        "char_end": 226,
+        "stable_location": "chars:125-226",
+        "extraction_method": "text_extraction",
+        "verification_status": "machine_verified",
+        "policy_clause_id": "clause_0362fe4941ee43c94c61",
+        "clause_type": null,
+        "proposition_ids": [
+          "coverage-theft"
+        ]
+      },
+      {
+        "source": "policy",
+        "text": "Mechanical breakdown is not covered.",
+        "section": "FICTIONAL TEST POLICY — AUTO COMPREHENSIVE",
+        "page": null,
+        "score": 1.0,
+        "source_document_id": "doc_a8903c05c036275721d3",
+        "source_filename": "03_auto_comprehensive.txt",
+        "section_heading": "FICTIONAL TEST POLICY — AUTO COMPREHENSIVE",
+        "char_start": 228,
+        "char_end": 264,
+        "stable_location": "chars:228-264",
+        "extraction_method": "text_extraction",
+        "verification_status": "machine_verified",
+        "policy_clause_id": "clause_862922d34039012e3740",
+        "clause_type": null,
+        "proposition_ids": [
+          "coverage-theft",
+          "policy-exclusion-theft-1"
+        ]
+      },
+      {
+        "source": "policy",
+        "text": "Wear and tear, tyre deterioration, racing, deliberate damage, and driving without a valid licence are excluded.",
+        "section": "FICTIONAL TEST POLICY — AUTO COMPREHENSIVE",
+        "page": null,
+        "score": 1.0,
+        "source_document_id": "doc_a8903c05c036275721d3",
+        "source_filename": "03_auto_comprehensive.txt",
+        "section_heading": "FICTIONAL TEST POLICY — AUTO COMPREHENSIVE",
+        "char_start": 265,
+        "char_end": 376,
+        "stable_location": "chars:265-376",
+        "extraction_method": "text_extraction",
+        "verification_status": "machine_verified",
+        "policy_clause_id": "clause_35c2de691486b40480da",
+        "clause_type": null,
+        "proposition_ids": [
+          "coverage-theft",
+          "policy-exclusion-theft-2"
+        ]
+      }
+    ],
+    "reasoning_summary": "The claim was classified as theft. Policy concept matching returned unclear. The claim package is missing: police report, proof of ownership. Image authenticity risk is low with score 0.0. This is a preliminary explainable opinion, not a final insurance decision. Final synthesis flagged: validator feedback, missing documents. Orchestration stopped because budget_exhausted: Maximum repair iterations reached with rejected propositions unresolved."
   },
   {
     "id": "auto-hail",
@@ -552,13 +931,60 @@
     "expected_behavior": "This stresses cross-domain classification because hail can map to storm or vehicle damage; uncertainty should not be auto-approved.",
     "image": null,
     "supporting_documents": [],
-    "claim_type": "unknown",
-    "coverage_assessment": "unclear",
-    "claim_status": "requires_human_review",
+    "claim_type": "storm_damage",
+    "coverage_assessment": "not_covered",
+    "claim_status": "likely_not_covered",
     "potential_exclusions": [],
-    "missing_documents": [],
-    "evidence": [],
-    "reasoning_summary": "The claim was classified as unknown. Policy concept matching returned unclear. Image authenticity risk is low with score 0.0. This is a preliminary explainable opinion, not a final insurance decision. Orchestration stopped because failure: Execution failed in a controlled graph node: ModelCallError."
+    "missing_documents": [
+      "damage photos",
+      "weather report",
+      "repair estimate"
+    ],
+    "evidence": [
+      {
+        "source": "policy",
+        "text": "Mechanical breakdown is not covered.",
+        "section": "FICTIONAL TEST POLICY — AUTO COMPREHENSIVE",
+        "page": null,
+        "score": 1.0,
+        "source_document_id": "doc_a8903c05c036275721d3",
+        "source_filename": "03_auto_comprehensive.txt",
+        "section_heading": "FICTIONAL TEST POLICY — AUTO COMPREHENSIVE",
+        "char_start": 228,
+        "char_end": 264,
+        "stable_location": "chars:228-264",
+        "extraction_method": "text_extraction",
+        "verification_status": "machine_verified",
+        "policy_clause_id": "clause_862922d34039012e3740",
+        "clause_type": null,
+        "proposition_ids": [
+          "coverage-storm_damage",
+          "policy-exclusion-storm_damage-1"
+        ]
+      },
+      {
+        "source": "policy",
+        "text": "Wear and tear, tyre deterioration, racing, deliberate damage, and driving without a valid licence are excluded.",
+        "section": "FICTIONAL TEST POLICY — AUTO COMPREHENSIVE",
+        "page": null,
+        "score": 1.0,
+        "source_document_id": "doc_a8903c05c036275721d3",
+        "source_filename": "03_auto_comprehensive.txt",
+        "section_heading": "FICTIONAL TEST POLICY — AUTO COMPREHENSIVE",
+        "char_start": 265,
+        "char_end": 376,
+        "stable_location": "chars:265-376",
+        "extraction_method": "text_extraction",
+        "verification_status": "machine_verified",
+        "policy_clause_id": "clause_35c2de691486b40480da",
+        "clause_type": null,
+        "proposition_ids": [
+          "coverage-storm_damage",
+          "policy-exclusion-storm_damage-2"
+        ]
+      }
+    ],
+    "reasoning_summary": "The claim was classified as storm_damage. Policy concept matching returned not_covered. The claim package is missing: damage photos, weather report, repair estimate. Consistency issues were found: Claim type storm_damage concerns a home insured subject, which is inconsistent with the selected auto policy. Image authenticity risk is low with score 0.0. This is a preliminary explainable opinion, not a final insurance decision. Final synthesis flagged: validator feedback, missing documents, consistency issues. Orchestration stopped because budget_exhausted: Maximum repair iterations reached with rejected propositions unresolved."
   },
   {
     "id": "travel-medical",
@@ -568,13 +994,62 @@
     "expected_behavior": "Emergency medical treatment has positive wording; medical report and receipts are required.",
     "image": null,
     "supporting_documents": [],
-    "claim_type": "unknown",
+    "claim_type": "medical",
     "coverage_assessment": "unclear",
     "claim_status": "requires_human_review",
-    "potential_exclusions": [],
-    "missing_documents": [],
-    "evidence": [],
-    "reasoning_summary": "The claim was classified as unknown. Policy concept matching returned unclear. Image authenticity risk is low with score 0.0. This is a preliminary explainable opinion, not a final insurance decision. Orchestration stopped because failure: Execution failed in a controlled graph node: ModelCallError."
+    "potential_exclusions": [
+      "pre-existing or previously diagnosed medical conditions unless expressly accepted in writing"
+    ],
+    "missing_documents": [
+      "medical report",
+      "medical receipts"
+    ],
+    "evidence": [
+      {
+        "source": "policy",
+        "text": "Covered events: emergency medical treatment for a sudden illness or accident abroad and baggage lost by a common carrier.",
+        "section": "FICTIONAL TEST POLICY — TRAVEL SECURE",
+        "page": null,
+        "score": 1.0,
+        "source_document_id": "doc_fba97aea794ca1bb59fa",
+        "source_filename": "04_travel_secure.txt",
+        "section_heading": "FICTIONAL TEST POLICY — TRAVEL SECURE",
+        "char_start": 80,
+        "char_end": 201,
+        "stable_location": "chars:80-201",
+        "extraction_method": "text_extraction",
+        "verification_status": "machine_verified",
+        "policy_clause_id": "clause_2f6fd8ce1d3af1e1fe50",
+        "clause_type": null,
+        "proposition_ids": [
+          "coverage-medical"
+        ]
+      },
+      {
+        "source": "policy",
+        "text": "Pre-existing or previously diagnosed medical conditions are not covered unless expressly accepted in writing.",
+        "section": "FICTIONAL TEST POLICY — TRAVEL SECURE",
+        "page": null,
+        "score": 1.0,
+        "source_document_id": "doc_fba97aea794ca1bb59fa",
+        "source_filename": "04_travel_secure.txt",
+        "section_heading": "FICTIONAL TEST POLICY — TRAVEL SECURE",
+        "char_start": 326,
+        "char_end": 435,
+        "stable_location": "chars:326-435",
+        "extraction_method": "text_extraction",
+        "verification_status": "machine_verified",
+        "policy_clause_id": "clause_9ef03d23e660da25ef59",
+        "clause_type": null,
+        "proposition_ids": [
+          "condition-medical-1",
+          "missing-evidence-1",
+          "missing-evidence-2",
+          "exclusion-pre-existing or previously diagnosed medical conditions unless expressly accepted in writing-1"
+        ]
+      }
+    ],
+    "reasoning_summary": "The claim was classified as medical. Policy concept matching returned unclear. Potential exclusions were detected: pre-existing or previously diagnosed medical conditions unless expressly accepted in writing. The claim package is missing: medical report, medical receipts. Image authenticity risk is low with score 0.0. This is a preliminary explainable opinion, not a final insurance decision. Final synthesis flagged: validator feedback, potential exclusions, missing documents. Orchestration stopped because budget_exhausted: Maximum repair iterations reached with rejected propositions unresolved."
   },
   {
     "id": "travel-preexisting",
@@ -584,13 +1059,62 @@
     "expected_behavior": "Pre-existing-condition wording should produce exclusion risk or human review.",
     "image": null,
     "supporting_documents": [],
-    "claim_type": "unknown",
-    "coverage_assessment": "unclear",
-    "claim_status": "requires_human_review",
-    "potential_exclusions": [],
-    "missing_documents": [],
-    "evidence": [],
-    "reasoning_summary": "The claim was classified as unknown. Policy concept matching returned unclear. Image authenticity risk is low with score 0.0. This is a preliminary explainable opinion, not a final insurance decision. Orchestration stopped because failure: Execution failed in a controlled graph node: ModelCallError."
+    "claim_type": "medical",
+    "coverage_assessment": "not_covered",
+    "claim_status": "likely_not_covered",
+    "potential_exclusions": [
+      "pre-existing or previously diagnosed medical conditions unless expressly accepted in writing"
+    ],
+    "missing_documents": [
+      "medical report",
+      "medical receipts"
+    ],
+    "evidence": [
+      {
+        "source": "policy",
+        "text": "Covered events: emergency medical treatment for a sudden illness or accident abroad and baggage lost by a common carrier.",
+        "section": "FICTIONAL TEST POLICY — TRAVEL SECURE",
+        "page": null,
+        "score": 1.0,
+        "source_document_id": "doc_fba97aea794ca1bb59fa",
+        "source_filename": "04_travel_secure.txt",
+        "section_heading": "FICTIONAL TEST POLICY — TRAVEL SECURE",
+        "char_start": 80,
+        "char_end": 201,
+        "stable_location": "chars:80-201",
+        "extraction_method": "text_extraction",
+        "verification_status": "machine_verified",
+        "policy_clause_id": "clause_2f6fd8ce1d3af1e1fe50",
+        "clause_type": null,
+        "proposition_ids": [
+          "coverage-medical"
+        ]
+      },
+      {
+        "source": "policy",
+        "text": "Pre-existing or previously diagnosed medical conditions are not covered unless expressly accepted in writing.",
+        "section": "FICTIONAL TEST POLICY — TRAVEL SECURE",
+        "page": null,
+        "score": 1.0,
+        "source_document_id": "doc_fba97aea794ca1bb59fa",
+        "source_filename": "04_travel_secure.txt",
+        "section_heading": "FICTIONAL TEST POLICY — TRAVEL SECURE",
+        "char_start": 326,
+        "char_end": 435,
+        "stable_location": "chars:326-435",
+        "extraction_method": "text_extraction",
+        "verification_status": "machine_verified",
+        "policy_clause_id": "clause_9ef03d23e660da25ef59",
+        "clause_type": null,
+        "proposition_ids": [
+          "condition-medical-1",
+          "missing-evidence-1",
+          "missing-evidence-2",
+          "exclusion-pre-existing or previously diagnosed medical conditions unless expressly accepted in writing-1"
+        ]
+      }
+    ],
+    "reasoning_summary": "The claim was classified as medical. Policy concept matching returned not_covered. Potential exclusions were detected: pre-existing or previously diagnosed medical conditions unless expressly accepted in writing. The claim package is missing: medical report, medical receipts. Image authenticity risk is low with score 0.0. This is a preliminary explainable opinion, not a final insurance decision. Final synthesis flagged: validator feedback, potential exclusions, missing documents. Orchestration stopped because budget_exhausted: Maximum repair iterations reached with rejected propositions unresolved."
   },
   {
     "id": "travel-baggage",
@@ -603,13 +1127,99 @@
       "baggage-carrier-report.txt",
       "baggage-proof-of-ownership.txt"
     ],
-    "claim_type": "unknown",
-    "coverage_assessment": "unclear",
+    "claim_type": "baggage_loss",
+    "coverage_assessment": "possibly_covered",
     "claim_status": "requires_human_review",
-    "potential_exclusions": [],
+    "potential_exclusions": [
+      "property left unattended or left in an unlocked vehicle is excluded",
+      "unattended_baggage"
+    ],
     "missing_documents": [],
-    "evidence": [],
-    "reasoning_summary": "The claim was classified as unknown. Policy concept matching returned unclear. Image authenticity risk is low with score 0.0. This is a preliminary explainable opinion, not a final insurance decision. Orchestration stopped because failure: Execution failed in a controlled graph node: ModelCallError."
+    "evidence": [
+      {
+        "source": "policy",
+        "text": "Covered events: emergency medical treatment for a sudden illness or accident abroad and baggage lost by a common carrier.",
+        "section": "FICTIONAL TEST POLICY — TRAVEL SECURE",
+        "page": null,
+        "score": 1.0,
+        "source_document_id": "doc_fba97aea794ca1bb59fa",
+        "source_filename": "04_travel_secure.txt",
+        "section_heading": "FICTIONAL TEST POLICY — TRAVEL SECURE",
+        "char_start": 80,
+        "char_end": 201,
+        "stable_location": "chars:80-201",
+        "extraction_method": "text_extraction",
+        "verification_status": "machine_verified",
+        "policy_clause_id": "clause_f2790b038c78667cd9cf",
+        "clause_type": null,
+        "proposition_ids": [
+          "coverage-baggage_loss"
+        ]
+      },
+      {
+        "source": "supporting:baggage-carrier-report.txt",
+        "text": "FICTIONAL TEST DOCUMENT — CARRIER REPORT\nThe carrier recorded the checked suitcase as missing at arrival and opened a baggage irregularity report for the passenger.",
+        "section": "FICTIONAL TEST DOCUMENT — CARRIER REPORT",
+        "page": null,
+        "score": 1.0,
+        "source_document_id": "doc_9df23cc5726e5bbef9e1",
+        "source_filename": "baggage-carrier-report.txt",
+        "section_heading": "FICTIONAL TEST DOCUMENT — CARRIER REPORT",
+        "char_start": 0,
+        "char_end": 164,
+        "stable_location": "chars:0-164",
+        "extraction_method": "text_extraction",
+        "verification_status": "machine_verified",
+        "policy_clause_id": null,
+        "clause_type": null,
+        "proposition_ids": [
+          "missing-evidence-1",
+          "supporting-fact-1"
+        ]
+      },
+      {
+        "source": "supporting:baggage-proof-of-ownership.txt",
+        "text": "FICTIONAL TEST DOCUMENT — PROOF OF OWNERSHIP\nPurchase record for the checked suitcase and an inventory of the demonstration claimant's personal belongings.",
+        "section": "FICTIONAL TEST DOCUMENT — PROOF OF OWNERSHIP",
+        "page": null,
+        "score": 1.0,
+        "source_document_id": "doc_bd25d074ae12e72d9d84",
+        "source_filename": "baggage-proof-of-ownership.txt",
+        "section_heading": "FICTIONAL TEST DOCUMENT — PROOF OF OWNERSHIP",
+        "char_start": 0,
+        "char_end": 155,
+        "stable_location": "chars:0-155",
+        "extraction_method": "text_extraction",
+        "verification_status": "machine_verified",
+        "policy_clause_id": null,
+        "clause_type": null,
+        "proposition_ids": [
+          "missing-evidence-2",
+          "supporting-fact-2"
+        ]
+      },
+      {
+        "source": "policy",
+        "text": "Property left unattended or left in an unlocked vehicle is excluded.",
+        "section": "FICTIONAL TEST POLICY — TRAVEL SECURE",
+        "page": null,
+        "score": 1.0,
+        "source_document_id": "doc_fba97aea794ca1bb59fa",
+        "source_filename": "04_travel_secure.txt",
+        "section_heading": "FICTIONAL TEST POLICY — TRAVEL SECURE",
+        "char_start": 436,
+        "char_end": 504,
+        "stable_location": "chars:436-504",
+        "extraction_method": "text_extraction",
+        "verification_status": "machine_verified",
+        "policy_clause_id": "clause_f45fd4fc0765eb3c7cb2",
+        "clause_type": null,
+        "proposition_ids": [
+          "exclusion-unattended_baggage-2"
+        ]
+      }
+    ],
+    "reasoning_summary": "The claim was classified as baggage_loss. Policy concept matching returned possibly_covered. Potential exclusions were detected: property left unattended or left in an unlocked vehicle is excluded, unattended_baggage. Image authenticity risk is low with score 0.19. This is a preliminary explainable opinion, not a final insurance decision. Final synthesis flagged: validator feedback, potential exclusions. Orchestration stopped because budget_exhausted: Maximum repair iterations reached with rejected propositions unresolved."
   },
   {
     "id": "travel-cancellation",
@@ -619,13 +1229,64 @@
     "expected_behavior": "Conditional cancellation wording plus explicit non-covered reasons should fail closed to not covered or human review.",
     "image": null,
     "supporting_documents": [],
-    "claim_type": "unknown",
-    "coverage_assessment": "unclear",
-    "claim_status": "requires_human_review",
-    "potential_exclusions": [],
-    "missing_documents": [],
-    "evidence": [],
-    "reasoning_summary": "The claim was classified as unknown. Policy concept matching returned unclear. Image authenticity risk is low with score 0.0. This is a preliminary explainable opinion, not a final insurance decision. Orchestration stopped because failure: Execution failed in a controlled graph node: ModelCallError."
+    "claim_type": "trip_cancellation",
+    "coverage_assessment": "not_covered",
+    "claim_status": "likely_not_covered",
+    "potential_exclusions": [
+      "known events",
+      "change of mind"
+    ],
+    "missing_documents": [
+      "booking confirmation",
+      "cancellation evidence"
+    ],
+    "evidence": [
+      {
+        "source": "policy",
+        "text": "Trip cancellation is covered only if a listed covered reason occurs before departure and documentary evidence is supplied.",
+        "section": "FICTIONAL TEST POLICY — TRAVEL SECURE",
+        "page": null,
+        "score": 1.0,
+        "source_document_id": "doc_fba97aea794ca1bb59fa",
+        "source_filename": "04_travel_secure.txt",
+        "section_heading": "FICTIONAL TEST POLICY — TRAVEL SECURE",
+        "char_start": 202,
+        "char_end": 324,
+        "stable_location": "chars:202-324",
+        "extraction_method": "text_extraction",
+        "verification_status": "machine_verified",
+        "policy_clause_id": "clause_e420b7fab929eeaa69ce",
+        "clause_type": null,
+        "proposition_ids": [
+          "missing-evidence-2",
+          "condition-trip_cancellation-1"
+        ]
+      },
+      {
+        "source": "policy",
+        "text": "Change of mind, inability to obtain a visa, and known events are not covered cancellation reasons.",
+        "section": "FICTIONAL TEST POLICY — TRAVEL SECURE",
+        "page": null,
+        "score": 1.0,
+        "source_document_id": "doc_fba97aea794ca1bb59fa",
+        "source_filename": "04_travel_secure.txt",
+        "section_heading": "FICTIONAL TEST POLICY — TRAVEL SECURE",
+        "char_start": 505,
+        "char_end": 603,
+        "stable_location": "chars:505-603",
+        "extraction_method": "text_extraction",
+        "verification_status": "machine_verified",
+        "policy_clause_id": "clause_597905f69a56647d1252",
+        "clause_type": null,
+        "proposition_ids": [
+          "coverage-trip_cancellation",
+          "policy-exclusion-trip_cancellation-1",
+          "exclusion-known events-1",
+          "exclusion-change of mind-2"
+        ]
+      }
+    ],
+    "reasoning_summary": "The claim was classified as trip_cancellation. Policy concept matching returned not_covered. Potential exclusions were detected: known events, change of mind. The claim package is missing: booking confirmation, cancellation evidence. Image authenticity risk is low with score 0.0. This is a preliminary explainable opinion, not a final insurance decision. Final synthesis flagged: validator feedback, potential exclusions, missing documents. Orchestration stopped because budget_exhausted: Maximum repair iterations reached with rejected propositions unresolved."
   },
   {
     "id": "conflict-theft",
@@ -635,13 +1296,81 @@
     "expected_behavior": "Contradictory positive and negative clauses must produce unclear and human review.",
     "image": null,
     "supporting_documents": [],
-    "claim_type": "unknown",
+    "claim_type": "theft",
     "coverage_assessment": "unclear",
     "claim_status": "requires_human_review",
-    "potential_exclusions": [],
-    "missing_documents": [],
-    "evidence": [],
-    "reasoning_summary": "The claim was classified as unknown. Policy concept matching returned unclear. Image authenticity risk is low with score 0.0. This is a preliminary explainable opinion, not a final insurance decision. Orchestration stopped because failure: Execution failed in a controlled graph node: ModelCallError."
+    "potential_exclusions": [
+      "theft excluded under Endorsement T-17"
+    ],
+    "missing_documents": [
+      "police report",
+      "proof of ownership"
+    ],
+    "evidence": [
+      {
+        "source": "policy",
+        "text": "Storm damage may be covered if the roof was in a good state of repair before the incident.",
+        "section": "FICTIONAL TEST POLICY — CONFLICTING ENDORSEMENT EXERCISE",
+        "page": null,
+        "score": 1.0,
+        "source_document_id": "doc_bc8303418f9d760875d2",
+        "source_filename": "05_conflicting_endorsement.txt",
+        "section_heading": "FICTIONAL TEST POLICY — CONFLICTING ENDORSEMENT EXERCISE",
+        "char_start": 193,
+        "char_end": 283,
+        "stable_location": "chars:193-283",
+        "extraction_method": "text_extraction",
+        "verification_status": "machine_verified",
+        "policy_clause_id": "clause_c486530ac534ed781ab1",
+        "clause_type": null,
+        "proposition_ids": [
+          "missing-evidence-2"
+        ]
+      },
+      {
+        "source": "policy",
+        "text": "Theft is covered under the main policy wording.",
+        "section": "FICTIONAL TEST POLICY — CONFLICTING ENDORSEMENT EXERCISE",
+        "page": null,
+        "score": 1.0,
+        "source_document_id": "doc_bc8303418f9d760875d2",
+        "source_filename": "05_conflicting_endorsement.txt",
+        "section_heading": "FICTIONAL TEST POLICY — CONFLICTING ENDORSEMENT EXERCISE",
+        "char_start": 99,
+        "char_end": 146,
+        "stable_location": "chars:99-146",
+        "extraction_method": "text_extraction",
+        "verification_status": "machine_verified",
+        "policy_clause_id": "clause_ee258d827c58928971b8",
+        "clause_type": null,
+        "proposition_ids": [
+          "coverage-theft"
+        ]
+      },
+      {
+        "source": "policy",
+        "text": "Theft is not covered under Endorsement T-17.",
+        "section": "FICTIONAL TEST POLICY — CONFLICTING ENDORSEMENT EXERCISE",
+        "page": null,
+        "score": 1.0,
+        "source_document_id": "doc_bc8303418f9d760875d2",
+        "source_filename": "05_conflicting_endorsement.txt",
+        "section_heading": "FICTIONAL TEST POLICY — CONFLICTING ENDORSEMENT EXERCISE",
+        "char_start": 147,
+        "char_end": 191,
+        "stable_location": "chars:147-191",
+        "extraction_method": "text_extraction",
+        "verification_status": "machine_verified",
+        "policy_clause_id": "clause_9993e7964d356bbf9974",
+        "clause_type": null,
+        "proposition_ids": [
+          "coverage-theft",
+          "policy-exclusion-theft-1",
+          "exclusion-theft excluded under Endorsement T-17-1"
+        ]
+      }
+    ],
+    "reasoning_summary": "The claim was classified as theft. Policy concept matching returned unclear. Potential exclusions were detected: theft excluded under Endorsement T-17. The claim package is missing: police report, proof of ownership. Image authenticity risk is low with score 0.0. This is a preliminary explainable opinion, not a final insurance decision. Final synthesis flagged: validator feedback, potential exclusions, missing documents. Orchestration stopped because budget_exhausted: Maximum repair iterations reached with rejected propositions unresolved."
   },
   {
     "id": "conflict-storm",
@@ -651,13 +1380,42 @@
     "expected_behavior": "May-be-covered wording should remain conditional and require review.",
     "image": null,
     "supporting_documents": [],
-    "claim_type": "unknown",
-    "coverage_assessment": "unclear",
+    "claim_type": "storm_damage",
+    "coverage_assessment": "possibly_covered",
     "claim_status": "requires_human_review",
-    "potential_exclusions": [],
-    "missing_documents": [],
-    "evidence": [],
-    "reasoning_summary": "The claim was classified as unknown. Policy concept matching returned unclear. Image authenticity risk is low with score 0.0. This is a preliminary explainable opinion, not a final insurance decision. Orchestration stopped because failure: Execution failed in a controlled graph node: ModelCallError."
+    "potential_exclusions": [
+      "wear and tear / roof maintenance condition"
+    ],
+    "missing_documents": [
+      "damage photos",
+      "weather report",
+      "repair estimate"
+    ],
+    "evidence": [
+      {
+        "source": "policy",
+        "text": "Storm damage may be covered if the roof was in a good state of repair before the incident.",
+        "section": "FICTIONAL TEST POLICY — CONFLICTING ENDORSEMENT EXERCISE",
+        "page": null,
+        "score": 1.0,
+        "source_document_id": "doc_bc8303418f9d760875d2",
+        "source_filename": "05_conflicting_endorsement.txt",
+        "section_heading": "FICTIONAL TEST POLICY — CONFLICTING ENDORSEMENT EXERCISE",
+        "char_start": 193,
+        "char_end": 283,
+        "stable_location": "chars:193-283",
+        "extraction_method": "text_extraction",
+        "verification_status": "machine_verified",
+        "policy_clause_id": "clause_c486530ac534ed781ab1",
+        "clause_type": null,
+        "proposition_ids": [
+          "missing-evidence-1",
+          "missing-evidence-3",
+          "condition-storm_damage-1"
+        ]
+      }
+    ],
+    "reasoning_summary": "The claim was classified as storm_damage. Policy concept matching returned possibly_covered. Potential exclusions were detected: wear and tear / roof maintenance condition. The claim package is missing: damage photos, weather report, repair estimate. Image authenticity risk is low with score 0.0. This is a preliminary explainable opinion, not a final insurance decision. Final synthesis flagged: validator feedback, potential exclusions, missing documents. Orchestration stopped because budget_exhausted: Maximum repair iterations reached with rejected propositions unresolved."
   },
   {
     "id": "conflict-water-ambiguous",
@@ -667,12 +1425,41 @@
     "expected_behavior": "A topic reference without operative coverage wording must fail closed to unclear.",
     "image": null,
     "supporting_documents": [],
-    "claim_type": "unknown",
-    "coverage_assessment": "unclear",
+    "claim_type": "water_damage",
+    "coverage_assessment": "possibly_covered",
     "claim_status": "requires_human_review",
-    "potential_exclusions": [],
-    "missing_documents": [],
-    "evidence": [],
-    "reasoning_summary": "The claim was classified as unknown. Policy concept matching returned unclear. Image authenticity risk is low with score 0.0. This is a preliminary explainable opinion, not a final insurance decision. Orchestration stopped because failure: Execution failed in a controlled graph node: ModelCallError."
+    "potential_exclusions": [
+      "gradual leakage / rot / wear and tear",
+      "pipe or apparatus itself"
+    ],
+    "missing_documents": [
+      "damage photos",
+      "plumber report",
+      "repair estimate"
+    ],
+    "evidence": [
+      {
+        "source": "policy",
+        "text": "Storm damage may be covered if the roof was in a good state of repair before the incident.",
+        "section": "FICTIONAL TEST POLICY — CONFLICTING ENDORSEMENT EXERCISE",
+        "page": null,
+        "score": 1.0,
+        "source_document_id": "doc_bc8303418f9d760875d2",
+        "source_filename": "05_conflicting_endorsement.txt",
+        "section_heading": "FICTIONAL TEST POLICY — CONFLICTING ENDORSEMENT EXERCISE",
+        "char_start": 193,
+        "char_end": 283,
+        "stable_location": "chars:193-283",
+        "extraction_method": "text_extraction",
+        "verification_status": "machine_verified",
+        "policy_clause_id": "clause_c486530ac534ed781ab1",
+        "clause_type": null,
+        "proposition_ids": [
+          "missing-evidence-1",
+          "missing-evidence-3"
+        ]
+      }
+    ],
+    "reasoning_summary": "The claim was classified as water_damage. Policy concept matching returned possibly_covered. Potential exclusions were detected: gradual leakage / rot / wear and tear, pipe or apparatus itself. The claim package is missing: damage photos, plumber report, repair estimate. Image authenticity risk is low with score 0.0. This is a preliminary explainable opinion, not a final insurance decision. Final synthesis flagged: validator feedback, potential exclusions, missing documents. Orchestration stopped because budget_exhausted: Maximum repair iterations reached with rejected propositions unresolved."
   }
 ]
